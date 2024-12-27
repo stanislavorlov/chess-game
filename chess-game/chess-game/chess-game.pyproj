@@ -1,0 +1,62 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>30a593b1-47ea-438a-b633-dc9a0177bdf7</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>chess_game.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <Name>chess-game</Name>
+    <RootNamespace>chess-game</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="chess_game.py" />
+    <Compile Include="Model\Board\Board.py" />
+    <Compile Include="Model\Board\Cell.py" />
+    <Compile Include="Model\Kernel\AggregateRoot.py" />
+    <Compile Include="Model\Kernel\Entity.py" />
+    <Compile Include="Model\Pieces\Bishop.py" />
+    <Compile Include="Model\Pieces\King.py" />
+    <Compile Include="Model\Pieces\Knight.py" />
+    <Compile Include="Model\Pieces\Pawn.py" />
+    <Compile Include="Model\Pieces\Piece.py" />
+    <Compile Include="Model\Pieces\Queen.py" />
+    <Compile Include="Model\Pieces\Rook.py" />
+    <Compile Include="Model\Players\Player.py" />
+    <Compile Include="Model\State\GameChecker.py" />
+    <Compile Include="Model\State\GameState.py" />
+    <Compile Include="Model\ValueObjects\Color.py" />
+    <Compile Include="Model\ValueObjects\Position.py" />
+    <Compile Include="Model\Kernel\ValueObject.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Model\" />
+    <Folder Include="Model\Board\" />
+    <Folder Include="Model\Kernel\" />
+    <Folder Include="Model\ValueObjects\" />
+    <Folder Include="Model\State\" />
+    <Folder Include="Model\Rules\" />
+    <Folder Include="Model\Players\" />
+    <Folder Include="Model\Pieces\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+  <!-- Uncomment the CoreCompile target to enable the Build command in
+       Visual Studio and specify your pre- and post-build commands in
+       the BeforeBuild and AfterBuild targets below. -->
+  <!--<Target Name="CoreCompile" />-->
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+</Project>

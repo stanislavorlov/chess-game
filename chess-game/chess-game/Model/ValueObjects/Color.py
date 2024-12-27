@@ -5,17 +5,17 @@ class Color(ValueObject):
     
     @classmethod
     def WHITE(cls):
-        return cls("white")
+        return cls("W")
 
     @classmethod
     def BLACK(cls):
-        return cls("black")
+        return cls("B")
     
-    def __post_init__(self):
-        if not isinstance(self._value, str):
+    def __str__(self):
+        return self._value.upper()
+    
+    def __init__(self, value) -> None:
+        if not isinstance(value, str):
             raise ValueError(f"Value must be a string")
         
-        if self._value:
-            raise ValueError(f"Value is already set")
-        
-        object.__setattr__(self, "value", self._value.lower())
+        self._value = value.lower()

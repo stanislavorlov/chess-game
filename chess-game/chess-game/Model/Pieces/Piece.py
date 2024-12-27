@@ -18,4 +18,4 @@ class Piece(Entity):
         return self.id == other.id  # Equality based on unique identity
 
     def __str__(self):
-        return f"{self.color.capitalize()} Pawn at {self.position}"
+        return f"{self.color} Pawn at {self.position}"

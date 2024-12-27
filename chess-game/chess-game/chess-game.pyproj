@@ -34,7 +34,6 @@
     <Compile Include="Model\Pieces\Queen.py" />
     <Compile Include="Model\Pieces\Rook.py" />
     <Compile Include="Model\Players\Player.py" />
-    <Compile Include="Model\State\GameChecker.py" />
     <Compile Include="Model\State\GameState.py" />
     <Compile Include="Model\ValueObjects\Color.py" />
     <Compile Include="Model\ValueObjects\Position.py" />

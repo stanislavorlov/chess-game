@@ -15,7 +15,7 @@ class Board(Entity):
         self._init_board()
         
     def _init_board(self):
-        self._cells = TypedDict('Cell', {})
+        self._cells = {}
         # for 2 players only
         for fileIdx, file in enumerate(self.FILES):
             for rankIdx, rank in enumerate(self.RANKS):

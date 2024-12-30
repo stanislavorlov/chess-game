@@ -27,10 +27,13 @@ class Board(Entity):
     def __get_color(self, file, rank):
         return Color.BLACK if (file + rank) % 2 == 0 else Color.WHITE
     
-    def place_piece(self, piece: Piece, position: Position):
-        if position.file in self.FILES and position.rank in self.RANKS:
-            cell: Cell = self._cells[str(position)]
-            if not cell.is_occupied():
-                cell.occupy(piece)
-            else:
-                print('check if enemy piece than take it and than occupy the cell')
+    def is_valid_position(self, position: Position) -> bool:
+        return position.file in self.FILES and position.rank in self.RANKS
+    
+    # def place_piece(self, piece: Piece, position: Position):
+    #     if position.file in self.FILES and position.rank in self.RANKS:
+    #         cell: Cell = self._cells[str(position)]
+    #         if not cell.is_occupied():
+    #             cell.occupy(piece)
+    #         else:
+    #             print('check if enemy piece than take it and than occupy the cell')

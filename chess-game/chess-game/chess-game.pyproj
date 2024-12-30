@@ -24,6 +24,7 @@
     <Compile Include="chess_game.py" />
     <Compile Include="Model\Board\Board.py" />
     <Compile Include="Model\Board\Cell.py" />
+    <Compile Include="Model\History\ChessGameHistory.py" />
     <Compile Include="Model\Kernel\AggregateRoot.py" />
     <Compile Include="Model\Kernel\Entity.py" />
     <Compile Include="Model\Pieces\Bishop.py" />
@@ -34,6 +35,7 @@
     <Compile Include="Model\Pieces\Queen.py" />
     <Compile Include="Model\Pieces\Rook.py" />
     <Compile Include="Model\Players\Player.py" />
+    <Compile Include="Model\History\MovementEvent.py" />
     <Compile Include="Model\State\GameState.py" />
     <Compile Include="Model\ValueObjects\Color.py" />
     <Compile Include="Model\ValueObjects\Position.py" />
@@ -43,6 +45,7 @@
     <Folder Include="Model\" />
     <Folder Include="Model\Board\" />
     <Folder Include="Model\Kernel\" />
+    <Folder Include="Model\History\" />
     <Folder Include="Model\ValueObjects\" />
     <Folder Include="Model\State\" />
     <Folder Include="Model\Rules\" />

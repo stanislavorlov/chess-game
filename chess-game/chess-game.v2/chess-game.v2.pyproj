@@ -22,6 +22,55 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="chess_game.v2.py" />
+    <Compile Include="Model\Board\chess_board.py" />
+    <Compile Include="Model\Board\square.py" />
+    <Compile Include="Model\painter.py" />
+    <Compile Include="Model\Events\ChessGameDomainEvent.py" />
+    <Compile Include="Model\Game\chess_game.py" />
+    <Compile Include="Model\Game\chess_game_history.py" />
+    <Compile Include="Model\Game\chess_game_id.py" />
+    <Compile Include="Model\Game\chess_game_state.py" />
+    <Compile Include="Model\Kernel\AggregateRoot.py" />
+    <Compile Include="Model\Kernel\Entity.py" />
+    <Compile Include="Model\Kernel\ValueObject.py" />
+    <Compile Include="Model\Movements\MovementEvent.py" />
+    <Compile Include="Model\Movements\MovementSpecification.py" />
+    <Compile Include="Model\Movements\MoveType.py" />
+    <Compile Include="Model\Pieces\Bishop.py" />
+    <Compile Include="Model\Pieces\King.py" />
+    <Compile Include="Model\Pieces\Knight.py" />
+    <Compile Include="Model\Pieces\Pawn.py" />
+    <Compile Include="Model\Pieces\Piece.py" />
+    <Compile Include="Model\Pieces\PieceType.py" />
+    <Compile Include="Model\Pieces\Queen.py" />
+    <Compile Include="Model\Pieces\Rook.py" />
+    <Compile Include="Model\Pieces\Side.py" />
+    <Compile Include="Model\Players\Players.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Content\" />
+    <Folder Include="Model\" />
+    <Folder Include="Model\Board\" />
+    <Folder Include="Model\Kernel\" />
+    <Folder Include="Model\Movements\" />
+    <Folder Include="Model\Game\" />
+    <Folder Include="Model\Events\" />
+    <Folder Include="Model\Players\" />
+    <Folder Include="Model\Pieces\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\bb.png" />
+    <Content Include="Content\bk.png" />
+    <Content Include="Content\bn.png" />
+    <Content Include="Content\bp.png" />
+    <Content Include="Content\bq.png" />
+    <Content Include="Content\br.png" />
+    <Content Include="Content\wb.png" />
+    <Content Include="Content\wk.png" />
+    <Content Include="Content\wn.png" />
+    <Content Include="Content\wp.png" />
+    <Content Include="Content\wq.png" />
+    <Content Include="Content\wr.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

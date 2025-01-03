@@ -1,0 +1,6 @@
+class ChessGameDomainEvent(object):
+    pass
+
+
+
+

@@ -22,43 +22,43 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="chess_game.v2.py" />
-    <Compile Include="Model\Board\chess_board.py" />
-    <Compile Include="Model\Board\square.py" />
-    <Compile Include="Model\Events\ChessGameStartedEvent.py" />
-    <Compile Include="Model\Events\DomainEventId.py" />
-    <Compile Include="Model\painter.py" />
-    <Compile Include="Model\Events\ChessGameDomainEvent.py" />
-    <Compile Include="Model\Game\chess_game.py" />
-    <Compile Include="Model\Game\chess_game_history.py" />
-    <Compile Include="Model\Game\chess_game_id.py" />
-    <Compile Include="Model\Game\chess_game_state.py" />
-    <Compile Include="Model\Kernel\AggregateRoot.py" />
-    <Compile Include="Model\Kernel\Entity.py" />
-    <Compile Include="Model\Kernel\ValueObject.py" />
-    <Compile Include="Model\Movements\MovementEvent.py" />
-    <Compile Include="Model\Movements\MovementSpecification.py" />
-    <Compile Include="Model\Movements\MoveType.py" />
-    <Compile Include="Model\Pieces\Bishop.py" />
-    <Compile Include="Model\Pieces\King.py" />
-    <Compile Include="Model\Pieces\Knight.py" />
-    <Compile Include="Model\Pieces\Pawn.py" />
-    <Compile Include="Model\Pieces\Piece.py" />
-    <Compile Include="Model\Pieces\PieceType.py" />
-    <Compile Include="Model\Pieces\Queen.py" />
-    <Compile Include="Model\Pieces\Rook.py" />
-    <Compile Include="Model\Pieces\Side.py" />
-    <Compile Include="Model\Players\Players.py" />
+    <Compile Include="Domain\Board\chess_board.py" />
+    <Compile Include="Domain\Board\square.py" />
+    <Compile Include="Domain\Events\ChessGameStartedEvent.py" />
+    <Compile Include="Domain\Events\DomainEventId.py" />
+    <Compile Include="Domain\painter.py" />
+    <Compile Include="Domain\Events\ChessGameDomainEvent.py" />
+    <Compile Include="Domain\Game\chess_game.py" />
+    <Compile Include="Domain\Game\chess_game_history.py" />
+    <Compile Include="Domain\Game\chess_game_id.py" />
+    <Compile Include="Domain\Game\chess_game_state.py" />
+    <Compile Include="Domain\Kernel\AggregateRoot.py" />
+    <Compile Include="Domain\Kernel\Entity.py" />
+    <Compile Include="Domain\Kernel\ValueObject.py" />
+    <Compile Include="Domain\Movements\MovementEvent.py" />
+    <Compile Include="Domain\Movements\MovementSpecification.py" />
+    <Compile Include="Domain\Movements\MoveType.py" />
+    <Compile Include="Domain\Pieces\Bishop.py" />
+    <Compile Include="Domain\Pieces\King.py" />
+    <Compile Include="Domain\Pieces\Knight.py" />
+    <Compile Include="Domain\Pieces\Pawn.py" />
+    <Compile Include="Domain\Pieces\Piece.py" />
+    <Compile Include="Domain\Pieces\PieceType.py" />
+    <Compile Include="Domain\Pieces\Queen.py" />
+    <Compile Include="Domain\Pieces\Rook.py" />
+    <Compile Include="Domain\Pieces\Side.py" />
+    <Compile Include="Domain\Players\Players.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\" />
-    <Folder Include="Model\" />
-    <Folder Include="Model\Board\" />
-    <Folder Include="Model\Kernel\" />
-    <Folder Include="Model\Movements\" />
-    <Folder Include="Model\Game\" />
-    <Folder Include="Model\Events\" />
-    <Folder Include="Model\Players\" />
-    <Folder Include="Model\Pieces\" />
+    <Folder Include="Domain\" />
+    <Folder Include="Domain\Board\" />
+    <Folder Include="Domain\Kernel\" />
+    <Folder Include="Domain\Movements\" />
+    <Folder Include="Domain\Game\" />
+    <Folder Include="Domain\Events\" />
+    <Folder Include="Domain\Players\" />
+    <Folder Include="Domain\Pieces\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bb.png" />

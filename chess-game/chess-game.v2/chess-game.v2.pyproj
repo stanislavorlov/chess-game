@@ -24,6 +24,8 @@
     <Compile Include="chess_game.v2.py" />
     <Compile Include="Model\Board\chess_board.py" />
     <Compile Include="Model\Board\square.py" />
+    <Compile Include="Model\Events\ChessGameStartedEvent.py" />
+    <Compile Include="Model\Events\DomainEventId.py" />
     <Compile Include="Model\painter.py" />
     <Compile Include="Model\Events\ChessGameDomainEvent.py" />
     <Compile Include="Model\Game\chess_game.py" />

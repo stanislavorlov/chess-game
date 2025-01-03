@@ -7,5 +7,6 @@ class ChessGameState(object):
         self._id : ChessGameId = None
         self._board : ChessBoard = None
         self._players : Players = None
-        
+        self._started : bool = False
+        self._finished : bool = False
         

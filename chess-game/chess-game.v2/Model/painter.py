@@ -1,5 +1,4 @@
 from Model.Game.chess_game import ChessGame
-from Model.Game.chess_game_state import ChessGameState
 
 import matplotlib.pyplot as plt
 import numpy as np

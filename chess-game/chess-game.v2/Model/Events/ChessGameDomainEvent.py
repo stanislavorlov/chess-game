@@ -1,6 +1,6 @@
+from Model.Events.DomainEventId import DomainEventId
+
 class ChessGameDomainEvent(object):
-    pass
-
-
-
-
+    
+    def __init__(self, eventId: DomainEventId):
+        self._eventId = eventId

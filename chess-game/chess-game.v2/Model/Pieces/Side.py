@@ -3,11 +3,11 @@ class Side:
     
     @classmethod
     def WHITE(cls):
-        return cls("W")
+        return cls("WHITE")
 
     @classmethod
     def BLACK(cls):
-        return cls("B")
+        return cls("BLACK")
     
     def __str__(self):
         return self._value.upper()

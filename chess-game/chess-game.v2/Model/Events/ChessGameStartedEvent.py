@@ -16,6 +16,6 @@ class ChessGameStartedData:
 class ChessGameStartedEvent(ChessGameDomainEvent):
     
     def __init__(self, gameId: ChessGameId, data: ChessGameStartedData):
-        super(DomainEventId.generate_event_id())
+        super().__init__(DomainEventId.generate_event_id())
         self._gameId = gameId
         self._data = data

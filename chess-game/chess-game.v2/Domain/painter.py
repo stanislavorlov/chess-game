@@ -1,4 +1,4 @@
-from Model.Game.chess_game import ChessGame
+from Domain.Game.chess_game import ChessGame
 
 import matplotlib.pyplot as plt
 import numpy as np

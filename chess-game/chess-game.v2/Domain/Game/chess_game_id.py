@@ -1,5 +1,5 @@
 from uuid import UUID
-from Model.Kernel.ValueObject import ValueObject
+from Domain.Kernel.ValueObject import ValueObject
 
 class ChessGameId(ValueObject):
     gameId: str

@@ -1,9 +1,9 @@
-from Model.Board.chess_board import ChessBoard
-from Model.Game.chess_game import ChessGame
-from Model.Game.chess_game_id import ChessGameId
-from Model.Pieces.Side import Side
-from Model.Players.Players import Players
-from Model.painter import Painter
+from Domain.Board.chess_board import ChessBoard
+from Domain.Game.chess_game import ChessGame
+from Domain.Game.chess_game_id import ChessGameId
+from Domain.Pieces.Side import Side
+from Domain.Players.Players import Players
+from Domain.painter import Painter
 
 value = input("Choose your side WHITE or BLACK: ")
 startSide = Side.BLACK if str(Side.BLACK()) == value else Side.WHITE()

@@ -1,9 +1,9 @@
-from Model.Board.chess_board import ChessBoard
-from Model.Events.ChessGameDomainEvent import ChessGameDomainEvent
-from Model.Events.DomainEventId import DomainEventId
-from Model.Game.chess_game_id import ChessGameId
-from Model.Pieces.Side import Side
-from Model.Players.Players import Players
+from Domain.Board.chess_board import ChessBoard
+from Domain.Events.ChessGameDomainEvent import ChessGameDomainEvent
+from Domain.Events.DomainEventId import DomainEventId
+from Domain.Game.chess_game_id import ChessGameId
+from Domain.Pieces.Side import Side
+from Domain.Players.Players import Players
 
 class ChessGameStartedData:
     

@@ -1,4 +1,4 @@
-from Model.Movements import MovementEvent
+from Domain.Movements import MovementEvent
 
 class ChessGameHistory:
     def __init__(self, history: []):

@@ -1,4 +1,4 @@
-from Model.Piece import Piece
+from Domain.Pieces import Piece
 
 class Bishop(Piece):
     pass

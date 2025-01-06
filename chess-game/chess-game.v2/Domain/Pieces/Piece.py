@@ -1,5 +1,5 @@
-from Model.Pieces.PieceType import PieceType
-from Model.Pieces.Side import Side
+from Domain.Pieces.PieceType import PieceType
+from Domain.Pieces.Side import Side
 
 class Piece:
     # patternMoves

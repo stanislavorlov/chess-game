@@ -1,4 +1,4 @@
-from Model.Piece import Piece
+from Domain.Pieces import Piece
 
 class Rook(Piece):
     pass

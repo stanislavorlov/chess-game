@@ -1,6 +1,6 @@
-from Model.Board.square import Square
-from Model.Pieces import Piece
-from Model.Movements import MoveType
+from Domain.Board.square import Square
+from Domain.Pieces import Piece
+from Domain.Movements import MoveType
 
 class MovementEvent:
     def __init__(self, from_: Square, to: Square, piece: Piece, type_: MoveType):

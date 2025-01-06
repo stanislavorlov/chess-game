@@ -1,6 +1,6 @@
 from datetime import datetime
 import uuid
-from Model.Kernel.ValueObject import ValueObject
+from Domain.Kernel.ValueObject import ValueObject
 
 class DomainEventId(ValueObject):
     

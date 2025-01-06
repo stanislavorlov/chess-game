@@ -1,4 +1,4 @@
-from Model.Events.DomainEventId import DomainEventId
+from Domain.Events.DomainEventId import DomainEventId
 
 class ChessGameDomainEvent(object):
     

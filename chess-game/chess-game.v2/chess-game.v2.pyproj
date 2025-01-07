@@ -48,7 +48,8 @@
     <Compile Include="Domain\Pieces\Rook.py" />
     <Compile Include="Domain\Pieces\Side.py" />
     <Compile Include="Domain\Players\Players.py" />
-    <Compile Include="Infrastructure\domain_event_bus.py" />
+    <Compile Include="Infrastructure\Handlers\chess_game_started_handler.py" />
+    <Compile Include="Infrastructure\mediator.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\" />
@@ -61,6 +62,7 @@
     <Folder Include="Domain\Players\" />
     <Folder Include="Domain\Pieces\" />
     <Folder Include="Infrastructure\" />
+    <Folder Include="Infrastructure\Handlers\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bb.png" />

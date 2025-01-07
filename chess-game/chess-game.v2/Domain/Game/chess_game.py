@@ -8,19 +8,17 @@ from Domain.Game.chess_game_id import ChessGameId
 from Domain.Game.chess_game_state import ChessGameState
 from Domain.Pieces.Side import Side
 from Domain.Players.Players import Players
-from Infrastructure.domain_event_bus import DomainEventBus
+from Infrastructure.mediator import Mediator
 
 class ChessGame(object):
     
-    def __init__(self):
+    def __init__(self, mediator: Mediator):
         self._history: ChessGameHistory = None
         self._state: ChessGameState = None
-        self._domainEvents: List[ChessGameDomainEvent] = []
-        self._eventBus = DomainEventBus()
+        self._mediator = mediator
         
     def start(self, chessBoard: ChessBoard, id: ChessGameId, startSide: Side, players: Players):
         chessGameStartedData = ChessGameStartedData(id, chessBoard, startSide, players)
         chessGameStarted = ChessGameStartedEvent(id, chessGameStartedData)
         
-        self._domainEvents.append(chessGameStarted)
-        self._eventBus.publish(chessGameStarted)
+        self._mediator.publish(chessGameStarted)

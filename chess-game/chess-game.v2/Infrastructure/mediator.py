@@ -13,6 +13,6 @@ class Mediator:
         if request_type in self._handlers:
             handler = self._handlers[request_type]
             
-            return handler.handle(handler, domainEvent)
+            return handler.handle(domainEvent)
         
         raise Exception(f"No handler registered for {request_type}")

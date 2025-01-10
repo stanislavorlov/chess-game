@@ -6,14 +6,17 @@ from Domain.Pieces.Side import Side
 from Domain.Players.Players import Players
 from Domain.painter import Painter
 from Infrastructure.Handlers.chess_game_started_handler import ChessGameStartedHandler
+from Infrastructure.Repositories.ChessGameRepository import ChessGameRepository
 from Infrastructure.mediator import Mediator
 
 value = input("Choose your side WHITE or BLACK: ")
 startSide = Side.BLACK if str(Side.BLACK()) == value else Side.WHITE()
 print("Your game side:" + str(startSide))
 
+chessRepository = ChessGameRepository()
+
 mediator = Mediator()
-mediator.register_handler(ChessGameStartedEvent, ChessGameStartedHandler)
+mediator.register_handler(ChessGameStartedEvent, ChessGameStartedHandler(chessRepository))
 
 chessBoard = ChessBoard()
 chessGameId = ChessGameId()

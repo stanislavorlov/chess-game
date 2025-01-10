@@ -16,29 +16,25 @@ class chess_game(object):
         return self._board
     
     def __initialize_board(self):
+        board = []
         
         if self._playerSide == Side.WHITE():
-
-            self._board = [
-                ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-                ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
-                [None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None],
-                ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
-                ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
-            ]
-            
+            board.append(["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"])
+            board.append(["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"])
         else:
+            board.append(["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"])
+            board.append(["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"])
             
-            self._board = [
-                ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
-                ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
-                [None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None],
-                ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
-                ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-            ]
+        board.append([None, None, None, None, None, None, None, None])
+        board.append([None, None, None, None, None, None, None, None])
+        board.append([None, None, None, None, None, None, None, None])
+        board.append([None, None, None, None, None, None, None, None])
+        
+        if self._playerSide == Side.WHITE():
+            board.append(["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"])
+            board.append(["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"])
+        else:
+            board.append(["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"])
+            board.append(["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"])
+
+        self._board = board

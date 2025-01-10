@@ -17,9 +17,3 @@ class Side:
             raise ValueError(f"Value must be a string")
         
         self._value = value.lower()
-        
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, Side):
-            return self._value == other._value
-        
-        return False

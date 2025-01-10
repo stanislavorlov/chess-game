@@ -16,25 +16,17 @@ class chess_game(object):
         return self._board
     
     def __initialize_board(self):
-        board = []
-        
-        if self._playerSide == Side.WHITE():
-            board.append(["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"])
-            board.append(["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"])
-        else:
-            board.append(["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"])
-            board.append(["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"])
-            
-        board.append([None, None, None, None, None, None, None, None])
-        board.append([None, None, None, None, None, None, None, None])
-        board.append([None, None, None, None, None, None, None, None])
-        board.append([None, None, None, None, None, None, None, None])
-        
-        if self._playerSide == Side.WHITE():
-            board.append(["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"])
-            board.append(["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"])
-        else:
-            board.append(["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"])
-            board.append(["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"])
-
+        board = [
+            ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
+            ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
+            [None, None, None, None, None, None, None, None],
+            [None, None, None, None, None, None, None, None],
+            [None, None, None, None, None, None, None, None],
+            [None, None, None, None, None, None, None, None],
+            ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
+            ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]
+        ]
         self._board = board
+        
+        if self._playerSide._value == Side.BLACK()._value:
+            self._board.reverse()

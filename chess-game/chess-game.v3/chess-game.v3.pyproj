@@ -22,6 +22,39 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="chess_game.v3.py" />
+    <Compile Include="Domain\chess_game.py" />
+    <Compile Include="Domain\Pieces\Bishop.py" />
+    <Compile Include="Domain\Pieces\King.py" />
+    <Compile Include="Domain\Pieces\Knight.py" />
+    <Compile Include="Domain\Pieces\Pawn.py" />
+    <Compile Include="Domain\Pieces\Piece.py" />
+    <Compile Include="Domain\Pieces\PieceType.py" />
+    <Compile Include="Domain\Pieces\Queen.py" />
+    <Compile Include="Domain\Pieces\Rook.py" />
+    <Compile Include="Domain\side.py" />
+    <Compile Include="Interface\presenter.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Application\" />
+    <Folder Include="Domain\" />
+    <Folder Include="Domain\Pieces\" />
+    <Folder Include="Infrastructure\" />
+    <Folder Include="Interface\" />
+    <Folder Include="Interface\Content\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Interface\Content\bb.png" />
+    <Content Include="Interface\Content\bk.png" />
+    <Content Include="Interface\Content\bn.png" />
+    <Content Include="Interface\Content\bp.png" />
+    <Content Include="Interface\Content\bq.png" />
+    <Content Include="Interface\Content\br.png" />
+    <Content Include="Interface\Content\wb.png" />
+    <Content Include="Interface\Content\wk.png" />
+    <Content Include="Interface\Content\wn.png" />
+    <Content Include="Interface\Content\wp.png" />
+    <Content Include="Interface\Content\wq.png" />
+    <Content Include="Interface\Content\wr.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

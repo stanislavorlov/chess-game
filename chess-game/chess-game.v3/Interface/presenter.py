@@ -21,35 +21,9 @@ class presenter(object):
         files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
         ranks = list(range(8, 0, -1))
 
-        # Paths to chess piece images (adjust paths to your file locations)
-        piece_images = {
-            "wP": "./Interface/Content/wp.png",
-            "wR": "./Interface/Content/wr.png",
-            "wN": "./Interface/Content/wn.png",
-            "wB": "./Interface/Content/wb.png",
-            "wQ": "./Interface/Content/wq.png",
-            "wK": "./Interface/Content/wk.png",
-            "bP": "./Interface/Content/bp.png",
-            "bR": "./Interface/Content/br.png",
-            "bN": "./Interface/Content/bn.png",
-            "bB": "./Interface/Content/bb.png",
-            "bQ": "./Interface/Content/bq.png",
-            "bK": "./Interface/Content/bk.png",
-        }
-
-        sample_piece_path = piece_images["wP"]
-        if not os.path.exists(sample_piece_path):
-            raise FileNotFoundError(f"Image file not found: {sample_piece_path}")
-        sample_image = mpimg.imread(sample_piece_path)
-        piece_height, piece_width = sample_image.shape[:2]  # Get the dimensions of the image
-        
-        # Set the figure size based on piece dimensions
-        square_size = max(piece_width, piece_height) / 100  # Scale to figure units
+        square_size = self.get_square_size()
         fig_size = board_size * square_size
         fig, ax = plt.subplots(figsize=(fig_size, fig_size))
-
-        # Initial piece placement (simplified starting position)
-        initial_board = self._game._board.get_board_view()
         
         selected_square = None  # Keep track of the selected square
 
@@ -63,13 +37,7 @@ class presenter(object):
         ax.grid(which="major", color="black", linestyle="-", linewidth=1)
         ax.tick_params(axis="both", which="both", length=0, labelsize=0)
 
-        # Place chess pieces on the board
-        for row in range(board_size):
-            for col in range(board_size):
-                piece = initial_board[row][col]
-                if piece:
-                    image = mpimg.imread(piece_images[piece])  # Load the piece image
-                    ax.imshow(image, extent=(col, col + 1, 7 - row, 8 - row))  # Position the image
+        self.draw_pieces(ax, board_size)
 
         # Add rank and file labels
         ax.set_xticks(np.arange(0.5, board_size, 1), minor=True)
@@ -102,15 +70,44 @@ class presenter(object):
         # Display the chessboard with pieces
         plt.show()
 
-    def draw_pieces(self):
-        if self._game.get_playerSide() == Side.WHITE:
-            print("white pieces")
-        elif self._game.get_playerSide() == Side.BLACK:
-            print("black pieces")
-            
-        img = mpimg.imread('./Interface/Content/bb.png')
-        plt.figure(figsize=(6, 6))
-        plt.imshow(img)
+    def draw_pieces(self, ax, board_size):
+        initial_board = self._game._board.get_board_view()
+
+        # Place chess pieces on the board
+        for row in range(board_size):
+            for col in range(board_size):
+                piece = initial_board[row][col]
+                if piece:
+                    image = mpimg.imread(self.get_pieces()[piece])  # Load the piece image
+                    ax.imshow(image, extent=(col, col + 1, 7 - row, 8 - row))  # Position the image
+
+    def get_pieces(self):
+        return {
+            "wP": "./Interface/Content/wp.png",
+            "wR": "./Interface/Content/wr.png",
+            "wN": "./Interface/Content/wn.png",
+            "wB": "./Interface/Content/wb.png",
+            "wQ": "./Interface/Content/wq.png",
+            "wK": "./Interface/Content/wk.png",
+            "bP": "./Interface/Content/bp.png",
+            "bR": "./Interface/Content/br.png",
+            "bN": "./Interface/Content/bn.png",
+            "bB": "./Interface/Content/bb.png",
+            "bQ": "./Interface/Content/bq.png",
+            "bK": "./Interface/Content/bk.png",
+        }
+    
+    def get_square_size(self):
+        sample_piece_path = next(iter(self.get_pieces().values()))
+        if not os.path.exists(sample_piece_path):
+            raise FileNotFoundError(f"Image file not found: {sample_piece_path}")
+        sample_image = mpimg.imread(sample_piece_path)
+        piece_height, piece_width = sample_image.shape[:2]  # Get the dimensions of the image
+        
+        # Set the figure size based on piece dimensions
+        square_size = max(piece_width, piece_height) / 100  # Scale to figure units
+        
+        return square_size
 
     def draw_chessboard(self):
         # Define the size of the chessboard

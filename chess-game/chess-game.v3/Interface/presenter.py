@@ -3,7 +3,6 @@ from matplotlib import pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
 import matplotlib.patches as patches
-from Domain.Side import Side
 from Domain.chess_game import chess_game
 
 class presenter(object):
@@ -17,9 +16,9 @@ class presenter(object):
         chessboard[1::2, ::2] = 1  # Black squares in odd rows
         chessboard[::2, 1::2] = 1  # Black squares in even rows
 
-        # Chessboard labels
-        files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-        ranks = list(range(8, 0, -1))
+        board = self._game.get_board()
+        files = board.get_files()
+        ranks = board.get_ranks()
 
         square_size = self.get_square_size()
         fig_size = board_size * square_size
@@ -71,7 +70,7 @@ class presenter(object):
         plt.show()
 
     def draw_pieces(self, ax, board_size):
-        initial_board = self._game._board.get_board_view()
+        initial_board = self._game.get_board().get_board_view()
 
         # Place chess pieces on the board
         for row in range(board_size):

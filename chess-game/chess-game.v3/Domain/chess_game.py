@@ -18,3 +18,6 @@ class chess_game(object):
             
     def select_piece(self, file, rank):
         print(f"selected piece: ")
+
+    def get_board(self):
+        return self._board

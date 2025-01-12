@@ -49,7 +49,7 @@ class presenter(object):
         fig, ax = plt.subplots(figsize=(fig_size, fig_size))
 
         # Initial piece placement (simplified starting position)
-        initial_board = self._game.get_board()
+        initial_board = self._game._board.get_board_view()
         
         selected_square = None  # Keep track of the selected square
 
@@ -94,6 +94,7 @@ class presenter(object):
                 fig.canvas.draw()  # Redraw the canvas
                 square = f"{files[x]}{ranks[7 - y]}"  # Convert to chess notation
                 print(f"Clicked square: {square}")
+                self._game.select_piece(files[x], ranks[7 - y])
 
         # Connect the click handler
         fig.canvas.mpl_connect("button_press_event", on_click)

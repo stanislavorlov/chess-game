@@ -22,7 +22,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="chess_game.v3.py" />
+    <Compile Include="Domain\chess_board.py" />
     <Compile Include="Domain\chess_game.py" />
+    <Compile Include="Domain\game_state.py" />
     <Compile Include="Domain\Pieces\Bishop.py" />
     <Compile Include="Domain\Pieces\King.py" />
     <Compile Include="Domain\Pieces\Knight.py" />

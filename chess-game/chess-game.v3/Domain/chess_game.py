@@ -8,10 +8,8 @@ class chess_game(object):
         self._started : bool = False
         self._finished : bool = False
         self._playerSide: Side = playerSide
-        self._gameState: game_state = game_state()
-        self._board: chess_board = chess_board(self._playerSide)
-        
-        # self.__initialize_board()
+        self._gameState: game_state = game_state(self._playerSide)
+        self._board: chess_board = chess_board()
         
     def get_playerSide(self) -> Side:
         return self._playerSide
@@ -21,3 +19,6 @@ class chess_game(object):
 
     def get_board(self):
         return self._board
+    
+    def get_state(self):
+        return self._gameState.get_state()

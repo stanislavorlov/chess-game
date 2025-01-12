@@ -70,7 +70,7 @@ class presenter(object):
         plt.show()
 
     def draw_pieces(self, ax, board_size):
-        initial_board = self._game.get_board().get_board_view()
+        initial_board = self._game.get_state()
 
         # Place chess pieces on the board
         for row in range(board_size):

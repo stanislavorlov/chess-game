@@ -18,6 +18,8 @@ class game_state(object):
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
             ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]
         ]
+
+        # ToDo: array of pieces instead of strings
         
         if playerSide._value == Side.BLACK()._value:
             state.reverse()

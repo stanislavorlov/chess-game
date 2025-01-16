@@ -4,12 +4,12 @@ import matplotlib.image as mpimg
 import numpy as np
 import matplotlib.patches as patches
 
-from Domain.Pieces.Piece import Piece
-from Domain.chess_game import chess_game
+from domain.pieces.piece import Piece
+from domain.chess_game import ChessGame
 
 class Presenter(object):
     
-    def __init__(self, game: chess_game):
+    def __init__(self, game: ChessGame):
         self._game = game
       
     def draw(self):
@@ -85,18 +85,18 @@ class Presenter(object):
     @staticmethod
     def get_pieces():
         return {
-            "wp": "./Interface/Content/wp.png",
-            "wr": "./Interface/Content/wr.png",
-            "wn": "./Interface/Content/wn.png",
-            "wb": "./Interface/Content/wb.png",
-            "wq": "./Interface/Content/wq.png",
-            "wk": "./Interface/Content/wk.png",
-            "bp": "./Interface/Content/bp.png",
-            "br": "./Interface/Content/br.png",
-            "bn": "./Interface/Content/bn.png",
-            "bb": "./Interface/Content/bb.png",
-            "bq": "./Interface/Content/bq.png",
-            "bk": "./Interface/Content/bk.png",
+            "wp": "./interface/Content/wp.png",
+            "wr": "./interface/Content/wr.png",
+            "wn": "./interface/Content/wn.png",
+            "wb": "./interface/Content/wb.png",
+            "wq": "./interface/Content/wq.png",
+            "wk": "./interface/Content/wk.png",
+            "bp": "./interface/Content/bp.png",
+            "br": "./interface/Content/br.png",
+            "bn": "./interface/Content/bn.png",
+            "bb": "./interface/Content/bb.png",
+            "bq": "./interface/Content/bq.png",
+            "bk": "./interface/Content/bk.png",
         }
 
     def get_square_size(self):

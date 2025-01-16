@@ -1,6 +1,6 @@
-from Domain.Side import Side
+from domain.side import Side
 
-class chess_board(object):
+class ChessBoard(object):
     
     def __init__(self):
         # Chessboard labels

@@ -1,6 +1,6 @@
 from abc import abstractmethod
-from Domain.Pieces.PieceType import PieceType
-from Domain.Side import Side
+from domain.pieces.piece_type import PieceType
+from domain.side import Side
 
 class Piece(object):
     def __init__(self, side: Side, type_: PieceType):
@@ -9,10 +9,10 @@ class Piece(object):
         # patternMoves
         
     def is_white(self) -> bool:
-        return self._side == Side.WHITE
+        return self._side == Side.white
     
     def is_black(self) -> bool:
-        return self._side == Side.BLACK
+        return self._side == Side.black
 
     def get_acronym(self) -> str:
         return f"{self._side}{self._type.value}".lower()

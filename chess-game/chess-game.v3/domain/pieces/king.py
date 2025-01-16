@@ -1,8 +1,8 @@
 from typing import override
 
-from Domain.Pieces.Piece import Piece
-from Domain.Pieces.PieceType import PieceType
-from Domain.Side import Side
+from domain.pieces.piece import Piece
+from domain.pieces.piece_type import PieceType
+from domain.side import Side
 
 class King(Piece):
 

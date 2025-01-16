@@ -2,11 +2,11 @@ class Side:
     __slots__ = ['_value']
     
     @classmethod
-    def WHITE(cls):
+    def white(cls):
         return cls("W")
 
     @classmethod
-    def BLACK(cls):
+    def black(cls):
         return cls("B")
     
     def __str__(self):

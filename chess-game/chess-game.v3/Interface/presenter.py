@@ -3,9 +3,11 @@ from matplotlib import pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
 import matplotlib.patches as patches
+
+from Domain.Pieces.Piece import Piece
 from Domain.chess_game import chess_game
 
-class presenter(object):
+class Presenter(object):
     
     def __init__(self, game: chess_game):
         self._game = game
@@ -75,25 +77,26 @@ class presenter(object):
         # Place chess pieces on the board
         for row in range(board_size):
             for col in range(board_size):
-                piece = initial_board[row][col]
+                piece: Piece = initial_board[row][col]
                 if piece:
-                    image = mpimg.imread(self.get_pieces()[piece])  # Load the piece image
+                    image = mpimg.imread(Presenter.get_pieces()[piece.get_acronym()])  # Load the piece image
                     ax.imshow(image, extent=(col, col + 1, 7 - row, 8 - row))  # Position the image
 
-    def get_pieces(self):
+    @staticmethod
+    def get_pieces():
         return {
-            "wP": "./Interface/Content/wp.png",
-            "wR": "./Interface/Content/wr.png",
-            "wN": "./Interface/Content/wn.png",
-            "wB": "./Interface/Content/wb.png",
-            "wQ": "./Interface/Content/wq.png",
-            "wK": "./Interface/Content/wk.png",
-            "bP": "./Interface/Content/bp.png",
-            "bR": "./Interface/Content/br.png",
-            "bN": "./Interface/Content/bn.png",
-            "bB": "./Interface/Content/bb.png",
-            "bQ": "./Interface/Content/bq.png",
-            "bK": "./Interface/Content/bk.png",
+            "wp": "./Interface/Content/wp.png",
+            "wr": "./Interface/Content/wr.png",
+            "wn": "./Interface/Content/wn.png",
+            "wb": "./Interface/Content/wb.png",
+            "wq": "./Interface/Content/wq.png",
+            "wk": "./Interface/Content/wk.png",
+            "bp": "./Interface/Content/bp.png",
+            "br": "./Interface/Content/br.png",
+            "bn": "./Interface/Content/bn.png",
+            "bb": "./Interface/Content/bb.png",
+            "bq": "./Interface/Content/bq.png",
+            "bk": "./Interface/Content/bk.png",
         }
 
     def get_square_size(self):

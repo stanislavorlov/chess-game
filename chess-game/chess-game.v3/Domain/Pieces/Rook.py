@@ -1,4 +1,4 @@
-from Domain.Pieces import Piece
+from Domain.Pieces.Piece import Piece
 from Domain.Side import Side
 from Domain.Pieces.PieceType import PieceType
 

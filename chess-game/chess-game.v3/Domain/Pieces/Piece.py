@@ -13,3 +13,6 @@ class Piece(object):
     
     def is_black(self) -> bool:
         return self._side == Side.BLACK
+
+    def get_acronym(self) -> str:
+        return f"{self._side}{self._type.value}".lower()

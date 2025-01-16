@@ -4,14 +4,14 @@ from domain.game_state import GameState
 
 class ChessGame(object):
     
-    def __init__(self, playerSide: Side):
+    def __init__(self, player_side: Side):
         self._started : bool = False
         self._finished : bool = False
-        self._playerSide: Side = playerSide
+        self._playerSide: Side = player_side
         self._gameState: GameState = GameState(self._playerSide)
         self._board: ChessBoard = ChessBoard()
         
-    def get_playerSide(self) -> Side:
+    def get_player_side(self) -> Side:
         return self._playerSide
             
     def select_piece(self, file, rank):

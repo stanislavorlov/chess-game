@@ -8,12 +8,12 @@ from domain.pieces.rook import Rook
 
 class GameState(object):
     
-    def __init__(self, playerSide: Side):
-        self._playerSide = playerSide
+    def __init__(self, player_side: Side):
+        self._playerSide = player_side
         self._state = []
         self.__initialize_game(self._playerSide)
 
-    def __initialize_game(self, playerSide: Side):
+    def __initialize_game(self, player_side: Side):
         state = [
             [Rook(Side.black()), Knight(Side.black()), Bishop(Side.black()), Queen(Side.black()), King(Side.black()), Bishop(Side.black()), Knight(Side.black()), Rook(Side.black())],
             [Pawn(Side.black()), Pawn(Side.black()), Pawn(Side.black()), Pawn(Side.black()), Pawn(Side.black()), Pawn(Side.black()), Pawn(Side.black()), Pawn(Side.black())],
@@ -25,7 +25,7 @@ class GameState(object):
             [Rook(Side.white()), Knight(Side.white()), Bishop(Side.white()), Queen(Side.white()), King(Side.white()), Bishop(Side.white()), Knight(Side.white()), Rook(Side.white())],
         ]
         
-        if playerSide._value == Side.black()._value:
+        if str(player_side) == str(Side.black()):
             state.reverse()
 
         self._state = state

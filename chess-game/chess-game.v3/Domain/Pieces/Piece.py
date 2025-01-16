@@ -13,7 +13,3 @@ class Piece(object):
     
     def is_black(self) -> bool:
         return self._side == Side.BLACK
-    
-    @abstractmethod
-    def get_acronym(self) -> str:
-        pass

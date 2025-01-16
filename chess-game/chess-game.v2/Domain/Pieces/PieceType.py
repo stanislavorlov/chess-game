@@ -1,9 +1,9 @@
-from enum import Enum
+from enum import StrEnum
 
-class PieceType(Enum):
-    King = 1
-    Queen = 2
-    Bishop = 3
-    Knight = 4
-    Rook = 5
-    Pawn = 6
+class PieceType(StrEnum):
+    King = 'K'
+    Queen = 'Q'
+    Bishop = 'B'
+    Knight = 'N'
+    Rook = 'R'
+    Pawn = 'P'

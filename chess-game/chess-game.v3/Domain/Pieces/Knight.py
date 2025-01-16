@@ -1,4 +1,8 @@
-from Domain.Pieces import Piece
+from Domain.Pieces.Piece import Piece
+from Domain.Pieces.PieceType import PieceType
+from Domain.Side import Side
 
 class Knight(Piece):
-    pass
+
+    def __init__(self, side: Side):
+        super().__init__(side, PieceType.Knight)

@@ -1,4 +1,10 @@
 from Domain.Side import Side
+from Domain.Pieces.Bishop import Bishop
+from Domain.Pieces.King import King
+from Domain.Pieces.Knight import Knight
+from Domain.Pieces.Pawn import Pawn
+from Domain.Pieces.Queen import Queen
+from Domain.Pieces.Rook import Rook
 
 class game_state(object):
     
@@ -8,18 +14,28 @@ class game_state(object):
         self.__initialize_game(self._playerSide)
 
     def __initialize_game(self, playerSide: Side):
-        state = [
-            ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-            ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
-            [None, None, None, None, None, None, None, None],
-            [None, None, None, None, None, None, None, None],
-            [None, None, None, None, None, None, None, None],
-            [None, None, None, None, None, None, None, None],
-            ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
-            ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]
-        ]
+        # state = [
+        #    ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
+        #    ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
+        #    [None, None, None, None, None, None, None, None],
+        #    [None, None, None, None, None, None, None, None],
+        #    [None, None, None, None, None, None, None, None],
+        #    [None, None, None, None, None, None, None, None],
+        #    ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
+        #    ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]
+        #]
 
         # ToDo: array of pieces instead of strings
+        state = [
+            [ Rook(Side.BLACK), Knight(Side.BLACK), Bishop(Side.BLACK), Queen(Side.BLACK), King(Side.BLACK), Bishop(Side.BLACK), Knight(Side.BLACK), Rook(Side.BLACK) ],
+            [ Pawn(Side.BLACK), Pawn(Side.BLACK), Pawn(Side.BLACK), Pawn(Side.BLACK), Pawn(Side.BLACK), Pawn(Side.BLACK), Pawn(Side.BLACK), Pawn(Side.BLACK) ],
+            [ None, None, None, None, None, None, None, None],
+            [ None, None, None, None, None, None, None, None],
+            [ None, None, None, None, None, None, None, None],
+            [ None, None, None, None, None, None, None, None],
+            [ Pawn(Side.WHITE), Pawn(Side.WHITE), Pawn(Side.WHITE), Pawn(Side.WHITE), Pawn(Side.WHITE), Pawn(Side.WHITE), Pawn(Side.WHITE), Pawn(Side.WHITE)],
+            [ Rook(Side.WHITE), Knight(Side.WHITE), Bishop(Side.WHITE), Queen(Side.WHITE), King(Side.WHITE), Bishop(Side.WHITE), Knight(Side.WHITE), Rook(Side.WHITE)],
+        ]
         
         if playerSide._value == Side.BLACK()._value:
             state.reverse()

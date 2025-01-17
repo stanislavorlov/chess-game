@@ -15,7 +15,12 @@ class ChessGame(object):
         return self._playerSide
             
     def select_piece(self, file, rank):
-        print(f"selected piece: ")
+        # convert board cell into 2-d array index
+        cellIdx = self._board.get_cell_idx(file, rank)
+        piece = self._gameState.get_state()[cellIdx[0]][cellIdx[1]]
+
+        if piece:
+            print(f"selected piece: " + piece.get_acronym())
 
     def get_board(self):
         return self._board

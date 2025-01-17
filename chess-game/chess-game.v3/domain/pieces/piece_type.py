@@ -4,6 +4,6 @@ class PieceType(str, Enum):
     King = "K"
     Queen = "Q"
     Bishop = "B"
-    Knight = "K"
+    Knight = "N"
     Rook = "R"
     Pawn = "P"

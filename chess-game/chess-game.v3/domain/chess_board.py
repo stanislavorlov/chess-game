@@ -12,3 +12,6 @@ class ChessBoard(object):
     
     def get_ranks(self):
         return self._ranks
+
+    def get_cell_idx(self, file, rank):
+        return [self._ranks.index(rank), self._files.index(file)]

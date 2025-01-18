@@ -3,7 +3,6 @@ from matplotlib import pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
 import matplotlib.patches as patches
-
 from domain.pieces.piece import Piece
 from domain.chess_game import ChessGame
 
@@ -63,7 +62,8 @@ class Presenter(object):
                 fig.canvas.draw()  # Redraw the canvas
                 square = f"{files[x]}{ranks[7 - y]}"  # Convert to chess notation
                 print(f"Clicked square: {square}")
-                self._game.select_piece(files[x], ranks[7 - y])
+
+                self._game.select_piece(files[x], ranks[7-y])
 
         # Connect the click handler
         fig.canvas.mpl_connect("button_press_event", on_click)

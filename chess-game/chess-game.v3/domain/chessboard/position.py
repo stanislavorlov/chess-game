@@ -1,6 +1,6 @@
 class Position:
 
-    def __init__(self, file: str, rank: str):
+    def __init__(self, file: str, rank: int):
         self._file = file
         self._rank = rank
 
@@ -12,3 +12,6 @@ class Position:
 
     def __str__(self):
         return f"{self._file}{self._rank}"
+
+    def __hash__(self):
+        return hash((self._file, self._rank))

@@ -1,4 +1,5 @@
 from domain.chessboard.chess_board import ChessBoard
+from domain.pieces.piece import Piece
 from domain.side import Side
 from domain.pieces.bishop import Bishop
 from domain.pieces.king import King
@@ -34,3 +35,6 @@ class GameState(object):
         
     def get_state(self):
         return self._state
+
+    def get_piece(self, row, col) -> Piece:
+        return  self._state[row][col]

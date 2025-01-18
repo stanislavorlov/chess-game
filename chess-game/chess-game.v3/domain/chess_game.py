@@ -1,3 +1,4 @@
+from domain.pieces.piece import Piece
 from domain.side import Side
 from domain.chessboard.chess_board import ChessBoard
 from domain.game_state import GameState
@@ -17,7 +18,7 @@ class ChessGame(object):
     def select_piece(self, file: str, rank: int):
         position: (int,int) = self._board.get_position(file, rank)
 
-        piece = self._gameState.get_state()[position[1]][position[0]]
+        piece: Piece = self._gameState.get_piece(position[1], position[0])
 
         if piece:
             print(f"selected piece: " + piece.get_acronym())

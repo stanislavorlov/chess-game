@@ -1,12 +1,14 @@
+import random
+
 from domain.side import Side
 from domain.chess_game import ChessGame
 from interface.presenter import Presenter
 
-value = input("Choose your side W (white) or B (black): ")
-startSide = Side.black() if str(Side.black()) == value else Side.white()
-print("Your game side:" + str(startSide))
+sides = [Side.white(), Side.black()]
+start_side = random.choice(sides)
+print("Your game side:" + str(start_side))
 
-game = ChessGame(startSide)
+game = ChessGame(start_side)
 
 p = Presenter(game)
 p.draw()

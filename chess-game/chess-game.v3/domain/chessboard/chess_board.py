@@ -1,4 +1,5 @@
-from domain.side import Side
+from domain.chessboard.position import Position
+
 
 class ChessBoard(object):
     
@@ -15,3 +16,6 @@ class ChessBoard(object):
 
     def get_cell_idx(self, file, rank):
         return [self._ranks.index(rank), self._files.index(file)]
+
+    def get_position_by_file_rank_idx(self, file: int, rank: int):
+        return Position(self._files[file], str(rank))

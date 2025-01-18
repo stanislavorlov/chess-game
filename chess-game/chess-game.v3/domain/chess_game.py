@@ -1,5 +1,5 @@
 from domain.side import Side
-from domain.chess_board import ChessBoard
+from domain.chessboard.chess_board import ChessBoard
 from domain.game_state import GameState
 
 class ChessGame(object):
@@ -8,8 +8,8 @@ class ChessGame(object):
         self._started : bool = False
         self._finished : bool = False
         self._playerSide: Side = player_side
-        self._gameState: GameState = GameState(self._playerSide)
         self._board: ChessBoard = ChessBoard()
+        self._gameState: GameState = GameState(self._playerSide, self._board)
         
     def get_player_side(self) -> Side:
         return self._playerSide

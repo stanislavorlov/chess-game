@@ -12,10 +12,8 @@ from domain.pieces.rook import Rook
 
 class GameState(object):
     
-    def __init__(self, player_side: Side, board: ChessBoard):
-        self._playerSide = player_side
+    def __init__(self):
         self._state = []
-        self._board = board
         self._selectedPiece: Optional[Piece] = None
 
     def init(self, player_side: Side):

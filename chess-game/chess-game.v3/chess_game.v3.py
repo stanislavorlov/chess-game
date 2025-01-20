@@ -1,5 +1,7 @@
 import random
 
+from domain.chessboard.chess_board import ChessBoard
+from domain.game_state import GameState
 from domain.side import Side
 from domain.chess_game import ChessGame
 from interface.presenter import Presenter
@@ -8,8 +10,9 @@ sides = [Side.white(), Side.black()]
 start_side = random.choice(sides)
 print("Your game side:" + str(start_side))
 
-game = ChessGame(start_side)
-game.start(start_side)
+board = ChessBoard()
+state = GameState()
+presenter = Presenter(board)
 
-p = Presenter(game)
-p.draw()
+game = ChessGame(board, state, presenter)
+game.start(start_side)

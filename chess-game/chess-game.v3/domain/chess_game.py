@@ -19,7 +19,7 @@ class ChessGame(object):
         self._gameState: GameState = state
         self._presenter: Presenter = presenter
 
-        self._presenter.connect_canvas_click(onclick_callback=self.click_square)
+        self._presenter.bind_canvas_click_function(onclick_callback=self.click_square)
 
     def start(self, player_side: Side):
         self._started = True

@@ -76,7 +76,7 @@ class Presenter:
         # Display the chessboard with pieces
         plt.show()
 
-    def connect_canvas_click(self, onclick_callback):
+    def bind_canvas_click_function(self, onclick_callback):
         # Add a rectangle to highlight the clicked square
         highlight_rect = patches.Rectangle((0, 0), 1, 1, linewidth=2, edgecolor='red', facecolor='none', visible=False)
         self.ax.add_patch(highlight_rect)

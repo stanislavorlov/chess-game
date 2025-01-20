@@ -89,8 +89,7 @@ class GameState(object):
 
         return False
 
-    def move_selected_piece(self, row, col):
-        # ToDo: validation
+    def move_piece(self, row, col):
         self._state[self._selectedRow][self._selectedCol] = None
         self._state[row][col] = self._selectedPiece
         self._selectedRow = -1

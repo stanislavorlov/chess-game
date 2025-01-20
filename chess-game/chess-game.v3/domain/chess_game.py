@@ -35,7 +35,7 @@ class ChessGame(object):
             self._isPieceSelected = self._gameState.select_piece(position[1], position[0])
         # otherwise move to selected square
         else:
-            self._gameState.move_selected_piece(position[1], position[0])
+            self._gameState.move_piece(position[1], position[0])
             self._isPieceSelected = False
 
         self._presenter.draw(self._gameState)

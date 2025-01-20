@@ -1,3 +1,5 @@
+from typing import Optional
+
 from domain.pieces.piece import Piece
 from domain.side import Side
 from domain.chessboard.chess_board import ChessBoard
@@ -12,16 +14,16 @@ class ChessGame(object):
         self._board: ChessBoard = ChessBoard()
         self._gameState: GameState = GameState(self._playerSide, self._board)
 
+    def start(self, player_side: Side):
+        self._started = True
+        self._gameState.init(player_side)
+
     def get_player_side(self) -> Side:
         return self._playerSide
 
-    def select_piece(self, file: str, rank: int):
+    def click_square(self, file: str, rank: int):
         position: (int,int) = self._board.get_position(file, rank)
 
-        piece: Piece = self._gameState.get_piece(position[1], position[0])
-
-        if piece:
-            print(f"selected piece: " + piece.get_acronym())
 
     def get_board(self):
         return self._board

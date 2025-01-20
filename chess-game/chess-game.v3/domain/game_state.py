@@ -1,3 +1,5 @@
+from typing import Optional
+
 from domain.chessboard.chess_board import ChessBoard
 from domain.pieces.piece import Piece
 from domain.side import Side
@@ -14,27 +16,69 @@ class GameState(object):
         self._playerSide = player_side
         self._state = []
         self._board = board
-        self.__initialize_game(self._playerSide)
+        self._selectedPiece: Optional[Piece] = None
 
-    def __initialize_game(self, player_side: Side):
+    def init(self, player_side: Side):
         state = [
-            [Rook(Side.black()), Knight(Side.black()), Bishop(Side.black()), Queen(Side.black()), King(Side.black()), Bishop(Side.black()), Knight(Side.black()), Rook(Side.black())],
-            [Pawn(Side.black()), Pawn(Side.black()), Pawn(Side.black()), Pawn(Side.black()), Pawn(Side.black()), Pawn(Side.black()), Pawn(Side.black()), Pawn(Side.black())],
-            [ None, None, None, None, None, None, None, None],
-            [ None, None, None, None, None, None, None, None],
-            [ None, None, None, None, None, None, None, None],
-            [ None, None, None, None, None, None, None, None],
-            [Pawn(Side.white()), Pawn(Side.white()), Pawn(Side.white()), Pawn(Side.white()), Pawn(Side.white()), Pawn(Side.white()), Pawn(Side.white()), Pawn(Side.white())],
-            [Rook(Side.white()), Knight(Side.white()), Bishop(Side.white()), Queen(Side.white()), King(Side.white()), Bishop(Side.white()), Knight(Side.white()), Rook(Side.white())],
+            [
+                Rook(Side.black()),
+                Knight(Side.black()),
+                Bishop(Side.black()),
+                Queen(Side.black()),
+                King(Side.black()),
+                Bishop(Side.black()),
+                Knight(Side.black()),
+                Rook(Side.black())
+            ],
+            [
+                Pawn(Side.black()),
+                Pawn(Side.black()),
+                Pawn(Side.black()),
+                Pawn(Side.black()),
+                Pawn(Side.black()),
+                Pawn(Side.black()),
+                Pawn(Side.black()),
+                Pawn(Side.black())
+            ],
+            [None, None, None, None, None, None, None, None],
+            [None, None, None, None, None, None, None, None],
+            [None, None, None, None, None, None, None, None],
+            [None, None, None, None, None, None, None, None],
+            [
+                Pawn(Side.white()),
+                Pawn(Side.white()),
+                Pawn(Side.white()),
+                Pawn(Side.white()),
+                Pawn(Side.white()),
+                Pawn(Side.white()),
+                Pawn(Side.white()),
+                Pawn(Side.white())
+            ],
+            [
+                Rook(Side.white()),
+                Knight(Side.white()),
+                Bishop(Side.white()),
+                Queen(Side.white()),
+                King(Side.white()),
+                Bishop(Side.white()),
+                Knight(Side.white()),
+                Rook(Side.white())
+            ],
         ]
-        
+
         if str(player_side) == str(Side.black()):
             state.reverse()
 
         self._state = state
-        
+
     def get_state(self):
         return self._state
 
     def get_piece(self, row, col) -> Piece:
         return  self._state[row][col]
+
+    def select_piece(self):
+        print('select piece')
+
+    def move_piece(self):
+        print('move piece')

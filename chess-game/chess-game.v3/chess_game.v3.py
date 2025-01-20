@@ -9,6 +9,7 @@ start_side = random.choice(sides)
 print("Your game side:" + str(start_side))
 
 game = ChessGame(start_side)
+game.start(start_side)
 
 p = Presenter(game)
 p.draw()

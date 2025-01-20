@@ -63,7 +63,7 @@ class Presenter(object):
                 square = f"{files[x]}{ranks[7 - y]}"  # Convert to chess notation
                 print(f"Clicked square: {square}")
 
-                self._game.select_piece(files[x], ranks[7-y])
+                self._game.click_square(files[x], ranks[7 - y])
 
         # Connect the click handler
         fig.canvas.mpl_connect("button_press_event", on_click)

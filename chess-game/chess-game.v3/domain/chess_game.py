@@ -1,5 +1,6 @@
 from typing import Optional
 
+from domain.chessboard.position import Position
 from domain.pieces.piece import Piece
 from domain.side import Side
 from domain.chessboard.chess_board import ChessBoard
@@ -12,11 +13,13 @@ class ChessGame(object):
     def __init__(self, board: ChessBoard, state: GameState, presenter: Presenter):
         self._started : bool = False
         self._finished : bool = False
+        self._isPieceSelected: bool = False
+
         self._board: ChessBoard = board
         self._gameState: GameState = state
         self._presenter: Presenter = presenter
 
-        self._presenter.connect_canvas_click(click_handler=self.click_square)
+        self._presenter.connect_canvas_click(onclick_callback=self.click_square)
 
     def start(self, player_side: Side):
         self._started = True
@@ -26,3 +29,13 @@ class ChessGame(object):
     def click_square(self, file: str, rank: int):
         print(f"ChessGame click handler {file}{rank}")
         position: (int,int) = self._board.get_position(file, rank)
+
+        # if piece is not selected than select it
+        if not self._isPieceSelected:
+            self._isPieceSelected = self._gameState.select_piece(position[1], position[0])
+        # otherwise move to selected square
+        else:
+            self._gameState.move_selected_piece(position[1], position[0])
+            self._isPieceSelected = False
+
+        self._presenter.draw(self._gameState)

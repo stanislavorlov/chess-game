@@ -76,7 +76,7 @@ class Presenter:
         # Display the chessboard with pieces
         plt.show()
 
-    def connect_canvas_click(self, click_handler):
+    def connect_canvas_click(self, onclick_callback):
         # Add a rectangle to highlight the clicked square
         highlight_rect = patches.Rectangle((0, 0), 1, 1, linewidth=2, edgecolor='red', facecolor='none', visible=False)
         self.ax.add_patch(highlight_rect)
@@ -95,7 +95,7 @@ class Presenter:
                 print(f"Clicked square: {square}")
 
                 #self._game.click_square(files[x], ranks[7 - y])
-                click_handler(files[x], ranks[7 - y])
+                onclick_callback(files[x], ranks[7 - y])
 
         # Connect the click handler
         self.fig.canvas.mpl_connect("button_press_event", on_click)

@@ -113,14 +113,7 @@ class Presenter:
                     image = mpimg.imread(self.get_pieces()[piece.get_acronym()])  # Load the piece image
                     axes_image = self.ax.imshow(image, extent=(col, col + 1, 7 - row, 8 - row))  # Position the image
 
-                    # ToDo: make an Image as a part of Piece and remove redundant dictionary
                     self._piece_images[piece.get_piece_id()] = axes_image
-
-    def update_piece(self):
-        # store its own collection/dictionary of Images by position
-        # get AxesImage by position
-        # image.set_extent([new_xmin, new_xmax, new_ymin, new_ymax])
-        pass
 
     @staticmethod
     def get_pieces():

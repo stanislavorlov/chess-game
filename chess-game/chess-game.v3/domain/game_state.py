@@ -97,3 +97,6 @@ class GameState(object):
         self._selectedPiece = None
 
         return True
+
+    def get_selected_piece(self) -> Optional[Piece]:
+        return  self._selectedPiece

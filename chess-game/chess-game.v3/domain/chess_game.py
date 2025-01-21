@@ -37,5 +37,6 @@ class ChessGame(object):
         else:
             self._gameState.move_piece(position[1], position[0])
             self._isPieceSelected = False
+            self._presenter.update_piece()
 
         self._presenter.draw(self._gameState)

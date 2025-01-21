@@ -1,9 +1,11 @@
+import uuid
 from abc import abstractmethod
 from domain.pieces.piece_type import PieceType
 from domain.side import Side
 
 class Piece(object):
     def __init__(self, side: Side, type_: PieceType):
+        self._id = uuid.uuid4()
         self._side = side
         self._type = type_
         # patternMoves
@@ -16,3 +18,9 @@ class Piece(object):
 
     def get_acronym(self) -> str:
         return f"{self._side}{self._type.value}".lower()
+
+    def get_piece_id(self):
+        return self._id
+
+    def get_image(self):
+        pass

@@ -22,5 +22,8 @@ class Piece(object):
     def get_piece_id(self):
         return self._id
 
+    def get_piece_type(self):
+        return self._type
+
     def get_image(self):
         pass

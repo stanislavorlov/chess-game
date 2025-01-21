@@ -1,4 +1,6 @@
 from domain.chessboard.position import Position
+from domain.movements.square import Square
+
 
 class ChessBoard(object):
     
@@ -18,5 +20,7 @@ class ChessBoard(object):
     def get_ranks(self):
         return self._ranks
 
-    def get_position(self, file: str, rank: int) -> tuple[int,int]:
-        return self._board[Position(file, rank)]
+    def get_square(self, file: str, rank: int) -> Square:
+        (col, row) = self._board[Position(file, rank)]
+
+        return  Square(row, col)

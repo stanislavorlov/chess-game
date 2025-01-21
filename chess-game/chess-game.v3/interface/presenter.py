@@ -93,8 +93,8 @@ class Presenter:
                 highlight_rect.set_xy((x, y))  # Move the rectangle to the clicked square
                 highlight_rect.set_visible(True)  # Make the rectangle visible
                 self.fig.canvas.draw()  # Redraw the canvas
-                square = f"{files[x]}{ranks[7 - y]}"  # Convert to chess notation
-                print(f"Clicked square: {square}")
+                #square = f"{files[x]}{ranks[7 - y]}"  # Convert to chess notation
+                #print(f"Clicked square: {square}")
 
                 #self._game.click_square(files[x], ranks[7 - y])
                 onclick_callback(files[x], ranks[7 - y])

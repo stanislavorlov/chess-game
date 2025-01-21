@@ -1,5 +1,6 @@
 from typing import Optional
 
+from domain.movements.square import Square
 from domain.pieces.bishop import Bishop
 from domain.pieces.king import King
 from domain.pieces.knight import Knight
@@ -9,14 +10,12 @@ from domain.pieces.queen import Queen
 from domain.pieces.rook import Rook
 from domain.side import Side
 
-
 class GameState(object):
     
     def __init__(self):
         self._state = []
         self._selectedPiece: Optional[Piece] = None
-        self._selectedRow: int = -1
-        self._selectedCol: int = -1
+        self._selectedSquare: Optional[Square] = None
 
     def init(self, player_side: Side):
         state = [
@@ -74,26 +73,20 @@ class GameState(object):
     def get_state(self):
         return self._state
 
-    def get_piece(self, row, col) -> Piece:
-        return self._state[row][col]
+    def get_piece(self, square: Square) -> Piece:
+        return self._state[square.row][square.col]
 
-    def select_piece(self, row, col) -> bool:
-        self._selectedPiece:Optional[Piece] = self._state[row][col]
-        self._selectedRow = row
-        self._selectedCol = col
+    def select_piece(self, square: Square) -> Optional[Piece]:
+        self._selectedPiece:Optional[Piece] = self.get_piece(square)
+        self._selectedSquare = square
 
-        if self._selectedPiece:
-            print(f"selected piece: {self._selectedPiece.get_acronym()}")
+        return self._selectedPiece
 
-            return  True
-
-        return False
-
-    def move_piece(self, row, col):
-        self._state[self._selectedRow][self._selectedCol] = None
-        self._state[row][col] = self._selectedPiece
-        self._selectedRow = -1
-        self._selectedCol = -1
+    def move_piece(self, square: Square):
+        if self._selectedSquare:
+            self._state[self._selectedSquare.row][self._selectedSquare.col] = None
+        self._state[square.row][square.col] = self._selectedPiece
+        self._selectedSquare = None
         self._selectedPiece = None
 
         return True

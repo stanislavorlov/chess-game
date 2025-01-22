@@ -1,6 +1,7 @@
 from typing import Optional
 
-from domain.movements.square import Square
+from domain.chessboard.position import Position
+from domain.movements.movement import Movement
 from domain.pieces.bishop import Bishop
 from domain.pieces.king import King
 from domain.pieces.knight import Knight
@@ -11,85 +12,55 @@ from domain.pieces.rook import Rook
 from domain.side import Side
 
 class GameState(object):
-    
+
     def __init__(self):
-        self._state = []
-        self._selectedPiece: Optional[Piece] = None
-        self._selectedSquare: Optional[Square] = None
+        self._state: dict[Position, Piece] = {
+            Position("a",1):Rook(Side.white()),
+            Position("a",2):Pawn(Side.white()),
+            Position("b",1):Knight(Side.white()),
+            Position("b",2):Pawn(Side.white()),
+            Position("c",1):Bishop(Side.white()),
+            Position("c",2):Pawn(Side.white()),
+            Position("d",1):Queen(Side.white()),
+            Position("d",2):Pawn(Side.white()),
+            Position("e",1):King(Side.white()),
+            Position("e",2):Pawn(Side.white()),
+            Position("f",1):Bishop(Side.white()),
+            Position("f",2):Pawn(Side.white()),
+            Position("g",1):Knight(Side.white()),
+            Position("g",2):Pawn(Side.white()),
+            Position("h",1):Rook(Side.white()),
+            Position("h",2):Pawn(Side.white()),
+            Position("a",7):Pawn(Side.black()),
+            Position("a",8):Rook(Side.black()),
+            Position("b",7):Pawn(Side.black()),
+            Position("b",8):Knight(Side.black()),
+            Position("c",7):Pawn(Side.black()),
+            Position("c",8):Bishop(Side.black()),
+            Position("d",7):Pawn(Side.black()),
+            Position("d",8):Queen(Side.black()),
+            Position("e",7):Pawn(Side.black()),
+            Position("e",8):King(Side.black()),
+            Position("f",7):Pawn(Side.black()),
+            Position("f",8):Bishop(Side.black()),
+            Position("g",7):Pawn(Side.black()),
+            Position("g",8):Knight(Side.black()),
+            Position("h",7):Pawn(Side.black()),
+            Position("h",8):Rook(Side.black())
+        }
 
     def init(self, player_side: Side):
-        state = [
-            [
-                Rook(Side.black()),
-                Knight(Side.black()),
-                Bishop(Side.black()),
-                Queen(Side.black()),
-                King(Side.black()),
-                Bishop(Side.black()),
-                Knight(Side.black()),
-                Rook(Side.black())
-            ],
-            [
-                Pawn(Side.black()),
-                Pawn(Side.black()),
-                Pawn(Side.black()),
-                Pawn(Side.black()),
-                Pawn(Side.black()),
-                Pawn(Side.black()),
-                Pawn(Side.black()),
-                Pawn(Side.black())
-            ],
-            [None, None, None, None, None, None, None, None],
-            [None, None, None, None, None, None, None, None],
-            [None, None, None, None, None, None, None, None],
-            [None, None, None, None, None, None, None, None],
-            [
-                Pawn(Side.white()),
-                Pawn(Side.white()),
-                Pawn(Side.white()),
-                Pawn(Side.white()),
-                Pawn(Side.white()),
-                Pawn(Side.white()),
-                Pawn(Side.white()),
-                Pawn(Side.white())
-            ],
-            [
-                Rook(Side.white()),
-                Knight(Side.white()),
-                Bishop(Side.white()),
-                Queen(Side.white()),
-                King(Side.white()),
-                Bishop(Side.white()),
-                Knight(Side.white()),
-                Rook(Side.white())
-            ],
-        ]
-
-        if str(player_side) == str(Side.black()):
-            state.reverse()
-
-        self._state = state
+        pass
 
     def get_state(self):
         return self._state
 
-    def get_piece(self, square: Square) -> Piece:
-        return self._state[square.row][square.col]
+    def get_piece(self, position: Position) -> Piece:
+        return self._state[position]
 
-    def select_piece(self, square: Square) -> Optional[Piece]:
-        self._selectedPiece:Optional[Piece] = self.get_piece(square)
-        self._selectedSquare = square
+    def select_piece(self, position: Position) -> Optional[Piece]:
+        return self.get_piece(position)
 
-        return self._selectedPiece
-
-    def move_piece(self, square: Square):
-        if self._selectedSquare:
-            self._state[self._selectedSquare.row][self._selectedSquare.col] = None
-        self._state[square.row][square.col] = self._selectedPiece
-        self._selectedSquare = None
-        self._selectedPiece = None
-
-        return True
-
-    def get_selected_piece(self) -> Optional[Piece]:
-        return  self._selectedPiece
+    def move_piece(self, movement: Movement):
+        self._state.pop(movement.from_position, None)
+        self._state[movement.to_position] = movement.piece

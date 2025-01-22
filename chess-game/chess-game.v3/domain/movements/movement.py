@@ -1,9 +1,9 @@
-from domain.movements.square import Square
+from domain.chessboard.position import Position
 from domain.pieces.piece import Piece
 
 class Movement:
 
-    def __init__(self, piece: Piece, _from: Square, _to: Square):
+    def __init__(self, piece: Piece, _from: Position, _to: Position):
         self._piece = piece
         self._from = _from
         self._to = _to
@@ -13,9 +13,9 @@ class Movement:
         return self._piece
 
     @property
-    def from_square(self):
+    def from_position(self):
         return self._from
 
     @property
-    def to_square(self):
+    def to_position(self):
         return self._to

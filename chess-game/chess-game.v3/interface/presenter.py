@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.patches as patches
 
 from domain.chessboard.chess_board import ChessBoard
+from domain.chessboard.position import Position
 from domain.game_state import GameState
 from domain.pieces.piece import Piece
 
@@ -19,6 +20,8 @@ class Presenter:
         self._board = board
 
     def draw(self, state: GameState):
+
+        # ToDo: should rotate the board based on player side
         chessboard = np.zeros((self.BOARD_SIZE, self.BOARD_SIZE))
         chessboard[1::2, ::2] = 1  # Black squares in odd rows
         chessboard[::2, 1::2] = 1  # Black squares in even rows
@@ -29,7 +32,7 @@ class Presenter:
         #square_size = self.get_square_size()
         #fig_size = board_size * square_size
         #fig, ax = plt.subplots(figsize=(fig_size, fig_size))
-        
+
         selected_square = None  # Keep track of the selected square
 
         # Create the plot
@@ -53,7 +56,7 @@ class Presenter:
         # Hide major tick labels
         self.ax.set_xticklabels([])
         self.ax.set_yticklabels([])
-        
+
         # Add a rectangle to highlight the clicked square
         highlight_rect = patches.Rectangle((0, 0), 1, 1, linewidth=2, edgecolor='red', facecolor='none', visible=False)
         self.ax.add_patch(highlight_rect)
@@ -91,7 +94,7 @@ class Presenter:
                 highlight_rect.set_xy((x, y))  # Move the rectangle to the clicked square
                 highlight_rect.set_visible(True)  # Make the rectangle visible
                 self.fig.canvas.draw()  # Redraw the canvas
-                onclick_callback(files[x], ranks[7 - y])
+                onclick_callback(Position(files[x], ranks[7 - y]))
 
         # Connect the click handler
         self.fig.canvas.mpl_connect("button_press_event", on_click)
@@ -99,13 +102,10 @@ class Presenter:
     def draw_pieces(self, state: GameState):
         piece_state = state.get_state()
 
-        # ToDo: no need to iterate over the all matrix, but iterate just over positions with pieces
-        for row in range(self.BOARD_SIZE):
-            for col in range(self.BOARD_SIZE):
-                piece: Piece = piece_state[row][col]
-                if piece:
-                    image = mpimg.imread(Presenter.get_image(piece))  # Load the piece image
-                    self.ax.imshow(image, extent=(col, col + 1, 7 - row, 8 - row))  # Position the image
+        for position, piece in piece_state.items():
+            col, row = self._board.index_of(position)
+            image = mpimg.imread(Presenter.get_image(piece))  # Load the piece image
+            self.ax.imshow(image, extent=(col, col + 1, 7 - row, 8 - row))  # Position the image
 
     @staticmethod
     def get_image(piece: Piece) -> str:
@@ -118,8 +118,8 @@ class Presenter:
             raise FileNotFoundError(f"Image file not found: {sample_piece_path}")
         sample_image = mpimg.imread(sample_piece_path)
         piece_height, piece_width = sample_image.shape[:2]  # Get the dimensions of the image
-        
+
         # Set the figure size based on piece dimensions
         square_size = max(piece_width, piece_height) / 100  # Scale to figure units
-        
+
         return square_size

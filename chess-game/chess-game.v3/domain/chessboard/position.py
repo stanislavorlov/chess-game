@@ -14,4 +14,4 @@ class Position:
         return f"{self._file}{self._rank}"
 
     def __hash__(self):
-        return hash((self._file, self._rank))
+        return hash(self._file + str(self._rank))

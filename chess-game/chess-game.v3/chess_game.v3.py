@@ -14,7 +14,7 @@ print("Your game side:" + str(start_side))
 board = ChessBoard()
 state = GameState()
 presenter = Presenter(board)
-specification = MovementSpecification()
+specification = MovementSpecification(board)
 
 game = ChessGame(board, state, presenter, specification)
 game.start(start_side)

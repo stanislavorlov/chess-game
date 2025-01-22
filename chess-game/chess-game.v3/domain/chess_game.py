@@ -1,8 +1,8 @@
 from typing import Optional
 
+from domain.chessboard.position import Position
 from domain.movements.movement import Movement
 from domain.movements.movement_specification import MovementSpecification
-from domain.movements.square import Square
 from domain.pieces.piece import Piece
 from domain.side import Side
 from domain.chessboard.chess_board import ChessBoard
@@ -16,8 +16,8 @@ class ChessGame(object):
         self._started : bool = False
         self._finished : bool = False
         self._selectedPiece: Optional[Piece] = None
-        self._fromSquare: Optional[Square] = None
-        self._toSquare: Optional[Square] = None
+        self._fromPosition: Optional[Position] = None
+        self._toPosition: Optional[Position] = None
         self._board: ChessBoard = board
         self._gameState: GameState = state
         self._presenter: Presenter = presenter
@@ -30,17 +30,15 @@ class ChessGame(object):
         self._gameState.init(player_side)
         self._presenter.draw(self._gameState)
 
-    def click_square(self, file: str, rank: int):
-        square: Square = self._board.get_square(file, rank)
-
+    def click_square(self, position: Position):
         if not self._selectedPiece:
-            self._selectedPiece = self._gameState.select_piece(square)
-            self._fromSquare = square
+            self._selectedPiece = self._gameState.select_piece(position)
+            self._fromPosition = position
         else:
-            self._toSquare = square
-            movement: Movement = Movement(self._selectedPiece, self._fromSquare, self._toSquare)
-            if self._moveSpecification.is_satisfiedby(movement):
-                self._gameState.move_piece(square)
+            self._toPosition = position
+            movement: Movement = Movement(self._selectedPiece, self._fromPosition, self._toPosition)
+            if self._moveSpecification.is_satisfied(movement):
+                self._gameState.move_piece(movement)
                 self._selectedPiece = None
                 self._presenter.draw(self._gameState)
             else:

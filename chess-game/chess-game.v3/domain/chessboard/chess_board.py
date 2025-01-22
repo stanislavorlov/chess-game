@@ -1,6 +1,4 @@
 from domain.chessboard.position import Position
-from domain.movements.square import Square
-
 
 class ChessBoard(object):
     
@@ -14,13 +12,14 @@ class ChessBoard(object):
             for fileIdx, file in enumerate(self._files):
                 self._board[Position(file, rank)] = (fileIdx, rankIdx)
 
+    def index_of(self, position: Position) -> tuple[int,int]:
+        return self._board[position]
+
     def get_files(self):
         return self._files
     
     def get_ranks(self):
         return self._ranks
 
-    def get_square(self, file: str, rank: int) -> Square:
-        (col, row) = self._board[Position(file, rank)]
-
-        return  Square(row, col)
+    def is_valid_square(self, file: str, rank: int) -> bool:
+        return self._board.get(Position(file, rank), -1) != -1

@@ -1,5 +1,4 @@
 import uuid
-from abc import abstractmethod
 from domain.pieces.piece_type import PieceType
 from domain.side import Side
 
@@ -24,6 +23,3 @@ class Piece(object):
 
     def get_piece_type(self):
         return self._type
-
-    def get_image(self):
-        pass

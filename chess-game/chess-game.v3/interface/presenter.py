@@ -3,7 +3,6 @@ from matplotlib import pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
 import matplotlib.patches as patches
-from matplotlib.image import AxesImage
 
 from domain.chessboard.chess_board import ChessBoard
 from domain.game_state import GameState
@@ -14,11 +13,10 @@ class Presenter:
     BOARD_SIZE = 8
 
     def __init__(self, board: ChessBoard):
-        square_size = self.get_square_size()
+        square_size = Presenter.get_square_size()
         fig_size = self.BOARD_SIZE * square_size
         self.fig, self.ax = plt.subplots(figsize=(fig_size, fig_size))
         self._board = board
-        self._piece_images = {}
 
     def draw(self, state: GameState):
         chessboard = np.zeros((self.BOARD_SIZE, self.BOARD_SIZE))
@@ -93,10 +91,6 @@ class Presenter:
                 highlight_rect.set_xy((x, y))  # Move the rectangle to the clicked square
                 highlight_rect.set_visible(True)  # Make the rectangle visible
                 self.fig.canvas.draw()  # Redraw the canvas
-                #square = f"{files[x]}{ranks[7 - y]}"  # Convert to chess notation
-                #print(f"Clicked square: {square}")
-
-                #self._game.click_square(files[x], ranks[7 - y])
                 onclick_callback(files[x], ranks[7 - y])
 
         # Connect the click handler
@@ -105,35 +99,21 @@ class Presenter:
     def draw_pieces(self, state: GameState):
         piece_state = state.get_state()
 
-        # Place chess pieces on the board
+        # ToDo: no need to iterate over the all matrix, but iterate just over positions with pieces
         for row in range(self.BOARD_SIZE):
             for col in range(self.BOARD_SIZE):
                 piece: Piece = piece_state[row][col]
                 if piece:
-                    image = mpimg.imread(self.get_pieces()[piece.get_acronym()])  # Load the piece image
-                    axes_image = self.ax.imshow(image, extent=(col, col + 1, 7 - row, 8 - row))  # Position the image
-
-                    self._piece_images[piece.get_piece_id()] = axes_image
+                    image = mpimg.imread(Presenter.get_image(piece))  # Load the piece image
+                    self.ax.imshow(image, extent=(col, col + 1, 7 - row, 8 - row))  # Position the image
 
     @staticmethod
-    def get_pieces():
-        return {
-            "wp": "./interface/Content/wp.png",
-            "wr": "./interface/Content/wr.png",
-            "wn": "./interface/Content/wn.png",
-            "wb": "./interface/Content/wb.png",
-            "wq": "./interface/Content/wq.png",
-            "wk": "./interface/Content/wk.png",
-            "bp": "./interface/Content/bp.png",
-            "br": "./interface/Content/br.png",
-            "bn": "./interface/Content/bn.png",
-            "bb": "./interface/Content/bb.png",
-            "bq": "./interface/Content/bq.png",
-            "bk": "./interface/Content/bk.png",
-        }
+    def get_image(piece: Piece) -> str:
+        return f"./interface/Content/{piece.get_acronym()}.png"
 
-    def get_square_size(self):
-        sample_piece_path = next(iter(self.get_pieces().values()))
+    @staticmethod
+    def get_square_size():
+        sample_piece_path = "./interface/Content/wp.png"
         if not os.path.exists(sample_piece_path):
             raise FileNotFoundError(f"Image file not found: {sample_piece_path}")
         sample_image = mpimg.imread(sample_piece_path)

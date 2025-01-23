@@ -1,6 +1,8 @@
 from typing import Optional
 
+from domain.chessboard.file import File
 from domain.chessboard.position import Position
+from domain.chessboard.rank import Rank
 from domain.movements.movement import Movement
 from domain.pieces.bishop import Bishop
 from domain.pieces.king import King
@@ -15,38 +17,38 @@ class GameState(object):
 
     def __init__(self):
         self._state: dict[Position, Piece] = {
-            Position("a",1):Rook(Side.white()),
-            Position("a",2):Pawn(Side.white()),
-            Position("b",1):Knight(Side.white()),
-            Position("b",2):Pawn(Side.white()),
-            Position("c",1):Bishop(Side.white()),
-            Position("c",2):Pawn(Side.white()),
-            Position("d",1):Queen(Side.white()),
-            Position("d",2):Pawn(Side.white()),
-            Position("e",1):King(Side.white()),
-            Position("e",2):Pawn(Side.white()),
-            Position("f",1):Bishop(Side.white()),
-            Position("f",2):Pawn(Side.white()),
-            Position("g",1):Knight(Side.white()),
-            Position("g",2):Pawn(Side.white()),
-            Position("h",1):Rook(Side.white()),
-            Position("h",2):Pawn(Side.white()),
-            Position("a",7):Pawn(Side.black()),
-            Position("a",8):Rook(Side.black()),
-            Position("b",7):Pawn(Side.black()),
-            Position("b",8):Knight(Side.black()),
-            Position("c",7):Pawn(Side.black()),
-            Position("c",8):Bishop(Side.black()),
-            Position("d",7):Pawn(Side.black()),
-            Position("d",8):Queen(Side.black()),
-            Position("e",7):Pawn(Side.black()),
-            Position("e",8):King(Side.black()),
-            Position("f",7):Pawn(Side.black()),
-            Position("f",8):Bishop(Side.black()),
-            Position("g",7):Pawn(Side.black()),
-            Position("g",8):Knight(Side.black()),
-            Position("h",7):Pawn(Side.black()),
-            Position("h",8):Rook(Side.black())
+            Position(File.a(),Rank.r1()):Rook(Side.white()),
+            Position(File.a(),Rank.r2()):Pawn(Side.white()),
+            Position(File.b(),Rank.r1()):Knight(Side.white()),
+            Position(File.b(),Rank.r2()):Pawn(Side.white()),
+            Position(File.c(),Rank.r1()):Bishop(Side.white()),
+            Position(File.c(),Rank.r2()):Pawn(Side.white()),
+            Position(File.d(),Rank.r1()):Queen(Side.white()),
+            Position(File.d(),Rank.r2()):Pawn(Side.white()),
+            Position(File.e(),Rank.r1()):King(Side.white()),
+            Position(File.e(),Rank.r2()):Pawn(Side.white()),
+            Position(File.f(),Rank.r1()):Bishop(Side.white()),
+            Position(File.f(),Rank.r2()):Pawn(Side.white()),
+            Position(File.g(),Rank.r1()):Knight(Side.white()),
+            Position(File.g(),Rank.r2()):Pawn(Side.white()),
+            Position(File.h(),Rank.r1()):Rook(Side.white()),
+            Position(File.h(),Rank.r2()):Pawn(Side.white()),
+            Position(File.a(),Rank.r7()):Pawn(Side.black()),
+            Position(File.a(),Rank.r8()):Rook(Side.black()),
+            Position(File.b(),Rank.r7()):Pawn(Side.black()),
+            Position(File.b(),Rank.r8()):Knight(Side.black()),
+            Position(File.c(),Rank.r7()):Pawn(Side.black()),
+            Position(File.c(),Rank.r8()):Bishop(Side.black()),
+            Position(File.d(),Rank.r7()):Pawn(Side.black()),
+            Position(File.d(),Rank.r8()):Queen(Side.black()),
+            Position(File.e(),Rank.r7()):Pawn(Side.black()),
+            Position(File.e(),Rank.r8()):King(Side.black()),
+            Position(File.f(),Rank.r7()):Pawn(Side.black()),
+            Position(File.f(),Rank.r8()):Bishop(Side.black()),
+            Position(File.g(),Rank.r7()):Pawn(Side.black()),
+            Position(File.g(),Rank.r8()):Knight(Side.black()),
+            Position(File.h(),Rank.r7()):Pawn(Side.black()),
+            Position(File.h(),Rank.r8()):Rook(Side.black())
         }
 
     def init(self, player_side: Side):

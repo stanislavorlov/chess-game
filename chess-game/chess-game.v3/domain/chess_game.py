@@ -5,20 +5,17 @@ from domain.movements.movement import Movement
 from domain.movements.movement_specification import MovementSpecification
 from domain.pieces.piece import Piece
 from domain.side import Side
-from domain.chessboard.chess_board import ChessBoard
 from domain.game_state import GameState
 from interface.presenter import Presenter
 
-
 class ChessGame(object):
 
-    def __init__(self, board: ChessBoard, state: GameState, presenter: Presenter, specification: MovementSpecification):
+    def __init__(self, state: GameState, presenter: Presenter, specification: MovementSpecification):
         self._started : bool = False
         self._finished : bool = False
         self._selectedPiece: Optional[Piece] = None
         self._fromPosition: Optional[Position] = None
         self._toPosition: Optional[Position] = None
-        self._board: ChessBoard = board
         self._gameState: GameState = state
         self._presenter: Presenter = presenter
         self._moveSpecification: MovementSpecification = specification

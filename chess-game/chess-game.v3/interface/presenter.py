@@ -4,8 +4,9 @@ import matplotlib.image as mpimg
 import numpy as np
 import matplotlib.patches as patches
 
-from domain.chessboard.chess_board import ChessBoard
+from domain.chessboard.file import File
 from domain.chessboard.position import Position
+from domain.chessboard.rank import Rank
 from domain.game_state import GameState
 from domain.pieces.piece import Piece
 
@@ -13,11 +14,10 @@ class Presenter:
 
     BOARD_SIZE = 8
 
-    def __init__(self, board: ChessBoard):
+    def __init__(self):
         square_size = Presenter.get_square_size()
         fig_size = self.BOARD_SIZE * square_size
         self.fig, self.ax = plt.subplots(figsize=(fig_size, fig_size))
-        self._board = board
 
     def draw(self, state: GameState):
 
@@ -26,17 +26,7 @@ class Presenter:
         chessboard[1::2, ::2] = 1  # Black squares in odd rows
         chessboard[::2, 1::2] = 1  # Black squares in even rows
 
-        files = self._board.get_files()
-        ranks = self._board.get_ranks()
-
-        #square_size = self.get_square_size()
-        #fig_size = board_size * square_size
-        #fig, ax = plt.subplots(figsize=(fig_size, fig_size))
-
-        selected_square = None  # Keep track of the selected square
-
         # Create the plot
-        # fig, ax = plt.subplots(figsize=(6, 6))
         self.ax.imshow(chessboard, cmap="gray", origin="upper", extent=(0, self.BOARD_SIZE, 0, self.BOARD_SIZE))
 
         # Add gridlines
@@ -49,9 +39,9 @@ class Presenter:
 
         # Add rank and file labels
         self.ax.set_xticks(np.arange(0.5, self.BOARD_SIZE, 1), minor=True)
-        self.ax.set_xticklabels(files, minor=True, fontsize=12)
+        self.ax.set_xticklabels(File.a(), minor=True, fontsize=12)
         self.ax.set_yticks(np.arange(0.5, self.BOARD_SIZE, 1), minor=True)
-        self.ax.set_yticklabels(ranks, minor=True, fontsize=12)
+        self.ax.set_yticklabels(Rank.r1(), minor=True, fontsize=12)
 
         # Hide major tick labels
         self.ax.set_xticklabels([])
@@ -61,21 +51,6 @@ class Presenter:
         highlight_rect = patches.Rectangle((0, 0), 1, 1, linewidth=2, edgecolor='red', facecolor='none', visible=False)
         self.ax.add_patch(highlight_rect)
 
-        # Mouse click handler
-        #def on_click(event):
-        #    if event.inaxes == self.ax:  # Check if the click is inside the chessboard
-        #        x, y = int(event.xdata), int(event.ydata)
-        #        highlight_rect.set_xy((x, y))  # Move the rectangle to the clicked square
-        #        highlight_rect.set_visible(True)  # Make the rectangle visible
-        #        self.fig.canvas.draw()  # Redraw the canvas
-        #        square = f"{files[x]}{ranks[7 - y]}"  # Convert to chess notation
-        #        print(f"Clicked square: {square}")
-        #
-        #        self._game.click_square(files[x], ranks[7 - y])
-
-        # Connect the click handler
-        # self.fig.canvas.mpl_connect("button_press_event", on_click)
-
         # Display the chessboard with pieces
         plt.show()
 
@@ -84,9 +59,6 @@ class Presenter:
         highlight_rect = patches.Rectangle((0, 0), 1, 1, linewidth=2, edgecolor='red', facecolor='none', visible=False)
         self.ax.add_patch(highlight_rect)
 
-        files = self._board.get_files()
-        ranks = self._board.get_ranks()
-
         # Mouse click handler
         def on_click(event):
             if event.inaxes == self.ax:  # Check if the click is inside the chessboard
@@ -94,7 +66,7 @@ class Presenter:
                 highlight_rect.set_xy((x, y))  # Move the rectangle to the clicked square
                 highlight_rect.set_visible(True)  # Make the rectangle visible
                 self.fig.canvas.draw()  # Redraw the canvas
-                onclick_callback(Position(files[x], ranks[7 - y]))
+                onclick_callback(Position(File.from_index(x), Rank.from_index(7 - y)))
 
         # Connect the click handler
         self.fig.canvas.mpl_connect("button_press_event", on_click)
@@ -103,7 +75,7 @@ class Presenter:
         piece_state = state.get_state()
 
         for position, piece in piece_state.items():
-            col, row = self._board.index_of(position)
+            col, row = position.file.to_index(), position.rank.to_index()
             image = mpimg.imread(Presenter.get_image(piece))  # Load the piece image
             self.ax.imshow(image, extent=(col, col + 1, 7 - row, 8 - row))  # Position the image
 

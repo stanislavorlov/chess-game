@@ -1,6 +1,9 @@
+from domain.chessboard.file import File
+from domain.chessboard.rank import Rank
+
 class Position:
 
-    def __init__(self, file: str, rank: int):
+    def __init__(self, file: File, rank: Rank):
         self._file = file
         self._rank = rank
 
@@ -14,4 +17,12 @@ class Position:
         return f"{self._file}{self._rank}"
 
     def __hash__(self):
-        return hash(self._file + str(self._rank))
+        return hash(str(self._file) + str(self._rank))
+
+    @property
+    def file(self) -> File:
+        return self._file
+
+    @property
+    def rank(self) -> Rank:
+        return self._rank

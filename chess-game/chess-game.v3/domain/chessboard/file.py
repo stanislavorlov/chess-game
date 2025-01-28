@@ -1,3 +1,5 @@
+from domain.movements.delta.delta import Delta
+
 class File:
 
     def __init__(self, file:str):
@@ -83,6 +85,6 @@ class File:
 
     def __sub__(self, other):
         if isinstance(other, File):
-            return self.to_index() - other.to_index()
+            return Delta(self.to_index() - other.to_index())
 
         raise Exception('Unsupported subtract operation')

@@ -1,3 +1,6 @@
+from domain.movements.delta.delta import Delta
+
+
 class Rank:
     _valid_ranks = range(0, 8)  # Valid ranks are integers from 0 to 7
 
@@ -84,6 +87,6 @@ class Rank:
 
     def __sub__(self, other):
         if isinstance(other, Rank):
-            return self._rank - other._rank
+            return Delta(self._rank - other._rank)
 
         raise Exception('Unsupported subtract operation')

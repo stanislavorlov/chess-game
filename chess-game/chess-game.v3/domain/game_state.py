@@ -16,6 +16,11 @@ from domain.side import Side
 class GameState(object):
 
     def __init__(self):
+        self._is_check: bool = False
+        self._is_check_mate: bool = False
+        self._captured_pieces = []
+        self._turn: Side = Side.white()
+
         self._state: dict[Position, Piece] = {
             Position(File.a(),Rank.r1()):Rook(Side.white()),
             Position(File.a(),Rank.r2()):Pawn(Side.white()),
@@ -51,11 +56,26 @@ class GameState(object):
             Position(File.h(),Rank.r8()):Rook(Side.black())
         }
 
+    @property
+    def is_check(self) -> bool:
+        return self._is_check
+
+    @property
+    def is_checkmate(self) -> bool:
+        return self._is_check_mate
+
+    @property
+    def turn(self):
+        return self._turn
+
     def init(self, player_side: Side):
         pass
 
     def get_state(self):
         return self._state
+
+    def switch_turn(self):
+        self._turn = Side.black() if self._turn == Side.white() else Side.white()
 
     def get_piece(self, position: Position) -> Piece:
         return self._state[position]
@@ -66,3 +86,6 @@ class GameState(object):
     def move_piece(self, movement: Movement):
         self._state.pop(movement.from_position, None)
         self._state[movement.to_position] = movement.piece
+
+    def is_valid(self, movement: Movement):
+        return False

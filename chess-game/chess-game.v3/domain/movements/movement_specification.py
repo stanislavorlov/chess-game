@@ -1,38 +1,28 @@
-from domain.chessboard.position import Position
+from domain.game_state import GameState
 from domain.movements.movement import Movement
-from domain.pieces.piece import Piece
-from domain.pieces.piece_type import PieceType
+from domain.movements.movement_rule import MovementRule
+from domain.side import Side
 
 class MovementSpecification:
 
-    @staticmethod
-    def is_satisfied(movement: Movement) -> bool:
-        # track changes between start and destination position
+    def __init__(self, movement_rule: MovementRule, side: Side, state: GameState):
+        self._movementRule = movement_rule
+        self._side = side
+        self._state = state
 
-        # pawn: only changes in rank by 1 or 2
-        # knight: 1 rank and 2 files OR 2 ranks and 1 file
-        # bishop: rank changes == file changes
-        # rock: only rank changes OR only file changes
+    @property
+    def movement_rule(self):
+        return self._movementRule
 
-        piece: Piece = movement.piece
-        _from: Position = movement.from_position
-        _to: Position = movement.to_position
+    @property
+    def piece_side(self):
+        return self._side
 
-        # ToDo: specification factory
-        # Queen can be combination of King, Bishop, Rook specifications
-        match piece.get_piece_type():
-            case PieceType.Pawn:
-                print('Pawn validation')
-            case PieceType.Queen:
-                print('Queen validation')
-            case PieceType.Bishop:
-                return abs(_to.file - _from.file) == abs(_to.rank - _from.rank)
+    @property
+    def state(self):
+        return self._state
 
-            case PieceType.King:
-                print('King validation')
-            case PieceType.Knight:
-                print('Knight validation')
-            case PieceType.Rook:
-                print('Rook validation')
-
-        return False
+    def is_satisfied_by(self, movement: Movement) -> bool:
+        return (self._movementRule.is_allowed(movement) and
+                self._state.is_valid(movement) and
+                self._state.turn == self._side)

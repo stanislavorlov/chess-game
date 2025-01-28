@@ -20,23 +20,25 @@ class ChessGame(object):
         self._presenter: Presenter = presenter
         self._moveSpecification: MovementSpecification = specification
 
-        self._presenter.bind_canvas_click_function(onclick_callback=self.click_square)
+        self._presenter.bind_canvas_click_function(onclick_callback=self.make_action)
 
     def start(self, player_side: Side):
         self._started = True
         self._gameState.init(player_side)
         self._presenter.draw(self._gameState)
 
-    def click_square(self, position: Position):
+    def make_action(self, position: Position):
         if not self._selectedPiece:
             self._selectedPiece = self._gameState.select_piece(position)
             self._fromPosition = position
         else:
             self._toPosition = position
             movement: Movement = Movement(self._selectedPiece, self._fromPosition, self._toPosition)
-            if self._moveSpecification.is_satisfied(movement):
+            if self._moveSpecification.is_satisfied_by(movement):
                 self._gameState.move_piece(movement)
                 self._selectedPiece = None
                 self._presenter.draw(self._gameState)
             else:
                 print('invalid movement')
+
+        # ToDo: return action instead: MOVE, SELECT, TAKE, CASTLING, CHECK, CHECKMATE, PROMOTE

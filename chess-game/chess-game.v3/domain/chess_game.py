@@ -6,21 +6,21 @@ from domain.movements.movement_specification import MovementSpecification
 from domain.pieces.piece import Piece
 from domain.side import Side
 from domain.game_state import GameState
-from interface.presenter import Presenter
+from interface.abstract_presenter import AbstractPresenter
 
 class ChessGame(object):
 
-    def __init__(self, state: GameState, presenter: Presenter, specification: MovementSpecification):
+    def __init__(self, state: GameState, presenter: AbstractPresenter, specification: MovementSpecification):
         self._started : bool = False
         self._finished : bool = False
         self._selectedPiece: Optional[Piece] = None
         self._fromPosition: Optional[Position] = None
         self._toPosition: Optional[Position] = None
         self._gameState: GameState = state
-        self._presenter: Presenter = presenter
+        self._presenter: AbstractPresenter = presenter
         self._moveSpecification: MovementSpecification = specification
 
-        self._presenter.bind_canvas_click_function(onclick_callback=self.make_action)
+        self._presenter.onclick_handler(callback=self.make_action)
 
     def start(self, player_side: Side):
         self._started = True

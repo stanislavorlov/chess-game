@@ -1,5 +1,6 @@
-import abc
 import uuid
+from abc import abstractmethod
+
 from domain.pieces.piece_type import PieceType
 from domain.side import Side
 
@@ -15,6 +16,9 @@ class Piece(object):
     def is_black(self) -> bool:
         return self._side == Side.black
 
+    def get_side(self):
+        return self._side
+
     def get_acronym(self) -> str:
         return f"{self._side}{self._type.value}".lower()
 
@@ -24,6 +28,6 @@ class Piece(object):
     def get_piece_type(self):
         return self._type
 
-    @abc.abstractmethod
-    def get_movement_rule(self):
+    @abstractmethod
+    def get_rule(self):
         pass

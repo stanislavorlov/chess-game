@@ -1,10 +1,12 @@
-from typing import override
-
+from domain.movements.rules.king_rule import KingRule
 from domain.pieces.piece import Piece
 from domain.pieces.piece_type import PieceType
 from domain.side import Side
 
 class King(Piece):
+
+    def get_rule(self):
+        return KingRule(self)
 
     def __init__(self, side: Side):
         super().__init__(side, PieceType.King)

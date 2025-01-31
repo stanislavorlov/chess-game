@@ -1,7 +1,7 @@
 class Delta:
 
     def __init__(self, delta: int):
-        self._delta = delta
+        self._delta = abs(delta)
 
     def has_changed(self):
         return self._delta != 0
@@ -11,9 +11,6 @@ class Delta:
             return False
 
         return self._delta == other._delta or other._delta == Delta.any()._delta
-
-    def __abs__(self):
-        return Delta(abs(self._delta))
 
     @staticmethod
     def zero():

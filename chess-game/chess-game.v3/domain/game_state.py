@@ -4,6 +4,7 @@ from domain.chessboard.file import File
 from domain.chessboard.position import Position
 from domain.chessboard.rank import Rank
 from domain.movements.movement import Movement
+from domain.movements.movement_intent import MovementIntent
 from domain.pieces.bishop import Bishop
 from domain.pieces.king import King
 from domain.pieces.knight import Knight
@@ -87,5 +88,5 @@ class GameState(object):
         self._state.pop(movement.from_position, None)
         self._state[movement.to_position] = movement.piece
 
-    def is_valid(self, movement: Movement):
+    def is_valid_move(self, movementIntent: MovementIntent):
         return False

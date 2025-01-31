@@ -28,9 +28,10 @@ class ChessGame(object):
         self._presenter.draw(self._gameState)
 
     def make_action(self, position: Position):
-        if not self._selectedPiece:
-            self._selectedPiece = self._gameState.select_piece(position)
-            self._fromPosition = position
+        selected_piece = self._gameState.select_piece(position)
+
+        if (not self._selectedPiece) or (selected_piece and selected_piece.get_side() == self._selectedPiece.get_side()):
+            self.select_piece(selected_piece, position)
         else:
             self._toPosition = position
             movement: Movement = Movement(self._selectedPiece, self._fromPosition, self._toPosition)
@@ -42,3 +43,7 @@ class ChessGame(object):
                 print('invalid movement')
 
         # ToDo: return action instead: MOVE, SELECT, TAKE, CASTLING, CHECK, CHECKMATE, PROMOTE
+
+    def select_piece(self, piece: Piece, position: Position):
+        self._selectedPiece = piece
+        self._fromPosition = position

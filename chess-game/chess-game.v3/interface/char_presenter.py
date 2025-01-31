@@ -1,18 +1,27 @@
+from abc import ABC
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import patches
 from matplotlib.axes import Axes
 
+from domain.chessboard.file import File
+from domain.chessboard.position import Position
+from domain.chessboard.rank import Rank
 from domain.game_state import GameState
 from interface.abstract_presenter import AbstractPresenter
 
-class CharacterPresenter(AbstractPresenter):
+class CharacterPresenter(AbstractPresenter, ABC):
+
+    def __init__(self):
+        self._callback = None
 
     def draw(self, state: GameState):
         self.display_chessboard()
 
     # Define the chessboard setup
-    def draw_chessboard(self):
+    @staticmethod
+    def draw_chessboard():
         board = np.zeros((8, 8))
         for row in range(8):
             for col in range(8):
@@ -21,7 +30,8 @@ class CharacterPresenter(AbstractPresenter):
         return board
 
     # Define the pieces and their initial positions
-    def add_pieces(self, ax: Axes):
+    @staticmethod
+    def add_pieces(ax: Axes):
         pieces = {
             "R": "♜",  # Rook
             "N": "♞",  # Knight
@@ -46,6 +56,9 @@ class CharacterPresenter(AbstractPresenter):
         for (row, col), piece in initial_positions.items():
             ax.text(col + 0.5, 7 - row + 0.5, pieces[piece], fontsize=24, ha='center', va='center', color='k' if row < 2 else 'white')
 
+    def onclick_handler(self, callback):
+        self._callback = callback
+
     # Main function to display the board
     def display_chessboard(self):
         board = self.draw_chessboard()
@@ -55,9 +68,9 @@ class CharacterPresenter(AbstractPresenter):
         ax.imshow(board, cmap="Accent", extent=(0, 8, 0, 8))
 
         # Add grid lines
-        for x in range(9):
-            ax.axhline(x, color='black', linewidth=0.5)
-            ax.axvline(x, color='black', linewidth=0.5)
+        for line in range(9):
+            ax.axhline(line, color='black', linewidth=0.5)
+            ax.axvline(line, color='black', linewidth=0.5)
 
         # Add pieces to the board
         self.add_pieces(ax)
@@ -68,13 +81,15 @@ class CharacterPresenter(AbstractPresenter):
         def on_press(event):
             if event.inaxes == ax:
                 x, y = int(event.xdata), int(event.ydata)
-                print(x,y)
 
                 xy = (float(x), float(y))
 
                 highlight_rect.set_xy(xy)  # Move the rectangle to the clicked square
                 highlight_rect.set_visible(True)  # Make the rectangle visible
                 fig.canvas.draw()
+
+                print(File.from_index(x), Rank.from_index(7 - y))
+                self._callback(Position(File.from_index(x), Rank.from_index(7 - y)))
 
         fig.canvas.mpl_connect("button_press_event", on_press)
 

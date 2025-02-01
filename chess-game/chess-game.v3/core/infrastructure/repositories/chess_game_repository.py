@@ -1,5 +1,5 @@
-from domain.game.chess_game import ChessGame
-from domain.value_objects.game_id import ChessGameId
+from core.domain.game.chess_game import ChessGame
+from core.domain.value_objects.game_id import ChessGameId
 
 
 class ChessGameRepository:

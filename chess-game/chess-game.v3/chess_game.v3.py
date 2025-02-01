@@ -1,35 +1,58 @@
-import random
+import asyncio
 
-from core.application.handlers.movement_completed_handler import MovementCompletedHandler
-from core.application.handlers.movement_started_handler import MovementStartedHandler
-from core.application.handlers.piece_selected_handler import PieceSelectedHandler
-from core.domain.events.movement_completed import MovementCompleted
-from core.domain.events.movement_started import MovementStarted
-from core.domain.events.piece_selected import PieceSelected
-from core.domain.game.game_state import GameState
-from core.domain.value_objects.side import Side
-from core.domain.game.chess_game import ChessGame
-from core.infrastructure.mediator import Mediator
-from core.interface.char_presenter import CharacterPresenter
+from diator.container.rodi import RodiContainer
+from diator.events import (
+    EventEmitter,
+    EventMap,
+)
+from diator.mediator import Mediator
+from diator.middlewares import MiddlewareChain
+from diator.requests import RequestMap
+from rodi import Container
 
-# ToDo: move all this logic into ChessGame object
-# ToDo: Store ChessGame into repo
-# ToDo: no direct invocation between objects, only Events and handlers
+from core.application.handlers.game_started_handler import GameStartedEventHandler
+from core.application.handlers.start_game_handler import StartGameCommandHandler
+from core.domain.commands.start_game import StartGameCommand
+from core.domain.events.game_started import GameStartedEvent
+from core.infrastructure.repositories.chess_game_repository import ChessGameRepository
 
-sides = [Side.white(), Side.black()]
-start_side = random.choice(sides)
-print("Your game side:" + str(start_side))
+# https://akhundmurad.github.io/diator/examples/
+# https://dev.to/akhundmurad/implementing-cqrs-in-python-41aj
+def setup_di() -> RodiContainer:
+    container = Container()
+    container.register(StartGameCommandHandler)
+    container.register(GameStartedEventHandler)
 
-# Once selected publish PlayerSideSelected event
+    container.register(ChessGameRepository)
 
-state = GameState()
-#presenter = ImagePresenter()
-presenter = CharacterPresenter()
+    rodi_container = RodiContainer()
+    rodi_container.attach_external_container(container)
 
-mediator = Mediator()
-mediator.bind(MovementCompleted, MovementCompletedHandler)
-mediator.bind(MovementStarted, MovementStartedHandler)
-mediator.bind(PieceSelected, PieceSelectedHandler)
+    return rodi_container
 
-game = ChessGame(state, presenter, specification)
-game.start(start_side)
+async def main() -> None:
+    container = setup_di()
+
+    event_map = EventMap()
+    event_map.bind(GameStartedEvent, GameStartedEventHandler)
+
+    middleware_chain = MiddlewareChain()
+
+    request_map = RequestMap()
+    request_map.bind(StartGameCommand, StartGameCommandHandler)
+
+    event_emitter = EventEmitter(
+        event_map=event_map, container=container, message_broker=None
+    )
+
+    mediator = Mediator(
+        request_map=request_map,
+        event_emitter=event_emitter,
+        container=container,
+        middleware_chain=middleware_chain,
+    )
+
+    await mediator.send(StartGameCommand())
+
+if __name__ == '__main__':
+    asyncio.run(main())

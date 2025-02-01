@@ -16,6 +16,8 @@ from core.domain.commands.start_game import StartGameCommand
 from core.domain.events.game_started import GameStartedEvent
 from core.infrastructure.repositories.chess_game_repository import ChessGameRepository
 
+# https://akhundmurad.github.io/diator/examples/
+# https://dev.to/akhundmurad/implementing-cqrs-in-python-41aj
 def setup_di() -> RodiContainer:
     container = Container()
     container.register(StartGameCommandHandler)

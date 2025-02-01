@@ -54,26 +54,3 @@ async def main() -> None:
 
 if __name__ == '__main__':
     asyncio.run(main())
-
-#sides = [Side.white(), Side.black()]
-#start_side: Side = random.choice(sides)
-#print("Your game side:" + str(start_side))
-
-# Once selected publish PlayerSideSelected event
-
-#state = GameState()
-#presenter = ImagePresenter()
-#presenter = CharacterPresenter()
-
-#mediator = Mediator()
-#mediator.bind(MovementCompleted, MovementCompletedHandler)
-#mediator.bind(MovementStarted, MovementStartedHandler)
-#mediator.bind(PieceSelected, PieceSelectedHandler)
-#mediator.bind(PlayerSideSelected, PlayerSideSelectedHandler)
-
-#mediator.publish(PlayerSideSelected(start_side))
-
-#game = ChessGame(state, presenter, specification)
-#game.start(start_side)
-
-# ToDo: publish game started event instead

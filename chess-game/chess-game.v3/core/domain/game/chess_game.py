@@ -2,17 +2,28 @@ from threading import Timer
 from typing import Optional
 
 from core.domain.chessboard.position import Position
+from core.domain.game.game_format import GameFormat
 from core.domain.game.game_state import GameState
 from core.domain.movements.movement import Movement
 from core.domain.movements.movement_specification import MovementSpecification
 from core.domain.pieces.piece import Piece
+from core.domain.value_objects.game_id import ChessGameId
 from core.domain.value_objects.side import Side
 from core.interface.abstract_presenter import AbstractPresenter
 
 
 class ChessGame(object):
 
-    def __init__(self, state: GameState, presenter: AbstractPresenter, specification: MovementSpecification):
+    def __init__(self, game_id: ChessGameId, player_side: Side, state: GameState, game_format: GameFormat):
+        self._game_id = game_id
+        self._state = state
+        self._started: bool = False
+        self._finished: bool = False
+        self._game_format = game_format
+        self._player_side = player_side
+        #self._timer = Timer(60.0 * 10, self.stop)
+
+    def __init__2(self, state: GameState, presenter: AbstractPresenter, specification: MovementSpecification):
         # ToDo: generic unique ID of the game
 
         self._started : bool = False

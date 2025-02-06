@@ -3,6 +3,7 @@ from typing import Optional
 from core.domain.chessboard.file import File
 from core.domain.chessboard.position import Position
 from core.domain.chessboard.rank import Rank
+from core.domain.kernel.entity import Entity
 from core.domain.movements.movement import Movement
 from core.domain.movements.movement_intent import MovementIntent
 from core.domain.pieces.piece import Piece
@@ -12,17 +13,28 @@ from core.domain.pieces.knight import Knight
 from core.domain.pieces.pawn import Pawn
 from core.domain.pieces.queen import Queen
 from core.domain.pieces.rook import Rook
+from core.domain.value_objects.game_id import ChessGameId
 from core.domain.value_objects.side import Side
 
-class GameState(object):
+class GameState(Entity):
 
-    def __init__(self):
+    def __init__(self, game_id: ChessGameId):
+        super().__init__()
         self._is_check: bool = False
-        self._is_check_mate: bool = False
+        self._is_checkmate: bool = False
+        self._is_stalemate: bool = False
         self._captured_pieces = []
-        self._turn: Side = Side.white()
+        self._current_side: Side = Side.white()
+        self._started: bool = False
+        self._finished: bool = False
+        self._game_id: ChessGameId = game_id
 
-        self._state: dict[Position, Piece] = {
+        # current_side
+        # players
+        # started / finished
+        # checked_king
+
+        self._pieces_positions: dict[Position, Piece] = {
             Position(File.a(),Rank.r1()):Rook(Side.white()),
             Position(File.a(),Rank.r2()):Pawn(Side.white()),
             Position(File.b(),Rank.r1()):Knight(Side.white()),
@@ -58,35 +70,44 @@ class GameState(object):
         }
 
     @property
+    def is_started(self):
+        return self._started
+
+    @property
+    def is_finished(self):
+        return self._finished
+
+    @property
     def is_check(self) -> bool:
         return self._is_check
 
     @property
     def is_checkmate(self) -> bool:
-        return self._is_check_mate
+        return self._is_checkmate
+
+    @property
+    def is_stalemate(self) -> bool:
+        return self._is_stalemate
 
     @property
     def turn(self):
-        return self._turn
+        return self._current_side
 
     def init(self, player_side: Side):
         pass
 
     def get_state(self):
-        return self._state
+        return self._pieces_positions
 
     def switch_turn(self):
-        self._turn = Side.black() if self._turn == Side.white() else Side.white()
+        self._current_side = Side.black() if self._current_side == Side.white() else Side.white()
 
     def get_piece(self, position: Position) -> Piece:
-        return self._state[position]
+        return self._pieces_positions[position]
 
     def select_piece(self, position: Position) -> Optional[Piece]:
         return self.get_piece(position)
 
     def move_piece(self, movement: Movement):
-        self._state.pop(movement.from_position, None)
-        self._state[movement.to_position] = movement.piece
-
-    def is_valid_move(self, movementIntent: MovementIntent):
-        return False
+        self._pieces_positions.pop(movement.from_position, None)
+        self._pieces_positions[movement.to_position] = movement.piece

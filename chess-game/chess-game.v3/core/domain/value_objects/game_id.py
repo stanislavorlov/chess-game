@@ -1,8 +1,12 @@
 import uuid
 
-class ChessGameId:
+from core.domain.kernel.value_object import ValueObject
+
+
+class ChessGameId(ValueObject):
 
     def __init__(self, value: str):
+        super().__init__()
         self._value = value
 
     @staticmethod

@@ -1,6 +1,10 @@
-class GameFormat:
+from core.domain.kernel.value_object import ValueObject
+
+
+class GameFormat(ValueObject):
 
     def __init__(self, time_minutes: int):
+        super().__init__()
         self._time_minutes = time_minutes
 
     @staticmethod

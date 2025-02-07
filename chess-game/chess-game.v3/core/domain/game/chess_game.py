@@ -4,6 +4,7 @@ from typing import Optional
 from core.domain.chessboard.position import Position
 from core.domain.events.game_start_failed import GameStartFailed
 from core.domain.events.game_started import GameStartedEvent
+from core.domain.events.piece_not_moved import PieceNotMovedEvent
 from core.domain.game.game_format import GameFormat
 from core.domain.game.game_history import ChessGameHistory
 from core.domain.game.game_state import GameState
@@ -31,17 +32,23 @@ class ChessGame(AggregateRoot):
 
     def start(self):
         if self._state.is_started:
-            self.raise_event(GameStartFailed())
+            return self.raise_event(GameStartFailed())
         else:
             self._state._started = True
-            self.raise_event(GameStartedEvent())
+            return self.raise_event(GameStartedEvent())
 
     def move_piece(self, player_id: PlayerId, _from: Position, to: Position):
         if not self._state.is_started:
-            print('Raise PieceNotMoved event')
+            return self.raise_event(PieceNotMovedEvent(from_=_from, to_=to, reason='Game was not started'))
+        elif self._state.is_finished:
+            return self.raise_event(PieceNotMovedEvent(from_=_from, to_=to, reason='Game has finished'))
 
-        if self._state.is_finished:
-            print('Raise PieceNotMoved event')
+        piece = self._state.get_piece(_from)
+        if PlayerId(piece.get_side()) != player_id:
+            return self.raise_event(PieceNotMovedEvent(from_=_from, to_=to, reason="Piece doesn't belong to player"))
+
+        # ToDo: check available moves
+
 
     def calculate_move_effect(self):
         pass

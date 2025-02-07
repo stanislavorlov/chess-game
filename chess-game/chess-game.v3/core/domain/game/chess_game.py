@@ -2,6 +2,8 @@ from threading import Timer
 from typing import Optional
 
 from core.domain.chessboard.position import Position
+from core.domain.events.game_start_failed import GameStartFailed
+from core.domain.events.game_started import GameStartedEvent
 from core.domain.game.game_format import GameFormat
 from core.domain.game.game_history import ChessGameHistory
 from core.domain.game.game_state import GameState
@@ -10,6 +12,7 @@ from core.domain.movements.movement import Movement
 from core.domain.movements.movement_specification import MovementSpecification
 from core.domain.pieces.piece import Piece
 from core.domain.players.player_id import PlayerId
+from core.domain.players.players import Players
 from core.domain.value_objects.game_id import ChessGameId
 from core.domain.value_objects.side import Side
 from core.interface.abstract_presenter import AbstractPresenter
@@ -17,25 +20,21 @@ from core.interface.abstract_presenter import AbstractPresenter
 
 class ChessGame(AggregateRoot):
 
-    def __init__(self, game_id: ChessGameId, player_side: Side, state: GameState, game_format: GameFormat):
+    def __init__(self, game_id: ChessGameId, players: Players, state: GameState, game_format: GameFormat):
         super().__init__()
         self._id = game_id
         self._state = state
         self._game_format = game_format
-        self._player_side = player_side
+        self._players = players
 
         self._history = ChessGameHistory.empty()
 
     def start(self):
         if self._state.is_started:
-            print('Raise ChessGameNotStarted event')
-
-        self._state._started = True
-
-        # ChessGameStarted OR ChessGameNotStarted
-        print('Raise ChessGameStarted')
-
-        pass
+            self.raise_event(GameStartFailed())
+        else:
+            self._state._started = True
+            self.raise_event(GameStartedEvent())
 
     def move_piece(self, player_id: PlayerId, _from: Position, to: Position):
         if not self._state.is_started:

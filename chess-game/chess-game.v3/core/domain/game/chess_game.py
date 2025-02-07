@@ -47,7 +47,12 @@ class ChessGame(AggregateRoot):
         if PlayerId(piece.get_side()) != player_id:
             return self.raise_event(PieceNotMovedEvent(from_=_from, to_=to, reason="Piece doesn't belong to player"))
 
+        if PlayerId(self._state.turn) != player_id:
+            return self.raise_event(PieceNotMovedEvent(from_=_from, to_=to,
+                                                       reason=f"It is not order of {player_id} player"))
+
         # ToDo: check available moves
+        canMoveToSelectedPosition = False
 
 
     def calculate_move_effect(self):

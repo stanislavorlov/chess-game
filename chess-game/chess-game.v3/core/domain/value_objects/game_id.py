@@ -31,6 +31,9 @@ class ChessGameId(ValueObject):
     def __repr__(self):
         return f"ObjectId({self._value})"
 
+    def __hash__(self):
+        return hash(self._value)
+
     @staticmethod
     def generate_id():
         return ChessGameId(str(uuid.uuid4()))

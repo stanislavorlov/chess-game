@@ -13,3 +13,6 @@ class GameStartedEventHandler(EventHandler[GameStartedEvent]):
 
     async def handle(self, event: GameStartedEvent) -> None:
         print('GameStartedEventHandler handle GameStartedEvent')
+
+        game = self._chess_game_repo.get(event.game_id)
+        print(game)

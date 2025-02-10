@@ -30,12 +30,16 @@ class ChessGame(AggregateRoot):
 
         self._history = ChessGameHistory.empty()
 
+    @property
+    def game_id(self):
+        return self._id
+
     def start(self):
         if self._state.is_started:
             return self.raise_event(GameStartFailed())
         else:
             self._state._started = True
-            return self.raise_event(GameStartedEvent())
+            return self.raise_event(GameStartedEvent(game_id=self.game_id))
 
     def move_piece(self, player_id: PlayerId, _from: Position, to: Position):
         if not self._state.is_started:

@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-from typing import Union
 
 from diator.container.rodi import RodiContainer
 from diator.events import EventMap, EventEmitter
@@ -15,7 +14,7 @@ from core.domain.commands.start_game import StartGameCommand
 from core.domain.events.game_started import GameStartedEvent
 from core.infrastructure.repositories.chess_game_repository import ChessGameRepository
 from fastapi import FastAPI
-from web.main import api_router
+from web.api.main import api_router
 
 mediator: Mediator
 

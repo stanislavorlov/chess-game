@@ -1,0 +1,9 @@
+To run locally run the following command:
+
+Back-end API
+- fastapi dev main.py
+- uvicorn app:app --reload
+
+sudo lsof -t -i tcp:8000 | xargs kill -9
+
+Client app

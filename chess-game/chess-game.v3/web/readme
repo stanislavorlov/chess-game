@@ -1,3 +1,0 @@
-To run locally run the following command:
-
-fastapi dev main.py

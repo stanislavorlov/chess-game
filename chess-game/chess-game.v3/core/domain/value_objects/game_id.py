@@ -1,8 +1,12 @@
 import uuid
 
-class ChessGameId:
+from core.domain.kernel.value_object import ValueObject
+
+
+class ChessGameId(ValueObject):
 
     def __init__(self, value: str):
+        super().__init__()
         self._value = value
 
     @staticmethod
@@ -26,6 +30,9 @@ class ChessGameId:
 
     def __repr__(self):
         return f"ObjectId({self._value})"
+
+    def __hash__(self):
+        return hash(self._value)
 
     @staticmethod
     def generate_id():

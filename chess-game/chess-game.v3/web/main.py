@@ -1,17 +1,8 @@
-from typing import Union
+from fastapi import APIRouter
 
-from fastapi import FastAPI
+from web.routes import game_api, move_api, piece_api
 
-app = FastAPI()
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
-
-# to run - execute the command below
-# fastapi dev main.py
+api_router = APIRouter()
+api_router.include_router(game_api.router)
+api_router.include_router(move_api.router)
+api_router.include_router(piece_api.router)

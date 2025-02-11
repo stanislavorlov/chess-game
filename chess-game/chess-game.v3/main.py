@@ -1,10 +1,13 @@
 from contextlib import asynccontextmanager
 
+import pymongo
 from diator.container.rodi import RodiContainer
 from diator.events import EventMap, EventEmitter
 from diator.mediator import Mediator
 from diator.middlewares import MiddlewareChain
 from diator.requests import RequestMap
+from pymongo import MongoClient
+from pymongo.server_api import ServerApi
 
 from rodi import Container
 
@@ -52,6 +55,15 @@ async def lifespan(fast_api: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 #router = APIRouter(tags=["stacks"])
+
+uri = "mongodb+srv://stasorlov21:1ibAsmJf2SUq95Ba@cluster0.cchn0.mongodb.net/?retryWrites=true&w=majority"
+app.mongo_client = MongoClient(uri,
+                               tls=True,
+                               tlsAllowInvalidCertificates=True)
+
+app.mongodb = app.mongo_client["sample_mflix"]
+print('Main DB')
+print(app.mongodb)
 
 app.include_router(api_router)
 

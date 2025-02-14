@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from functools import lru_cache
 
 import pymongo
 from diator.container.rodi import RodiContainer
@@ -18,6 +19,8 @@ from core.domain.events.game_started import GameStartedEvent
 from core.infrastructure.repositories.chess_game_repository import ChessGameRepository
 from fastapi import FastAPI
 from web.api.main import api_router
+
+import config
 
 mediator: Mediator
 
@@ -56,14 +59,15 @@ async def lifespan(fast_api: FastAPI):
 app = FastAPI(lifespan=lifespan)
 #router = APIRouter(tags=["stacks"])
 
-uri = "mongodb+srv://stasorlov21:1ibAsmJf2SUq95Ba@cluster0.cchn0.mongodb.net/?retryWrites=true&w=majority"
-app.mongo_client = MongoClient(uri,
-                               tls=True,
-                               tlsAllowInvalidCertificates=True)
+@lru_cache
+def get_settings():
+    return config.Settings()
 
-app.mongodb = app.mongo_client["sample_mflix"]
-print('Main DB')
-print(app.mongodb)
+#uri = "mongodb+srv://stasorlov21:1ibAsmJf2SUq95Ba@cluster0.cchn0.mongodb.net/?retryWrites=true&w=majority"
+print(get_settings().MONGO_HOST)
+#print(config.Settings.MONGO_HOST, config.Settings.MONGO_DB)
+#app.mongo_client = MongoClient(config.Settings.MONGO_HOST,tls=True,tlsAllowInvalidCertificates=True)
+#app.mongodb = app.mongo_client[config.Settings.MONGO_DB]
 
 app.include_router(api_router)
 

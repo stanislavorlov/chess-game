@@ -1,5 +1,7 @@
 To run locally run the following command:
 
+cd web
+
 Back-end API
 - fastapi dev main.py
 

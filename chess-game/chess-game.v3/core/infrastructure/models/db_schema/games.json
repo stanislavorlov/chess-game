@@ -1,0 +1,32 @@
+{
+  "_id": "",
+  "date": "",
+  "name": "",
+  "state": {
+    "captured": [],
+    "turn": "",
+    "finished": false,
+    "status": ["none","check","checkmate","stalemate"],
+    "piece_positions": [
+      {
+        "piece_id": "",
+        "position": ""
+      }
+    ],
+    "started": false
+  },
+  "format": {
+    "value": ["bullet", "blitz", "rapid"],
+    "time_remaining": 0
+  },
+  "players": {
+    "white_id": "",
+    "black_id": ""
+  },
+  "history": [
+    {
+      "move": "",
+      "piece_id": ""
+    }
+  ]
+}

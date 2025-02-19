@@ -3,6 +3,7 @@ from typing import Optional
 from core.domain.chessboard.file import File
 from core.domain.chessboard.position import Position
 from core.domain.chessboard.rank import Rank
+from core.domain.game.game_status import GameStatus
 from core.domain.kernel.entity import Entity
 from core.domain.movements.movement import Movement
 from core.domain.movements.movement_intent import MovementIntent
@@ -20,9 +21,7 @@ class GameState(Entity):
 
     def __init__(self, game_id: ChessGameId):
         super().__init__()
-        self._is_check: bool = False
-        self._is_checkmate: bool = False
-        self._is_stalemate: bool = False
+        self._game_status:GameStatus = GameStatus.none()
         self._captured_pieces = []
         self._current_side: Side = Side.white()
         self._started: bool = False
@@ -76,18 +75,6 @@ class GameState(Entity):
     @property
     def is_finished(self):
         return self._finished
-
-    @property
-    def is_check(self) -> bool:
-        return self._is_check
-
-    @property
-    def is_checkmate(self) -> bool:
-        return self._is_checkmate
-
-    @property
-    def is_stalemate(self) -> bool:
-        return self._is_stalemate
 
     @property
     def turn(self):

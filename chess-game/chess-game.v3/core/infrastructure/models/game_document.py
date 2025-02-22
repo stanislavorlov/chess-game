@@ -1,5 +1,7 @@
+import uuid
+
 from beanie import Document
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import datetime
 
 class GameState(BaseModel):
@@ -12,7 +14,7 @@ class GameState(BaseModel):
 
 class GameFormat(BaseModel):
     value: str
-    time_remaining: int
+    time_remaining: str
 
 class Players(BaseModel):
     white_id: str
@@ -23,6 +25,7 @@ class HistoryItem(BaseModel):
     piece_id: str
 
 class GameDocument(Document):
+    game_id: uuid.uuid4 = Field(default_factory=uuid.uuid4)
     name: str
     date: datetime.datetime
     status: str

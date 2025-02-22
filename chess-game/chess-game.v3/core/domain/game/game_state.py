@@ -19,14 +19,14 @@ from core.domain.value_objects.side import Side
 
 class GameState(Entity):
 
-    def __init__(self, game_id: ChessGameId):
+    def __init__(self, game_id: ChessGameId, status: GameStatus, captured_pieces: [], current_side: Side, ):
         super().__init__()
-        self._game_status:GameStatus = GameStatus.none()
-        self._captured_pieces = []
-        self._current_side: Side = Side.white()
+        self._game_id: ChessGameId = game_id
+        self._game_status:GameStatus = status
+        self._captured_pieces = captured_pieces
+        self._current_side: Side = current_side
         self._started: bool = False
         self._finished: bool = False
-        self._game_id: ChessGameId = game_id
 
         # current_side
         # players

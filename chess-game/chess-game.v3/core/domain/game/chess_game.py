@@ -10,13 +10,11 @@ from core.domain.game.game_history import ChessGameHistory
 from core.domain.game.game_state import GameState
 from core.domain.kernel.aggregate_root import AggregateRoot
 from core.domain.movements.movement import Movement
-from core.domain.movements.movement_specification import MovementSpecification
 from core.domain.pieces.piece import Piece
 from core.domain.players.player_id import PlayerId
 from core.domain.players.players import Players
 from core.domain.value_objects.game_id import ChessGameId
 from core.domain.value_objects.side import Side
-from core.interface.abstract_presenter import AbstractPresenter
 
 
 class ChessGame(AggregateRoot):

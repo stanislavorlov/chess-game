@@ -3,6 +3,7 @@ from core.domain.game.game_format import GameFormat
 from core.domain.game.game_state import GameState
 from core.domain.players.players import Players
 from core.domain.value_objects.game_id import ChessGameId
+from core.infrastructure.models import GameDocument
 
 
 class ChessGameFactory:

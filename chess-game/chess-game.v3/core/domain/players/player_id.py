@@ -24,7 +24,4 @@ class PlayerId(ValueObject):
         return lower(self._value) == lower(other._value)
 
     def __ne__(self, other):
-        if type(other) != type(self):
-            return True
-
-        return self._value != other._value
+        return not self == other

@@ -4,6 +4,8 @@ from core.infrastructure.models.game_document import GameDocument
 
 class ChessGameRepository:
 
+    # ToDo: update repository to work with Domain objects instead of GameDocument
+
     games_collection = GameDocument
 
     @staticmethod
@@ -19,8 +21,8 @@ class ChessGameRepository:
     async def save(self, game_id: PydanticObjectId, data: dict):
         des_body = {k: v for k, v in data.items() if v is not None}
         update_query = {"$set": {field: value for field, value in des_body.items()}}
-        student = await self.games_collection.get(game_id)
-        if student:
-            await student.update(update_query)
-            return student
+        game = await self.games_collection.get(game_id)
+        if game:
+            await game.update(update_query)
+            return game
         return False

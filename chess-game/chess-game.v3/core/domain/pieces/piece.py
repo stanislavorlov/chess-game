@@ -1,12 +1,12 @@
-import uuid
 from abc import abstractmethod
 
 from core.domain.pieces.piece_type import PieceType
+from core.domain.value_objects.piece_id import PieceId
 from core.domain.value_objects.side import Side
 
 class Piece(object):
-    def __init__(self, side: Side, type_: PieceType):
-        self._id = uuid.uuid4()
+    def __init__(self, piece_id: PieceId, side: Side, type_: PieceType):
+        self._id = piece_id
         self._side = side
         self._type = type_
         

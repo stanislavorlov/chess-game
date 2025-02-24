@@ -1,14 +1,18 @@
-from beanie import PydanticObjectId
-from fastapi import APIRouter, Depends
-from core.infrastructure.repositories.chess_game_repository import ChessGameRepository
+from fastapi import APIRouter
+
+from core.domain.commands.start_game import StartGameCommand
+from core.domain.game.game_format import GameFormat
+from core.infrastructure.mediator.mediator import build_mediator
 
 router = APIRouter(prefix="/game")
 
-@router.get("/{game_id}")
-async def start(game_id: PydanticObjectId, repository: ChessGameRepository = Depends(ChessGameRepository)):
-    game = await repository.find(game_id)
+@router.post("/create_board/{game_format}")
+async def create_board(game_format: str):
+    mediator = build_mediator()
+
+    game_created = await mediator.send(StartGameCommand(format_=GameFormat.parse_string(game_format)))
 
     return {
         "status": 200,
-        "data": game
+        "data": game_created
     }

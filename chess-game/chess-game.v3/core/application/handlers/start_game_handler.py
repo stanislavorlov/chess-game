@@ -3,10 +3,12 @@ import random
 
 from diator.requests import RequestHandler
 from core.domain.commands.start_game import StartGameCommand
+from core.domain.game.chess_game import ChessGame
 from core.domain.game.chess_game_factory import ChessGameFactory
 from core.domain.game.game_format import GameFormat
 from core.domain.players.player_id import PlayerId
 from core.domain.players.players import Players
+from core.domain.value_objects.game_id import ChessGameId
 from core.domain.value_objects.side import Side
 from core.infrastructure.repositories.chess_game_repository import ChessGameRepository
 
@@ -14,7 +16,7 @@ from core.infrastructure.repositories.chess_game_repository import ChessGameRepo
 class StartGameCommandHandler(RequestHandler[StartGameCommand, None]):
 
     def __init__(self, repo: ChessGameRepository):
-        self._chess_game_repo = repo
+        self._repository = repo
         self._events = []
 
     @property
@@ -24,14 +26,9 @@ class StartGameCommandHandler(RequestHandler[StartGameCommand, None]):
     async def handle(self, request: StartGameCommand) -> None:
         print('StartGameCommandHandler handle StartGameCommand')
 
-        formats = [GameFormat.rapid(), GameFormat.blitz(), GameFormat.bullet()]
-        format_: GameFormat = random.choice(formats)
+        chess_game = ChessGameFactory.start_new(request.format_)
+        game_created = await self._repository.create(chess_game)
 
-        players = Players(PlayerId.of(Side.white()), PlayerId.of(Side.black()))
+        self._events.extend(chess_game.domain_events)
 
-        game = ChessGameFactory.start_new(players, format_)
-        game.start()
-
-        self._chess_game_repo.save(game)
-
-        self._events.extend(game.domain_events)
+        return chess_game

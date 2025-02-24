@@ -1,13 +1,12 @@
 from threading import Timer
 from typing import Optional
 
+from core.domain.chessboard.board import Board
 from core.domain.chessboard.position import Position
 from core.domain.events.game_start_failed import GameStartFailed
 from core.domain.events.game_started import GameStartedEvent
-from core.domain.events.piece_not_moved import PieceNotMovedEvent
 from core.domain.game.game_format import GameFormat
 from core.domain.game.game_history import ChessGameHistory
-from core.domain.game.game_state import GameState
 from core.domain.kernel.aggregate_root import AggregateRoot
 from core.domain.movements.movement import Movement
 from core.domain.pieces.piece import Piece
@@ -19,14 +18,13 @@ from core.domain.value_objects.side import Side
 
 class ChessGame(AggregateRoot):
 
-    def __init__(self, game_id: ChessGameId, players: Players, state: GameState, game_format: GameFormat):
+    def __init__(self, game_id: ChessGameId, game_format: GameFormat, history: ChessGameHistory):
         super().__init__()
         self._id = game_id
-        self._state = state
         self._game_format = game_format
-        self._players = players
+        self._history = history
 
-        self._history = ChessGameHistory.empty()
+        self._board = Board.replay(history)
 
     @property
     def game_id(self):
@@ -75,9 +73,6 @@ class ChessGame(AggregateRoot):
 
     def get_moves_for_piece(self, position):
         pass
-
-    def update_state(self, state: GameState):
-        self._state = state
 
 
     # def __init__2(self, state: GameState, presenter: AbstractPresenter, specification: MovementSpecification):

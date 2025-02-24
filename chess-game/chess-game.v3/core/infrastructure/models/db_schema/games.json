@@ -8,12 +8,6 @@
     "turn": "",
     "finished": false,
     "status": ["none","check","checkmate","stalemate"],
-    "piece_positions": [
-      {
-        "piece_id": "",
-        "position": ""
-      }
-    ],
     "started": false
   },
   "format": {
@@ -27,7 +21,8 @@
   "history": [
     {
       "move": "",
-      "piece_id": ""
+      "piece_id": "",
+      "type": ""
     }
   ]
 }

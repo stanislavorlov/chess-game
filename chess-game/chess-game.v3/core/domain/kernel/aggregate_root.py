@@ -15,3 +15,6 @@ class AggregateRoot:
 
     def raise_event(self, domain_event: T):
         self._events.append(domain_event)
+
+    def raise_events(self, domain_events: list[DomainEvent]):
+        self._events.extend(domain_events)

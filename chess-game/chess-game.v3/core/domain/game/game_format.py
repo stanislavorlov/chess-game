@@ -23,24 +23,28 @@ class GameFormat(ValueObject):
         return GameFormat(timedelta(minutes=1))
 
     @staticmethod
-    def from_string(value: str, time_remaining: str):
-        minutes, seconds = GameFormat.__parse_time(time_remaining)
-
+    def parse_string(value: str):
         match value:
             case "rapid":
                 instance = GameFormat.rapid()
-                instance._time_remaining = timedelta(minutes=minutes, seconds=seconds)
                 return instance
             case "blitz":
                 instance = GameFormat.blitz()
-                instance._time_remaining = timedelta(minutes=minutes, seconds=seconds)
                 return instance
             case "bullet":
                 instance = GameFormat.bullet()
-                instance._time_remaining = timedelta(minutes=minutes, seconds=seconds)
                 return instance
             case _:
                 raise ValueError('Invalid time input has been provided')
+
+    @staticmethod
+    def from_string(value: str, time_remaining: str):
+        minutes, seconds = GameFormat.__parse_time(time_remaining)
+
+        instance = GameFormat.parse_string(value)
+        instance._time_remaining = timedelta(minutes=minutes, seconds=seconds)
+
+        return instance
 
     def extend(self):
         pass

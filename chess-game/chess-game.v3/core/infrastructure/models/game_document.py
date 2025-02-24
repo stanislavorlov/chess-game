@@ -1,16 +1,15 @@
-import uuid
-
+from typing import Optional
+from uuid import uuid4
 from beanie import Document
 from pydantic import BaseModel, Field
-import datetime
+from datetime import datetime
 
 class GameState(BaseModel):
-    captured: []
+    captured: Optional[list] = None
     turn: str
     started: bool
     finished: bool
     status: str
-    piece_positions: []
 
 class GameFormat(BaseModel):
     value: str
@@ -25,14 +24,13 @@ class HistoryItem(BaseModel):
     piece_id: str
 
 class GameDocument(Document):
-    game_id: uuid.uuid4 = Field(default_factory=uuid.uuid4)
+    game_id: uuid4 = Field(default_factory=uuid4)
     name: str
-    date: datetime.datetime
-    status: str
+    date: datetime
     state: GameState
     format: GameFormat
     players: Players
-    history: []
+    history: Optional[list] = None
 
     class Config:
         pass

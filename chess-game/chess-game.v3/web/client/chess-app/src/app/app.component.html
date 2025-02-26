@@ -230,33 +230,31 @@
         </defs>
       </svg>
       <h1>Hello, {{ title }}</h1>
-      <p>Congratulations! Your app is running. 🎉</p>
       <div>
-        <button>Start chess game</button>
+        <button class="btn btn-success">Start chess game</button>
       </div>
       <div>
         <table class="chess-board">
-                <tbody>
-                    <tr>
-                        <th></th>
-                        <th>a</th>
-                        <th>b</th>
-                        <th>c</th>
-                        <th>d</th>
-                        <th>e</th>
-                        <th>f</th>
-                        <th>g</th>
-                        <th>h</th>
-                    </tr>
-                    <tr *ngFor="let position of positions">
-                      <th>{{ position.key }}</th>
-                      <td *ngFor="let item of position.group" (click)="clickBoard(item.square)" class="{{item.color}}">
-                        <img *ngIf="item.piece" src="images/{{item.piece}}.png">
-                      </td>
-                    </tr>
-
-                </tbody>
-            </table>
+            <tbody>
+              <tr>
+                  <th></th>
+                  <th>a</th>
+                  <th>b</th>
+                  <th>c</th>
+                  <th>d</th>
+                  <th>e</th>
+                  <th>f</th>
+                  <th>g</th>
+                  <th>h</th>
+              </tr>
+              <tr *ngFor="let position of positions">
+                <th>{{ position.key }}</th>
+                <td *ngFor="let item of position.group" data-id="td-{{item.square}}" (click)="clickBoard(item)" class="{{item.color}}">
+                  <img *ngIf="item.piece" src="images/{{item.piece}}.png">
+                </td>
+              </tr>
+            </tbody>
+        </table>
       </div>
     </div>
     <div class="divider" role="separator" aria-label="Divider"></div>

@@ -1,9 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, Inject, InjectionToken } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import {
   NgIf,
   NgFor
 } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
+import { GroupedPosition, Position } from '../models/position';
 
 @Component({
   selector: 'app-root',
@@ -14,7 +16,10 @@ import { RouterOutlet } from '@angular/router';
 export class AppComponent {
   title = 'chess-app';
 
-  positions = [
+  constructor(@Inject(DOCUMENT) document: Document) {
+  }
+
+  positions: GroupedPosition[] = [
     { key: '8', group: [
       { square: 'a8', piece: 'br', color: 'light' },
       { square: 'b8', piece: 'bn', color: 'dark' },
@@ -89,7 +94,12 @@ export class AppComponent {
       { square: 'h1', piece: 'wr', color: 'light' },] }
   ]
 
-  clickBoard(square: string): void {
-    alert('clicked:' + square)
+  clickBoard(position: Position): void {
+    console.log('clicked square: ' + position.square + ', selected piece: ' + position.piece)
+
+    var htmlElement = document.getElementById('td-'+position.square);
+    if (!!htmlElement) {
+      htmlElement.style.setProperty('border','1px solid red','');
+    }
   }
 }

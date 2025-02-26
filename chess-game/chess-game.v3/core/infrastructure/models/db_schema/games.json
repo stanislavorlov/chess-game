@@ -4,10 +4,8 @@
   "date": "",
   "name": "",
   "state": {
-    "captured": [],
     "turn": "",
     "finished": false,
-    "status": ["none","check","checkmate","stalemate"],
     "started": false
   },
   "format": {
@@ -17,12 +15,5 @@
   "players": {
     "white_id": "",
     "black_id": ""
-  },
-  "history": [
-    {
-      "move": "",
-      "piece_id": "",
-      "type": ""
-    }
-  ]
+  }
 }

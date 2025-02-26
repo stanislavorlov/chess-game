@@ -1,0 +1,19 @@
+{
+  "_id": "",
+  "player_id": "",
+  "date": "",
+  "stats": [
+    {
+      "key": "blitz",
+      "value": ""
+    },
+    {
+      "key": "rapid",
+      "value": ""
+    },
+    {
+      "key": "bullet",
+      "value": ""
+    }
+  ]
+}

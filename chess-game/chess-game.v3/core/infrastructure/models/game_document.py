@@ -25,12 +25,13 @@ class HistoryItem(BaseModel):
 
 class GameDocument(Document):
     game_id: uuid4 = Field(default_factory=uuid4)
-    name: str
+    moves_count: int
     date: datetime
     state: GameState
     format: GameFormat
     players: Players
     history: Optional[list] = None
+    result: str
 
     class Config:
         pass

@@ -1,12 +1,8 @@
 {
   "_id": "",
   "player_id": "",
-  "games_history": [
-    {
-      "game_id": "",
-      "result": ""
-    }
-  ],
   "name": "",
-  "rank": 0
+  "country_code": "",
+  "joined_date": "",
+  "photo_url": ""
 }

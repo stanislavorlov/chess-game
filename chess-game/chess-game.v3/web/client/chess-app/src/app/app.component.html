@@ -231,9 +231,22 @@
       </svg>
       <h1>Hello, {{ title }}</h1>
       <div>
-        <button class="btn btn-success">Start chess game</button>
+        <form>
+          <mat-form-field>
+            <mat-label>Choose game format</mat-label>
+            <mat-select [(ngModel)]="selectedFormat" color="primary" name="format">
+              @for (item of formats; track item) {
+                <mat-option [value]="item">{{item}}</mat-option>
+              }
+              <!-- <mat-option [value]="bullet">Bullet</mat-option>
+              <mat-option [value]="blitz">Blitz</mat-option>
+              <mat-option [value]="rapid">Rapid</mat-option> -->
+            </mat-select>
+          </mat-form-field>
+          <button class="btn btn-success" (click)="startGame()">Start chess game</button>
+        </form>
       </div>
-      <div>
+      <div style="margin-top: 50px;">
         <table class="chess-board">
             <tbody>
               <tr>
@@ -348,6 +361,19 @@
             />
           </svg>
         </a>
+      </div>
+      <div>
+        <div class="wrapper">
+          <div class="description">
+            <p>Minutes</p>
+            <p>Seconds</p>
+          </div>
+          <div class="times">
+            <p #minutes></p>
+            <p #seconds></p>
+          </div>
+        </div>
+        <h2>Game history</h2>
       </div>
     </div>
   </div>

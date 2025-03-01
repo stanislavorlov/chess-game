@@ -1,22 +1,64 @@
-import { Component, Inject, InjectionToken } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, Inject, InjectionToken, ViewChild } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import {FormsModule} from '@angular/forms';
 import {
   NgIf,
   NgFor
 } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { GroupedPosition, Position } from '../models/position';
+import { GroupedPosition, Position } from './models/position';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatButtonModule } from '@angular/material/button';
+import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatSelectModule} from '@angular/material/select';
+import {
+  MatDialog,
+  MatDialogActions,
+  MatDialogClose,
+  MatDialogContent,
+  MatDialogTitle
+} from '@angular/material/dialog';
+import { ChessService } from './services/chess.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, NgFor, NgIf],
+  imports: [RouterOutlet, NgFor, NgIf, MatButtonModule, MatDialogModule, MatSelectModule, FormsModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent {
+export class AppComponent implements AfterViewInit {
   title = 'chess-app';
+  selectedFormat: string;
+  date: any;
+  now: any;
+  targetDate: any = new Date(2025, 5, 20);
+  targetTime: any = this.targetDate.getTime();
+  difference: number;
+  readonly dialog = inject(MatDialog)
+  @ViewChild('minutes', { static: true }) minutes: ElementRef<HTMLInputElement> = {} as ElementRef;
+  @ViewChild('seconds', { static: true }) seconds: ElementRef<HTMLInputElement> = {} as ElementRef;
 
-  constructor(@Inject(DOCUMENT) document: Document) {
+  formats: string[] = [
+    "bullet",
+    "blitz",
+    "rapid"
+  ];
+
+  constructor(private chessService: ChessService, @Inject(DOCUMENT) document: Document) {
+    this.selectedFormat = '';
+    this.difference = 0;
+  }
+  ngAfterViewInit(): void {
+    
+  }
+
+  tickTock() {
+    this.date = new Date();
+    this.now = this.date.getTime();
+    this.minutes.nativeElement.innerText = (60 - this.date.getMinutes()).toString();
+    this.seconds.nativeElement.innerText = (60 - this.date.getSeconds()).toString();
   }
 
   positions: GroupedPosition[] = [
@@ -101,5 +143,38 @@ export class AppComponent {
     if (!!htmlElement) {
       htmlElement.style.setProperty('border','1px solid red','');
     }
+  }
+
+  startGame(): void {
+    /* this.dialog.open(StartChessGameDialog, {
+      data: {
+        animal: 'panda',
+      },
+    }); */
+
+    alert(this.selectedFormat);
+
+    setInterval(() => {
+      this.tickTock();
+      this.difference = this.targetTime - this.now;
+      this.difference = this.difference / (1000 * 60 * 60 * 24);
+    }, 1000);
+  }
+}
+
+@Component({
+  selector: 'start-game-dialog',
+  templateUrl: 'start-game-dialog.html',
+  imports: [MatDialogTitle, MatDialogContent, MatDialogActions, MatFormFieldModule, MatInputModule, MatButtonModule],
+})
+export class StartChessGameDialog {
+  data = inject(MAT_DIALOG_DATA);
+
+  close(): void {
+
+  }
+
+  onNoClick(): void {
+
   }
 }

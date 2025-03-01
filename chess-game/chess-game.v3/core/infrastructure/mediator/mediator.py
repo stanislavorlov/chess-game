@@ -6,8 +6,8 @@ from diator.requests import RequestMap
 from rodi import Container
 
 from core.application.handlers.game_started_handler import GameStartedEventHandler
-from core.application.handlers.start_game_handler import StartGameCommandHandler
-from core.domain.commands.start_game import StartGameCommand
+from core.application.handlers.create_game_handler import CreateGameCommandHandler
+from core.domain.commands.create_game import CreateGameCommand
 from core.domain.events.game_started import GameStartedEvent
 from core.infrastructure.repositories.chess_game_repository import ChessGameRepository
 
@@ -16,7 +16,7 @@ def build_mediator() -> Mediator:
     container = Container()
     container.register(ChessGameRepository)
     container.register(GameStartedEventHandler)
-    container.register(StartGameCommandHandler)
+    container.register(CreateGameCommandHandler)
 
     rodi_container = RodiContainer()
     rodi_container.attach_external_container(container)
@@ -27,7 +27,7 @@ def build_mediator() -> Mediator:
     middleware_chain = MiddlewareChain()
 
     request_map = RequestMap()
-    request_map.bind(StartGameCommand, StartGameCommandHandler)
+    request_map.bind(CreateGameCommand, CreateGameCommandHandler)
 
     event_emitter = EventEmitter(
         event_map=event_map, container=rodi_container, message_broker=None

@@ -6,5 +6,5 @@ from core.domain.game.game_format import GameFormat
 
 
 @dataclass(frozen=True, kw_only=True)
-class StartGameCommand(Request):
+class CreateGameCommand(Request):
     format_: GameFormat

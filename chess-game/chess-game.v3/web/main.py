@@ -9,8 +9,8 @@ from diator.requests import RequestMap
 from rodi import Container
 
 from core.application.handlers.game_started_handler import GameStartedEventHandler
-from core.application.handlers.start_game_handler import StartGameCommandHandler
-from core.domain.commands.start_game import StartGameCommand
+from core.application.handlers.create_game_handler import CreateGameCommandHandler
+from core.domain.commands.create_game import CreateGameCommand
 from core.domain.events.game_started import GameStartedEvent
 from fastapi import FastAPI
 

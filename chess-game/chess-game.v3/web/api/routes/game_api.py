@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from core.domain.commands.start_game import StartGameCommand
+from core.domain.commands.create_game import CreateGameCommand
 from core.domain.game.game_format import GameFormat
 from core.infrastructure.mediator.mediator import build_mediator
 
@@ -10,7 +10,7 @@ router = APIRouter(prefix="/game")
 async def create_board(game_format: str):
     mediator = build_mediator()
 
-    game_created = await mediator.send(StartGameCommand(format_=GameFormat.parse_string(game_format)))
+    game_created = await mediator.send(CreateGameCommand(format_=GameFormat.parse_string(game_format)))
 
     return {
         "status": 200,

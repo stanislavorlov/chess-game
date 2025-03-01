@@ -90,3 +90,27 @@ class Rank:
             return Delta(self._rank - other._rank)
 
         raise Exception('Unsupported subtract operation')
+
+    def __lt__(self, other):
+        if isinstance(other, Rank):
+            return self._rank < other._rank
+
+        raise Exception('Unsupported less than operation')
+
+    def __le__(self, other):
+        if isinstance(other, Rank):
+            return self._rank <= other._rank
+
+        raise Exception('Unsupported less than or equal operation')
+
+    def __gt__(self, other):
+        if isinstance(other, Rank):
+            return self._rank > other._rank
+
+        raise Exception('Unsupported greater than operation')
+
+    def __ge__(self, other):
+        if isinstance(other, Rank):
+            return self._rank >= other._rank
+
+        raise Exception('Unsupported greater than or equal operation')

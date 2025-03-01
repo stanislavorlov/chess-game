@@ -31,3 +31,7 @@ class Piece(object):
     @abstractmethod
     def get_rule(self):
         pass
+
+    @abstractmethod
+    def get_points(self):
+        pass

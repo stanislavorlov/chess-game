@@ -34,16 +34,16 @@ class Board:
                 self.piece_moved(event)
 
             case PieceCaptured() as event:
-                pass
+                self.piece_captured(event)
 
             case PawnPromoted() as event:
-                pass
+                self.pawn_promoted(event)
 
             case KingChecked() as event:
-                print('king checked')
+                self.king_checked(event)
 
             case KingCheckMated() as event:
-                print('king checkmated')
+                self.king_checkmated(event)
 
     def piece_positioned(self, piece_positioned: PiecePositioned):
         piece = piece_positioned.piece
@@ -58,3 +58,15 @@ class Board:
 
         del self._board[from_]
         self._board[to] = piece
+
+    def piece_captured(self, piece_captured: PieceCaptured):
+        pass
+
+    def pawn_promoted(self, pawn_promoted: PawnPromoted):
+        pass
+
+    def king_checked(self, king_checked: KingChecked):
+        pass
+
+    def king_checkmated(self, king_checkmated: KingCheckMated):
+        pass

@@ -1,10 +1,15 @@
-from core.domain.pieces.rules.king_rule import KingRule
+import math
+
+from core.domain.rules.movements.king_rule import KingRule
 from core.domain.pieces.piece import Piece
 from core.domain.pieces.piece_type import PieceType
 from core.domain.value_objects.piece_id import PieceId
 from core.domain.value_objects.side import Side
 
 class King(Piece):
+
+    def get_points(self):
+        return math.inf
 
     def get_rule(self):
         return KingRule()

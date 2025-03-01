@@ -1,54 +1,71 @@
-from threading import Timer
-from typing import Optional
-
 from core.domain.chessboard.board import Board
 from core.domain.chessboard.position import Position
+from core.domain.events.game_created import GameCreated
 from core.domain.events.game_start_failed import GameStartFailed
 from core.domain.events.game_started import GameStartedEvent
-from core.domain.game.game_format import GameFormat
+from core.domain.events.piece_move_failed import PieceMoveFailed
+from core.domain.events.piece_positioned import PiecePositioned
 from core.domain.game.game_history import ChessGameHistory
+from core.domain.game.game_settings import GameSettings
 from core.domain.kernel.aggregate_root import AggregateRoot
-from core.domain.movements.movement import Movement
 from core.domain.pieces.piece import Piece
 from core.domain.players.player_id import PlayerId
 from core.domain.players.players import Players
 from core.domain.value_objects.game_id import ChessGameId
+from core.domain.value_objects.game_state import GameState
+from core.domain.value_objects.game_status import GameStatus
 from core.domain.value_objects.side import Side
 
 
 class ChessGame(AggregateRoot):
 
-    def __init__(self, game_id: ChessGameId, game_format: GameFormat, history: ChessGameHistory):
+    def __init__(self, game_id: ChessGameId, game_settings: GameSettings,
+                 state: GameState, players: Players, history: ChessGameHistory):
         super().__init__()
         self._id = game_id
-        self._game_format = game_format
+        self._game_settings = game_settings
+        self._state = state
+        self._players = players
         self._history = history
-
         self._board = Board.replay(history)
+
+    @staticmethod
+    def create(game_settings: GameSettings, players: Players):
+        chess_game = ChessGame(ChessGameId.generate_id(), game_settings,
+                               GameState(GameStatus.started(), Side.white()),
+                               players, ChessGameHistory.empty())
+
+        chess_game.raise_event(GameCreated(game_id=chess_game.game_id))
+
+        return chess_game
 
     @property
     def game_id(self):
         return self._id
 
+    def place_piece(self, piece: Piece, position: Position):
+        if not self._state.is_started:
+            self._board.piece_positioned(PiecePositioned(game_id=self.game_id, piece=piece, position=position))
+
     def start(self):
         if self._state.is_started:
             return self.raise_event(GameStartFailed())
         else:
-            self._state._started = True
+            self._state.update_status(GameStatus.started())
             return self.raise_event(GameStartedEvent(game_id=self.game_id))
 
     def move_piece(self, player_id: PlayerId, _from: Position, to: Position):
         if not self._state.is_started:
-            return self.raise_event(PieceNotMovedEvent(from_=_from, to_=to, reason='Game was not started'))
+            return self.raise_event(PieceMoveFailed(from_=_from, to=to, reason='Game was not started'))
         elif self._state.is_finished:
-            return self.raise_event(PieceNotMovedEvent(from_=_from, to_=to, reason='Game has finished'))
+            return self.raise_event(PieceMoveFailed(from_=_from, to=to, reason='Game has finished'))
 
-        piece = self._state.get_piece(_from)
+        piece = self._board.get_piece(_from)
         if PlayerId(piece.get_side()) != player_id:
-            return self.raise_event(PieceNotMovedEvent(from_=_from, to_=to, reason="Piece doesn't belong to player"))
+            return self.raise_event(PieceMoveFailed(from_=_from, to=to, reason="Piece doesn't belong to player"))
 
         if PlayerId(self._state.turn) != player_id:
-            return self.raise_event(PieceNotMovedEvent(from_=_from, to_=to,
+            return self.raise_event(PieceMoveFailed(from_=_from, to=to,
                                                        reason=f"It is not order of {player_id} player"))
 
         # ToDo: check available moves
@@ -68,10 +85,10 @@ class ChessGame(AggregateRoot):
     def promote_pawn(self):
         pass
 
-    def __record_to_history(self):
+    def get_moves_for_piece(self, position):
         pass
 
-    def get_moves_for_piece(self, position):
+    def __record_to_history(self):
         pass
 
 

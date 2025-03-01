@@ -1,6 +1,6 @@
-from core.domain.game.game_state import GameState
+from core.domain.value_objects.game_state import GameState
 from core.domain.movements.movement_intent import MovementIntent
-from core.domain.pieces.rules.piece_rule import PieceRule
+from core.domain.rules.movements.piece_rule import PieceRule
 from core.domain.value_objects.side import Side
 
 

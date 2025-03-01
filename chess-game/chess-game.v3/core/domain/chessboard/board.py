@@ -16,17 +16,12 @@ class Board:
     def __init__(self):
         self._board: dict[Position, Piece] = {}
 
-    @staticmethod
-    def replay(history: ChessGameHistory):
-        board = Board()
-        for history_event in history:
-            board.apply(history_event)
-
-        return board
+    def reply(self, game_history: ChessGameHistory):
+        for domain_event in game_history:
+            self.apply(domain_event)
 
     def apply(self, domain_event: DomainEvent):
         match domain_event:
-            # event occurred during the game initialization
             case PiecePositioned() as event:
                 self.piece_positioned(event)
 

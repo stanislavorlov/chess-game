@@ -17,8 +17,8 @@ class ChessGameId(ValueObject):
             raise ValueError(f"Invalid UUID format: {value}")
 
     @property
-    def value(self) -> str:
-        return self._value
+    def value(self) -> uuid.UUID:
+        return uuid.UUID(self._value)
 
     def __eq__(self, other):
         if isinstance(other, ChessGameId):

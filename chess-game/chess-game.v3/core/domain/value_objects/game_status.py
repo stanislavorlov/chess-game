@@ -12,6 +12,9 @@ class GameStatus(ValueObject):
     def finished(cls):
         return cls("FINISHED")
 
+    def __str__(self):
+        return self._value
+
     def __init__(self, value: str):
         super().__init__()
 

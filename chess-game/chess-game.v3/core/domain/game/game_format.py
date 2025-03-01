@@ -6,21 +6,22 @@ from core.domain.kernel.value_object import ValueObject
 
 class GameFormat(ValueObject):
 
-    def __init__(self, time_remaining: timedelta):
+    def __init__(self, time_remaining: timedelta, value: str):
         super().__init__()
         self._time_remaining = time_remaining
+        self._value = value
 
     @staticmethod
     def rapid():
-        return GameFormat(timedelta(minutes=10))
+        return GameFormat(timedelta(minutes=10), "rapid")
 
     @staticmethod
     def blitz():
-        return GameFormat(timedelta(minutes=5))
+        return GameFormat(timedelta(minutes=5), "blitz")
 
     @staticmethod
     def bullet():
-        return GameFormat(timedelta(minutes=1))
+        return GameFormat(timedelta(minutes=1), "bullet")
 
     @staticmethod
     def parse_string(value: str):
@@ -36,6 +37,13 @@ class GameFormat(ValueObject):
                 return instance
             case _:
                 raise ValueError('Invalid time input has been provided')
+
+    def to_string(self):
+        return self._value
+
+    @property
+    def time_remaining(self):
+        return str(self._time_remaining)
 
     @staticmethod
     def from_string(value: str, time_remaining: str):

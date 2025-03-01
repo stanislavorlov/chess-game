@@ -10,9 +10,18 @@ router = APIRouter(prefix="/game")
 async def create_board(game_format: str):
     mediator = build_mediator()
 
-    game_created = await mediator.send(CreateGameCommand(format_=GameFormat.parse_string(game_format)))
+    try:
+        parsed_format = GameFormat.parse_string(game_format)
 
-    return {
-        "status": 200,
-        "data": game_created
-    }
+        game_created = await mediator.send(CreateGameCommand(format_=parsed_format))
+
+        return {
+            "status": 200,
+            "data": game_created
+        }
+    except Exception as e:
+        print(e)
+
+        return {
+            "status": 400
+        }

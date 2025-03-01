@@ -22,6 +22,9 @@ class GameState(ValueObject):
     def turn(self):
         return self._turn
 
+    def get_status(self):
+        return self._status
+
     def update_status(self, status: GameStatus):
         if self.is_started() and status == GameStatus.finished():
             self._status = status

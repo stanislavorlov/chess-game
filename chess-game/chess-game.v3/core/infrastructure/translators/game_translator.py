@@ -22,7 +22,7 @@ class GameTranslator:
         game_id: ChessGameId = ChessGameId(document.game_id)
         players = Players(PlayerId(document.players.white_id), PlayerId(document.players.black_id))
         game_format = GameFormat.from_string(document.format.value, document.format.time_remaining)
-        history = ChessGameHistory.empty()
+        history = ChessGameHistory.initialize(game_id)
         game_settings = GameSettings(game_format)
         game_state = GameState(GameStatus(document.state.status), Side(document.state.turn))
 
@@ -32,14 +32,14 @@ class GameTranslator:
     def domain_to_document(game: ChessGame) -> GameDocument:
         game_state: GameState = GameState(
             captured=None,
-            turn='',
-            started=False,
-            finished=False,
-            status=''
+            turn=str(game.game_state.turn),
+            started=game.game_state.is_started,
+            finished=game.game_state.is_finished,
+            status=str(game.game_state.get_status())
         )
         game_format = core.infrastructure.models.game_document.GameFormat(
-            value='',
-            time_remaining=''
+            value=game.game_settings.format.to_string(),
+            time_remaining=game.game_settings.format.time_remaining
         )
         players = core.infrastructure.models.game_document.Players(
             white_id='',
@@ -47,7 +47,6 @@ class GameTranslator:
         )
         game_history: list[HistoryItem] = []
         new_game: GameDocument = GameDocument(
-            game_id=game.game_id.value(),
             date=datetime.datetime.now(),
             state=game_state,
             format=game_format,

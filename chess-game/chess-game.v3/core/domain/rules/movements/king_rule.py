@@ -1,5 +1,5 @@
 from core.domain.movements.movement_intent import MovementIntent
-from core.domain.pieces.rules.piece_rule import PieceRule
+from core.domain.rules.movements.piece_rule import PieceRule
 
 
 class KingRule(PieceRule):

@@ -8,6 +8,8 @@ class ChessGameHistory:
 
     @staticmethod
     def empty():
+        # ToDo: list of PiecePositioned events ??
+
         return ChessGameHistory([])
 
     def record(self, entry: DomainEvent):

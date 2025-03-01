@@ -8,7 +8,7 @@ from matplotlib.axes import Axes
 from core.domain.chessboard.file import File
 from core.domain.chessboard.position import Position
 from core.domain.chessboard.rank import Rank
-from core.domain.game.game_state import GameState
+from core.domain.value_objects.game_state import GameState
 from core.interface.abstract_presenter import AbstractPresenter
 
 

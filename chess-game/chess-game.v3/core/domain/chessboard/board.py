@@ -1,3 +1,5 @@
+from typing import List
+
 from diator.events import DomainEvent
 
 from core.domain.chessboard.position import Position
@@ -8,6 +10,7 @@ from core.domain.events.piece_captured import PieceCaptured
 from core.domain.events.piece_moved import PieceMoved
 from core.domain.events.piece_positioned import PiecePositioned
 from core.domain.game.game_history import ChessGameHistory
+from core.domain.movements.movement import Movement
 from core.domain.pieces.piece import Piece
 
 
@@ -65,3 +68,20 @@ class Board:
 
     def king_checkmated(self, king_checkmated: KingCheckMated):
         pass
+
+    def search_available_moves(self) -> List[Movement]:
+        list_of_moves = []
+
+        # ToDo: bitboard
+        # https://github.com/cglouch/snakefish/blob/master/src/tables.py
+        # https://www.frayn.net/beowulf/theory.html#bitboards
+
+        # ToDo: stockfish
+        # https://official-stockfish.github.io/docs/stockfish-wiki/Developers.html
+
+        for position, piece in self._board.items():
+            move = Movement()
+
+            list_of_moves.append(move)
+
+        return list_of_moves

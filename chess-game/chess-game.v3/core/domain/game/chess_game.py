@@ -90,9 +90,6 @@ class ChessGame(AggregateRoot):
     def promote_pawn(self):
         pass
 
-    def get_moves_for_piece(self, position):
-        pass
-
     def __record_to_history(self):
         pass
 

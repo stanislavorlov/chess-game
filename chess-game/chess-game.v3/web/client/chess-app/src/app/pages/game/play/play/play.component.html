@@ -1,0 +1,54 @@
+<mat-card class="cardWithShadow theme-card">
+    <mat-card-header>
+        <mat-card-title class="m-b-0">New Game</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="b-t-1">
+        <div class="row">
+            <div class="col-lg-7">
+                <form>
+                    <div class="row">
+                        <table class="chess-board">
+                            <tbody>
+                            <tr>
+                                <th></th>
+                                <th>a</th>
+                                <th>b</th>
+                                <th>c</th>
+                                <th>d</th>
+                                <th>e</th>
+                                <th>f</th>
+                                <th>g</th>
+                                <th>h</th>
+                            </tr>
+                            <tr *ngFor="let position of positions">
+                                <th>{{ position.key }}</th>
+                                <td *ngFor="let item of position.group" data-id="td-{{item.square}}"
+                                    (click)="clickBoard(item)" class="{{item.color}}">
+                                    <img *ngIf="item.piece" src="./assets/images/pieces/{{item.piece}}.png"
+                                         height="100%">
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-4">
+                <mat-label class="f-w-600 m-b-8 d-block">Time selector</mat-label>
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-select [(value)]="selectedFormat">
+                        @for(option of formats; track option.value) {
+                        <mat-option [value]="option.value">{{
+                            option.viewValue
+                            }}
+                        </mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+                <div class="m-t-12">
+                    <button mat-flat-button color="primary" (click)="startGame()" class="m-r-8">Play</button>
+                </div>
+            </div>
+        </div>
+    </mat-card-content>
+</mat-card>

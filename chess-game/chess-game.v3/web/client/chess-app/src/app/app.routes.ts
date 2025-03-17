@@ -18,9 +18,19 @@ export const routes: Routes = [
           import('./pages/pages.routes').then((m) => m.PagesRoutes),
       },
       {
+        path: 'stats',
+        loadChildren: () => 
+          import('./pages/stats/stats.routes').then((m) => m.StatsRoutes),
+      },
+      {
         path: 'play',
         loadChildren: () =>
           import('./pages/game/play/play-components.routes').then((m) => m.PlayComponentRoutes),
+      },
+      {
+        path: 'profile',
+        loadChildren: () =>
+          import('./pages/profile/profile.routes').then((m) => m.ProfileRoutes),
       },
       {
         path: 'ui-components',

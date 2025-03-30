@@ -11,12 +11,8 @@ class ChessGameRepository:
 
     @staticmethod
     async def create(chess_game: ChessGame) -> ChessGame:
-        print('Provided game id')
-        print(chess_game.game_id)
         game_document = GameTranslator.domain_to_document(chess_game)
         created_game = await game_document.create()
-        print('created game id')
-        print(created_game.game_id)
 
         game = GameTranslator.document_to_domain(created_game)
 

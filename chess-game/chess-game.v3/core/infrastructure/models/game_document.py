@@ -1,8 +1,7 @@
 import uuid
 from typing import Optional
-from uuid import uuid4
 from beanie import Document
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from datetime import datetime
 
 class GameState(BaseModel):
@@ -26,7 +25,6 @@ class HistoryItem(BaseModel):
     piece_id: str
 
 class GameDocument(Document):
-    #game_id: uuid4 = Field(default_factory=uuid4)
     game_id: uuid.UUID
     moves_count: int
     date: datetime

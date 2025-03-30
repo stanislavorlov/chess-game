@@ -20,11 +20,8 @@ async def create_board(model: CreateBoard):
         game_format_obj = GameFormat.parse_string(model.game_format, model.time, model.additional)
         await mediator.send(CreateGameCommand(game_id=game_id, game_format=game_format_obj))
 
-        # ToDo: retrieve GameId from repository(Mongo)
         query_result = await mediator.send(ChessGameQuery(game_id=game_id))
 
-        # ToDo: just return 200 success code
-        # ToDo: publish created event via MessageBus with WebSocket
         return {
             "status": 200,
             "data": query_result

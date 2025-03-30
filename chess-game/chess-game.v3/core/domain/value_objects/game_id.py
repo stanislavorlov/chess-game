@@ -1,7 +1,5 @@
 import uuid
-
 from core.domain.kernel.value_object import ValueObject
-
 
 class ChessGameId(ValueObject):
 

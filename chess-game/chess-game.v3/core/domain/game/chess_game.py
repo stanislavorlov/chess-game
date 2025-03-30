@@ -32,7 +32,6 @@ class ChessGame(AggregateRoot):
 
     @staticmethod
     def create(game_id: ChessGameId, game_settings: GameSettings, game_info: GameInformation, players: Players):
-        #game_id = ChessGameId.generate_id()
         chess_game = ChessGame(game_id, game_settings, game_info,
                                GameState(GameStatus.started(), Side.white()),
                                players, ChessGameHistory.initialize(game_id))

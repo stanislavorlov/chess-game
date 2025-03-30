@@ -18,7 +18,6 @@ class ChessGameQueryHandler(RequestHandler[ChessGameQuery, ChessGameQueryResult]
 
     async def handle(self, request: ChessGameQuery) -> ChessGameQueryResult:
         game = await self._repository.find_by_id(request.game_id)
-        print('ChessGameQueryHandler found game')
 
         state_result = GameStateQueryResult(
             turn = game.game_state.turn.value(),
@@ -38,7 +37,7 @@ class ChessGameQueryHandler(RequestHandler[ChessGameQuery, ChessGameQueryResult]
         )
 
         return ChessGameQueryResult(
-            game_id=game.game_id,
+            game_id=game.game_id.value,
             moves_count=game.information.count_of_moves,
             date=game.information.date,
             name=game.information.name,

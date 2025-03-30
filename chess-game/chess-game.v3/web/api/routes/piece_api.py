@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/piece")
+router = APIRouter(prefix="/api/piece")
 
 @router.get("/{piece_id}")
 def start(piece_id):

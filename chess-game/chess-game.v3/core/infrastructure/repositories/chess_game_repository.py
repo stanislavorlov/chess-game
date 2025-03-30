@@ -1,7 +1,7 @@
 from beanie import PydanticObjectId
 from core.domain.game.chess_game import ChessGame
 from core.domain.value_objects.game_id import ChessGameId
-from core.infrastructure.models.game_document import GameDocument, GameState, GameFormat, HistoryItem
+from core.infrastructure.models.game_document import GameDocument
 from core.infrastructure.translators.game_translator import GameTranslator
 
 
@@ -10,11 +10,17 @@ class ChessGameRepository:
     games_collection = GameDocument
 
     @staticmethod
-    async def create(chess_game: ChessGame):
+    async def create(chess_game: ChessGame) -> ChessGame:
+        print('Provided game id')
+        print(chess_game.game_id)
         game_document = GameTranslator.domain_to_document(chess_game)
         created_game = await game_document.create()
+        print('created game id')
+        print(created_game.game_id)
 
-        return GameTranslator.document_to_domain(created_game)
+        game = GameTranslator.document_to_domain(created_game)
+
+        return game
 
     # 67b0b58ed190d300f1fa60f9
     async def find(self, doc_id: PydanticObjectId) -> ChessGame:
@@ -23,7 +29,7 @@ class ChessGameRepository:
         return GameTranslator.document_to_domain(document)
 
     async def find_by_id(self, game_id: ChessGameId) -> ChessGame:
-        document = await self.games_collection.find_one(self.games_collection.game_id == game_id)
+        document = await self.games_collection.find_one(GameDocument.game_id == game_id.value)
 
         return GameTranslator.document_to_domain(document)
 

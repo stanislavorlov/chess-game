@@ -14,6 +14,9 @@ class Side(ValueObject):
     
     def __str__(self):
         return self._value.upper()
+
+    def value(self) -> str:
+        return str(self)
     
     def __init__(self, value) -> None:
         super().__init__()

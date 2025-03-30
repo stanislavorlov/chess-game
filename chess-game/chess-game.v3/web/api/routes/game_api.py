@@ -1,26 +1,37 @@
+import traceback
+
 from fastapi import APIRouter
 
-from core.domain.commands.create_game import CreateGameCommand
-from core.domain.game.game_format import GameFormat
+from core.application.commands.create_game_command import CreateGameCommand
+from core.application.queries.chess_game_query import ChessGameQuery
+from core.domain.value_objects.game_format import GameFormat
+from core.domain.value_objects.game_id import ChessGameId
 from core.infrastructure.mediator.mediator import build_mediator
+from web.api.models.create_board import CreateBoard
 
-router = APIRouter(prefix="/game")
+router = APIRouter(prefix="/api/game")
 
-@router.post("/create_board/{game_format}")
-async def create_board(game_format: str):
+@router.post("/create_board/")
+async def create_board(model: CreateBoard):
     mediator = build_mediator()
 
     try:
-        parsed_format = GameFormat.parse_string(game_format)
+        game_id = ChessGameId.generate_id()
+        game_format_obj = GameFormat.parse_string(model.game_format, model.time, model.additional)
+        await mediator.send(CreateGameCommand(game_id=game_id, game_format=game_format_obj))
 
-        game_created = await mediator.send(CreateGameCommand(format_=parsed_format))
+        # ToDo: retrieve GameId from repository(Mongo)
+        query_result = await mediator.send(ChessGameQuery(game_id=game_id))
 
+        # ToDo: just return 200 success code
+        # ToDo: publish created event via MessageBus with WebSocket
         return {
             "status": 200,
-            "data": game_created
+            "data": query_result
         }
     except Exception as e:
         print(e)
+        print(traceback.format_exc())
 
         return {
             "status": 400

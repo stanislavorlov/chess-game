@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Renderer2 } from '@angular/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { GroupedPosition, Position } from './models/position';
 import { NgFor, NgIf } from '@angular/common';
+import { ChessService } from 'src/app/services/chess.service';
 
 interface GameFormat {
   value: string
@@ -33,13 +34,19 @@ interface GameFormat {
   styleUrl: './play.component.scss'
 })
 export class PlayComponent {
+  private lastClickedElement: HTMLElement | null = null;
+
+  constructor(private renderer: Renderer2, private chessService: ChessService) {}
+
   formats: GameFormat[] = [
-    { value: 'bullet', viewValue: 'Bullet 1 min' },
-    { value: 'blitz', viewValue: 'Blitz 5 mins' },
-    { value: 'rapid', viewValue: 'Rapid 10 mins' },
+    { value: 'bullet', viewValue: 'Bullet' },
+    { value: 'blitz', viewValue: 'Blitz' },
+    { value: 'rapid', viewValue: 'Rapid' },
   ]
 
   selectedFormat = this.formats[1].value;
+  selectedTime = '';
+  additionalTime = '';
 
   positions: GroupedPosition[] = [
     { key: '8', group: [
@@ -117,7 +124,29 @@ export class PlayComponent {
   ]
 
   startGame(): void {
-    alert(this.selectedFormat);
+    this.chessService.startGame(this.selectedFormat, this.selectedTime, this.additionalTime);
+  }
+
+  selectTime(event: Event, time: string, additional: string): void {
+    let clickedElement = event.target as HTMLElement;
+
+    if (clickedElement.tagName == 'span') {
+      clickedElement = clickedElement.parentElement || clickedElement;
+    }
+
+    // Remove border from the last clicked element
+    if (this.lastClickedElement) {
+      this.renderer.setStyle(this.lastClickedElement, 'border', 'none');
+    }
+
+    // Add border to the clicked element
+    this.renderer.setStyle(clickedElement, 'border', '2px solid red');
+
+    // Update the last clicked element
+    this.lastClickedElement = clickedElement;
+
+    this.selectedTime = time;
+    this.additionalTime = additional;
   }
 
   clickBoard(position: Position): void {

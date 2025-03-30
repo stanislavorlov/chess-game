@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/move")
+router = APIRouter(prefix="/api/move")
 
 @router.get("/{start_position}/{to_position}")
 def start(start_position, to_position):

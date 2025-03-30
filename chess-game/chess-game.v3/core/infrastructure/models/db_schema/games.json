@@ -1,6 +1,7 @@
 {
   "_id": "",
   "game_id": "",
+  "moves_count": 0,
   "date": "",
   "name": "",
   "state": {
@@ -10,7 +11,8 @@
   },
   "format": {
     "value": ["bullet", "blitz", "rapid"],
-    "time_remaining": 0
+    "time_remaining": "",
+    "additional_time": ""
   },
   "players": {
     "white_id": "",

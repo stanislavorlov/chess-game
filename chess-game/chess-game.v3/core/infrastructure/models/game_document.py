@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional
 from uuid import uuid4
 from beanie import Document
@@ -14,6 +15,7 @@ class GameState(BaseModel):
 class GameFormat(BaseModel):
     value: str
     time_remaining: str
+    additional_time: str
 
 class Players(BaseModel):
     white_id: str
@@ -24,9 +26,11 @@ class HistoryItem(BaseModel):
     piece_id: str
 
 class GameDocument(Document):
-    game_id: uuid4 = Field(default_factory=uuid4)
+    #game_id: uuid4 = Field(default_factory=uuid4)
+    game_id: uuid.UUID
     moves_count: int
     date: datetime
+    game_name: str
     state: GameState
     format: GameFormat
     players: Players

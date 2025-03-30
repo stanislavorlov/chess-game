@@ -10,6 +10,7 @@ from core.domain.kernel.aggregate_root import AggregateRoot
 from core.domain.players.player_id import PlayerId
 from core.domain.players.players import Players
 from core.domain.value_objects.game_id import ChessGameId
+from core.domain.value_objects.game_information import GameInformation
 from core.domain.value_objects.game_state import GameState
 from core.domain.value_objects.game_status import GameStatus
 from core.domain.value_objects.side import Side
@@ -17,11 +18,12 @@ from core.domain.value_objects.side import Side
 
 class ChessGame(AggregateRoot):
 
-    def __init__(self, game_id: ChessGameId, game_settings: GameSettings,
+    def __init__(self, game_id: ChessGameId, game_settings: GameSettings, game_info: GameInformation,
                  state: GameState, players: Players, history: ChessGameHistory):
         super().__init__()
         self._id = game_id
         self._game_settings = game_settings
+        self._info = game_info
         self._state = state
         self._players = players
         self._history = history
@@ -29,9 +31,9 @@ class ChessGame(AggregateRoot):
         self._board.reply(self._history)
 
     @staticmethod
-    def create(game_settings: GameSettings, players: Players):
-        game_id = ChessGameId.generate_id()
-        chess_game = ChessGame(game_id, game_settings,
+    def create(game_id: ChessGameId, game_settings: GameSettings, game_info: GameInformation, players: Players):
+        #game_id = ChessGameId.generate_id()
+        chess_game = ChessGame(game_id, game_settings, game_info,
                                GameState(GameStatus.started(), Side.white()),
                                players, ChessGameHistory.initialize(game_id))
 
@@ -45,12 +47,20 @@ class ChessGame(AggregateRoot):
         return self._game_settings
 
     @property
+    def information(self):
+        return self._info
+
+    @property
     def game_id(self):
         return self._id
 
     @property
     def game_state(self):
         return self._state
+
+    @property
+    def players(self):
+        return self._players
 
     def start(self):
         if self._state.is_started:

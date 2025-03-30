@@ -7,7 +7,7 @@
 # )
 # from diator.mediator import Mediator
 # from diator.middlewares import MiddlewareChain
-# from diator.requests import RequestMap
+# from diator.commands import RequestMap
 # from rodi import Container
 #
 # from core.application.handlers.game_started_handler import GameStartedEventHandler

@@ -45,6 +45,20 @@
                         }
                     </mat-select>
                 </mat-form-field>
+                <div>
+                    @switch(selectedFormat)
+                    {
+                        @case('bullet') {
+                            <button mat-flat-button (click)="selectTime($event, '0h1m', '')" class="bg-success">1 mins</button> | <button mat-flat-button (click)="selectTime($event, '0h1m', '0h1m')" class="bg-success">1|1 mins</button> | <button mat-flat-button (click)="selectTime($event, '0h2m', '0h1m')" class="bg-success">2|1 mins</button>
+                        }
+                        @case('blitz') {
+                            <button mat-flat-button (click)="selectTime($event, '0h3m', '')" class="bg-success">3 mins</button> | <button mat-flat-button (click)="selectTime($event, '0h3m', '0h2m')" class="bg-success">3|2 mins</button> | <button mat-flat-button (click)="selectTime($event, '0h5m', '')" class="bg-success">5 mins</button>
+                        }
+                        @case('rapid') {
+                            <button mat-flat-button (click)="selectTime($event, '0h10m', '')" class="bg-success">10 mins</button> | <button mat-flat-button (click)="selectTime($event, '0h15m', '0h10m')" class="bg-success">15|10 mins</button> | <button mat-flat-button (click)="selectTime($event, '0h30m', '')" class="bg-success">30 mins</button>
+                        }
+                    }
+                </div>
                 <div class="m-t-12">
                     <button mat-flat-button color="primary" (click)="startGame()" class="m-r-8">Play</button>
                 </div>

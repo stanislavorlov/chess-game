@@ -1,6 +1,6 @@
 import traceback
 
-from fastapi import APIRouter
+from fastapi import APIRouter, WebSocket
 
 from core.application.commands.create_game_command import CreateGameCommand
 from core.application.queries.chess_game_query import ChessGameQuery
@@ -18,7 +18,7 @@ async def create_board(model: CreateBoard):
     try:
         game_id = ChessGameId.generate_id()
         game_format_obj = GameFormat.parse_string(model.game_format, model.time, model.additional)
-        await mediator.send(CreateGameCommand(game_id=game_id, game_format=game_format_obj))
+        await mediator.send(CreateGameCommand(game_id=game_id, game_format=game_format_obj, name=model.name))
 
         query_result = await mediator.send(ChessGameQuery(game_id=game_id))
 
@@ -33,3 +33,12 @@ async def create_board(model: CreateBoard):
         return {
             "status": 400
         }
+
+@router.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+
+    while True:
+        data = await websocket.receive_json()
+
+        await websocket.send_json(data)

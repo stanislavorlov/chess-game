@@ -1,4 +1,4 @@
-import { Component, Renderer2 } from '@angular/core';
+import { Component, inject, OnInit, Renderer2 } from '@angular/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,11 +10,11 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { GroupedPosition, Position } from './models/position';
 import { NgFor, NgIf } from '@angular/common';
 import { ChessService } from 'src/app/services/chess.service';
-
-interface GameFormat {
-  value: string
-  viewValue: string
-}
+import { GameFormat } from './models/game-format';
+import { CreateGame } from './models/create-game';
+import { ChessGame } from 'src/app/services/models/chess-game';
+import { ApiResult } from 'src/app/services/models/api-result';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-play',
@@ -33,20 +33,34 @@ interface GameFormat {
   templateUrl: './play.component.html',
   styleUrl: './play.component.scss'
 })
-export class PlayComponent {
+export class PlayComponent implements OnInit {
   private lastClickedElement: HTMLElement | null = null;
+  public formats: GameFormat[];
+  public selectedFormat = '';
+  public selectedTime = '';
+  public additionalTime = '';
+  gameName = 'New Game 1';
 
-  constructor(private renderer: Renderer2, private chessService: ChessService) {}
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
-  formats: GameFormat[] = [
-    { value: 'bullet', viewValue: 'Bullet' },
-    { value: 'blitz', viewValue: 'Blitz' },
-    { value: 'rapid', viewValue: 'Rapid' },
-  ]
+  constructor(private renderer: Renderer2, private chessService: ChessService) {
+    this.formats = [
+      { value: 'bullet', viewValue: 'Bullet' },
+      { value: 'blitz', viewValue: 'Blitz' },
+      { value: 'rapid', viewValue: 'Rapid' },
+    ]
 
-  selectedFormat = this.formats[1].value;
-  selectedTime = '';
-  additionalTime = '';
+    this.selectedFormat = this.formats[1].value;
+  }
+
+  ngOnInit(): void {
+    const gameId = this.route.snapshot.paramMap.get('id');
+    
+    if (!!gameId) {
+      // ToDo: initialize existing game
+    }
+  }
 
   positions: GroupedPosition[] = [
     { key: '8', group: [
@@ -124,7 +138,19 @@ export class PlayComponent {
   ]
 
   startGame(): void {
-    this.chessService.startGame(this.selectedFormat, this.selectedTime, this.additionalTime);
+    const new_game = new CreateGame();
+    new_game.additional = this.additionalTime;
+    new_game.format = this.selectedFormat;
+    new_game.name = this.gameName;
+    new_game.time = this.selectedTime;
+
+    this.chessService.startGame(new_game).subscribe((result: ApiResult<ChessGame>) => {
+      if (result.status == 200) {
+        let gameId = result.data.game_id;
+
+        this.router.navigate(['/play', gameId ])
+      }
+    });
   }
 
   selectTime(event: Event, time: string, additional: string): void {

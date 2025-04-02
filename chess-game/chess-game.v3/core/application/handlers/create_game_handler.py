@@ -22,7 +22,7 @@ class CreateGameCommandHandler(RequestHandler[CreateGameCommand, None]):
 
     async def handle(self, request: CreateGameCommand) -> None:
         game_settings = GameSettings(request.game_format)
-        game_info = GameInformation(0, datetime.datetime.now(), 'Chess Game 1')
+        game_info = GameInformation(0, datetime.datetime.now(), request.name)
 
         chess_game = ChessGame.create(request.game_id, game_settings, game_info, Players(PlayerId(''), PlayerId('')))
 

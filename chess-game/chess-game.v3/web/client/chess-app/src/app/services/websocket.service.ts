@@ -10,7 +10,7 @@ export class WebsocketService {
   private socket$: WebSocketSubject<any>;
 
   constructor() {
-    this.socket$ = webSocket('ws://your-websocket-url');
+    this.socket$ = webSocket('ws://localhost:8000/ws');
   }
 
   // Send a message to the server

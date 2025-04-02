@@ -5,5 +5,9 @@ export const PlayComponentRoutes: Routes = [
     {
         path: '',
         component: PlayComponent
+    },
+    {
+        path: ':id',
+        component: PlayComponent
     }
 ]

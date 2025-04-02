@@ -1,6 +1,8 @@
 <mat-card class="cardWithShadow theme-card">
     <mat-card-header>
-        <mat-card-title class="m-b-0">New Game</mat-card-title>
+        <mat-form-field appearance="outline" class="w-100 game-name">
+            <input matInput type="text" [(ngModel)]="gameName">
+        </mat-form-field>
     </mat-card-header>
     <mat-card-content class="b-t-1">
         <div class="row">

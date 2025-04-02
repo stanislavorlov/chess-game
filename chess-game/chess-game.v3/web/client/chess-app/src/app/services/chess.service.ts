@@ -1,6 +1,9 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { throwError } from 'rxjs';
+import { CreateGame } from '../pages/game/play/play/models/create-game';
+import { ChessGame } from './models/chess-game';
+import { ApiResult } from './models/api-result';
 
 @Injectable({
   providedIn: 'root'
@@ -9,15 +12,13 @@ export class ChessService {
 
   constructor(private httpClient: HttpClient) { }
 
-  startGame(format: string, time: string, additional: string) {
-    return this.httpClient.post('/api/game/create_board/', {
-      game_format: format,
-      time: time,
-      additional: additional
-    }, {})
-    .subscribe(response => {
-      console.log(response);
-    });
+  startGame(game: CreateGame) {
+    return this.httpClient.post<ApiResult<ChessGame>>('/api/game/create_board/', {
+      name: game.name,
+      game_format: game.format,
+      time: game.time,
+      additional: game.additional
+    }, {});
   }
 
   private handleError(error: HttpErrorResponse) {

@@ -1,8 +1,10 @@
 import uuid
-from typing import Optional
-from beanie import Document
+from typing import Optional, List
+from beanie import Document, Link
 from pydantic import BaseModel
 from datetime import datetime
+from core.infrastructure.models.game_history_document import GameHistoryDocument
+
 
 class GameState(BaseModel):
     captured: Optional[list] = None
@@ -20,10 +22,6 @@ class Players(BaseModel):
     white_id: str
     black_id: str
 
-class HistoryItem(BaseModel):
-    move: str
-    piece_id: str
-
 class GameDocument(Document):
     game_id: uuid.UUID
     moves_count: int
@@ -32,12 +30,11 @@ class GameDocument(Document):
     state: GameState
     format: GameFormat
     players: Players
-    history: Optional[list] = None
+    history: List[Link[GameHistoryDocument]]
     result: str
 
     class Config:
         pass
 
     class Settings:
-        # the name of the collection
         name = "games"

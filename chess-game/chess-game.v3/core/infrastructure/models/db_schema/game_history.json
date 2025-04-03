@@ -2,6 +2,7 @@
   "_id": "",
   "game_id": "",
   "date": "",
+  "sequence_number": 0,
   "action_type": "",
   "action_data": ""
 }

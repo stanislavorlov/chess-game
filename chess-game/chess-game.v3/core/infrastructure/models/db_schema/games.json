@@ -3,14 +3,17 @@
   "game_id": "",
   "moves_count": 0,
   "date": "",
-  "name": "",
+  "game_name": "",
+  "result": "",
   "state": {
+    "captured": [],
     "turn": "",
     "finished": false,
-    "started": false
+    "started": false,
+    "status": ""
   },
   "format": {
-    "value": ["bullet", "blitz", "rapid"],
+    "value": "",
     "time_remaining": "",
     "additional_time": ""
   },

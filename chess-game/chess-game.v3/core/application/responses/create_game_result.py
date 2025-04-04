@@ -23,7 +23,6 @@ class PlayersQueryResult:
 @dataclass(frozen=True, kw_only=True)
 class ChessGameQueryResult(Response):
     game_id: str
-    moves_count: int
     date: datetime
     name: str
     state: GameStateQueryResult

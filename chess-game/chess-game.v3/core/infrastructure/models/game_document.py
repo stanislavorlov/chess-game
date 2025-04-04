@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional, List
 from beanie import Document, Link
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from core.infrastructure.models.game_history_document import GameHistoryDocument
 
@@ -24,13 +24,12 @@ class Players(BaseModel):
 
 class GameDocument(Document):
     game_id: uuid.UUID
-    moves_count: int
     date: datetime
     game_name: str
     state: GameState
     format: GameFormat
     players: Players
-    history: List[Link[GameHistoryDocument]]
+    history: List[Link[GameHistoryDocument]] = Field(default_factory=list)
     result: str
 
     class Config:

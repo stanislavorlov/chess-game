@@ -11,6 +11,7 @@ class GameHistoryDocument(Document):
     history_item: object
     history_time: datetime = Field(default_factory=datetime.now)
     history_meta: str
+    action_type: str
 
     class Config:
         pass

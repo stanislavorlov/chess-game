@@ -4,6 +4,7 @@ from fastapi import APIRouter, WebSocket
 
 from core.application.commands.create_game_command import CreateGameCommand
 from core.application.queries.chess_game_query import ChessGameQuery
+from core.domain.chessboard.board import Board
 from core.domain.value_objects.game_format import GameFormat
 from core.domain.value_objects.game_id import ChessGameId
 from core.infrastructure.mediator.mediator import build_mediator

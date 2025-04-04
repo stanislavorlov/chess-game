@@ -4,6 +4,7 @@ from diator.requests import RequestHandler
 from core.application.queries.chess_game_query import ChessGameQuery
 from core.application.responses.create_game_result import ChessGameQueryResult, GameStateQueryResult, \
     GameFormatQueryResult, PlayersQueryResult
+from core.domain.chessboard.board import Board
 from core.infrastructure.repositories.chess_game_repository import ChessGameRepository
 
 
@@ -26,9 +27,9 @@ class ChessGameQueryHandler(RequestHandler[ChessGameQuery, ChessGameQueryResult]
         )
 
         format_result = GameFormatQueryResult(
-            value = game.game_settings.format.to_string(),
-            remaining_time = game.game_settings.format.time_remaining.main_time,
-            additional_time = game.game_settings.format.time_remaining.additional_time,
+            value = game.information.format.to_string(),
+            remaining_time = game.information.format.time_remaining.main_time,
+            additional_time = game.information.format.time_remaining.additional_time,
         )
 
         players_result = PlayersQueryResult(
@@ -36,9 +37,14 @@ class ChessGameQueryHandler(RequestHandler[ChessGameQuery, ChessGameQueryResult]
             black_id = str(game.players.black)
         )
 
+        board = Board()
+        board.reply(game.history)
+
+        print('Game history count:')
+        print(game.history.count())
+
         return ChessGameQueryResult(
             game_id=game.game_id.value,
-            moves_count=game.information.count_of_moves,
             date=game.information.date,
             name=game.information.name,
             state=state_result,

@@ -59,6 +59,7 @@ export class PlayComponent implements OnInit {
     
     if (!!gameId) {
       // ToDo: initialize existing game
+      // ToDo: make read-only view
     }
   }
 

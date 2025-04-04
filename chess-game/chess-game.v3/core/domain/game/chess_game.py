@@ -1,11 +1,9 @@
-from core.domain.chessboard.board import Board
 from core.domain.chessboard.position import Position
 from core.domain.events.game_created import GameCreated
 from core.domain.events.game_start_failed import GameStartFailed
 from core.domain.events.game_started import GameStartedEvent
 from core.domain.events.piece_move_failed import PieceMoveFailed
 from core.domain.game.game_history import ChessGameHistory
-from core.domain.game.game_settings import GameSettings
 from core.domain.kernel.aggregate_root import AggregateRoot
 from core.domain.players.player_id import PlayerId
 from core.domain.players.players import Players
@@ -18,32 +16,29 @@ from core.domain.value_objects.side import Side
 
 class ChessGame(AggregateRoot):
 
-    def __init__(self, game_id: ChessGameId, game_settings: GameSettings, game_info: GameInformation,
+    def __init__(self, game_id: ChessGameId, game_info: GameInformation,
                  state: GameState, players: Players, history: ChessGameHistory):
         super().__init__()
         self._id = game_id
-        self._game_settings = game_settings
         self._info = game_info
         self._state = state
         self._players = players
+
         self._history = history
-        self._board = Board()
-        self._board.reply(self._history)
 
     @staticmethod
-    def create(game_id: ChessGameId, game_settings: GameSettings, game_info: GameInformation, players: Players):
-        chess_game = ChessGame(game_id, game_settings, game_info,
+    def create(game_id: ChessGameId, game_info: GameInformation, players: Players):
+        history = ChessGameHistory.empty()
+
+        history.record(GameCreated(game_id=game_id))
+
+        chess_game = ChessGame(game_id, game_info,
                                GameState(GameStatus.started(), Side.white()),
-                               players, ChessGameHistory.initialize(game_id))
+                               players, history)
 
         chess_game.raise_event(GameCreated(game_id=chess_game.game_id))
-        chess_game.raise_events(list(chess_game._history))
 
         return chess_game
-
-    @property
-    def game_settings(self):
-        return self._game_settings
 
     @property
     def information(self):
@@ -60,6 +55,10 @@ class ChessGame(AggregateRoot):
     @property
     def players(self):
         return self._players
+
+    @property
+    def history(self):
+        return self._history
 
     def start(self):
         if self._state.is_started:

@@ -1,4 +1,5 @@
 import traceback
+import uuid
 
 from fastapi import APIRouter, WebSocket
 
@@ -20,6 +21,27 @@ async def create_board(model: CreateBoard):
         game_id = ChessGameId.generate_id()
         game_format_obj = GameFormat.parse_string(model.game_format, model.time, model.additional)
         await mediator.send(CreateGameCommand(game_id=game_id, game_format=game_format_obj, name=model.name))
+
+        query_result = await mediator.send(ChessGameQuery(game_id=game_id))
+
+        return {
+            "status": 200,
+            "data": query_result
+        }
+    except Exception as e:
+        print(e)
+        print(traceback.format_exc())
+
+        return {
+            "status": 400
+        }
+
+@router.get("/board/{game_id}")
+async def get_board(game_id: uuid.UUID):
+    mediator = build_mediator()
+
+    try:
+        game_id = ChessGameId(game_id)
 
         query_result = await mediator.send(ChessGameQuery(game_id=game_id))
 

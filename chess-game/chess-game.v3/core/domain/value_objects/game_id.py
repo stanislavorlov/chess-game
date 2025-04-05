@@ -3,20 +3,20 @@ from core.domain.kernel.value_object import ValueObject
 
 class ChessGameId(ValueObject):
 
-    def __init__(self, value: str):
+    def __init__(self, value: uuid.UUID):
         super().__init__()
         self._value = value
 
-    @staticmethod
-    def _validate(value: str):
-        try:
-            uuid.UUID(value)
-        except ValueError:
-            raise ValueError(f"Invalid UUID format: {value}")
+    # @staticmethod
+    # def _validate(value: str):
+    #     try:
+    #         uuid.UUID(value)
+    #     except ValueError:
+    #         raise ValueError(f"Invalid UUID format: {value}")
 
     @property
     def value(self) -> uuid.UUID:
-        return uuid.UUID(self._value)
+        return self._value
 
     def __eq__(self, other):
         if isinstance(other, ChessGameId):
@@ -34,4 +34,4 @@ class ChessGameId(ValueObject):
 
     @staticmethod
     def generate_id():
-        return ChessGameId(str(uuid.uuid4()))
+        return ChessGameId(uuid.uuid4())

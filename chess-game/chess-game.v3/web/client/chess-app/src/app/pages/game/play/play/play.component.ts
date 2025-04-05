@@ -41,6 +41,8 @@ export class PlayComponent implements OnInit {
   public additionalTime = '';
   gameName = 'New Game 1';
 
+  public game: ChessGame;
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -60,6 +62,16 @@ export class PlayComponent implements OnInit {
     if (!!gameId) {
       // ToDo: initialize existing game
       // ToDo: make read-only view
+
+      this.chessService.getGame(gameId).subscribe((result: ApiResult<ChessGame>) => {
+        if (result.status == 200) {
+          this.game = result.data;
+          this.gameName = this.game.name;
+
+          console.log('loading game');
+          console.log(this.game);
+        }
+      });
     }
   }
 

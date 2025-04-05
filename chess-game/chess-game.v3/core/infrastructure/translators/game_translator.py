@@ -1,7 +1,4 @@
 import datetime
-
-from beanie import Link
-
 import core
 from core.domain.game.chess_game import ChessGame
 from core.domain.value_objects.game_format import GameFormat
@@ -56,8 +53,7 @@ class GameTranslator:
             format=game_format,
             players=players,
             result='',
-            game_name=game.information.name,
-            #history=GameHistoryTranslator.domain_to_document(game.game_id.value, game.history)
+            game_name=game.information.name
         )
 
         return new_game

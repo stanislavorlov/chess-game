@@ -1,11 +1,7 @@
 import uuid
 from typing import List
-
 import bson
-from beanie import Link
 from diator.events import DomainEvent
-from watchfiles import awatch
-
 from core.domain.game.game_history import ChessGameHistory
 from core.infrastructure.models import GameDocument
 from core.infrastructure.models.game_history_document import GameHistoryDocument

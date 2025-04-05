@@ -1,6 +1,5 @@
 from diator.events import Event
 from diator.requests import RequestHandler
-
 from core.application.queries.chess_game_query import ChessGameQuery
 from core.application.responses.create_game_result import ChessGameQueryResult, GameStateQueryResult, \
     GameFormatQueryResult, PlayersQueryResult

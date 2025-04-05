@@ -1,8 +1,6 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
 from beanie import init_beanie
-
 from core.infrastructure import models
 
 

@@ -1,8 +1,6 @@
 from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
 from starlette.websockets import WebSocket
-
 from core.infrastructure.config.config import initiate_database
 from core.infrastructure.mediator.mediator import build_mediator
 from web.api.main import api_router

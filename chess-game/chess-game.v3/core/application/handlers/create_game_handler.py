@@ -1,5 +1,4 @@
 import datetime
-
 from diator.requests import RequestHandler
 from core.application.commands.create_game_command import CreateGameCommand
 from core.domain.game.chess_game import ChessGame

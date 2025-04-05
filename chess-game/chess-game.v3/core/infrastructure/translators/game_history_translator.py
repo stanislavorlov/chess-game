@@ -3,6 +3,7 @@ from typing import List
 
 import bson
 from beanie import Link
+from diator.events import DomainEvent
 from watchfiles import awatch
 
 from core.domain.game.game_history import ChessGameHistory
@@ -15,12 +16,13 @@ class GameHistoryTranslator:
     @staticmethod
     def document_to_domain(history_document: List[GameHistoryDocument]):
 
+        history: List[DomainEvent] = []
         for history_item in history_document:
             match history_item.action_type:
                 case '':
                     break
 
-        return ChessGameHistory([])
+        return ChessGameHistory(history)
 
     @staticmethod
     def domain_to_document(game_id: uuid.UUID, game: GameDocument, history: ChessGameHistory):

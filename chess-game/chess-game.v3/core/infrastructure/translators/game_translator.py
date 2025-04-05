@@ -20,7 +20,7 @@ class GameTranslator:
 
     @staticmethod
     def document_to_domain(document: GameDocument, history_docs: list[GameHistoryDocument]) -> ChessGame:
-        game_id: ChessGameId = ChessGameId(str(document.game_id))
+        game_id: ChessGameId = ChessGameId(document.game_id)
         players = Players(PlayerId(document.players.white_id), PlayerId(document.players.black_id))
         game_format = GameFormat.parse_string(document.format.value, document.format.time_remaining, document.format.additional_time)
 

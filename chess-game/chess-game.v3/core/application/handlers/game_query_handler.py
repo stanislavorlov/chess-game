@@ -40,9 +40,6 @@ class ChessGameQueryHandler(RequestHandler[ChessGameQuery, ChessGameQueryResult]
         board = Board()
         board.reply(game.history)
 
-        print('Game history count:')
-        print(game.history.count())
-
         return ChessGameQueryResult(
             game_id=game.game_id.value,
             date=game.information.date,

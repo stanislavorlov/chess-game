@@ -42,6 +42,9 @@ class ChessGameRepository:
         document = await GameDocument.find_one(GameDocument.game_id == game_id.value, fetch_links=True)
         histories = await self.games_history_collection.find(GameHistoryDocument.game_id == document.game_id).to_list()
 
+        for history in histories:
+            print(history)
+
         return GameTranslator.document_to_domain(document, histories)
 
     async def save(self, game_id: PydanticObjectId, data: dict):

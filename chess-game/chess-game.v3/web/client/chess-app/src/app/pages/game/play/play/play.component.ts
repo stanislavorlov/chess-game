@@ -85,17 +85,6 @@ export class PlayComponent implements OnInit {
 
           this.timeot = setInterval(() => {
             this.tickTock();
-
-            //let targetDate: Date = new Date(2025, 5, 20);
-            
-            //now.setMinutes(now.getMinutes() + this.game.game_format.remaining_time)
-            //now.setSeconds(now.getSeconds() + this.game.game_format.remaining_time)
-            
-            //let targetTime: number = future.getTime();
-            //this.difference = targetTime - this.now;
-            //this.difference = this.difference / (1000 * 60 * 60 * 24);
-
-            //this.future = new Date(this.future.getTime() - 1000);
           }, 1000);
         }
       });
@@ -103,9 +92,6 @@ export class PlayComponent implements OnInit {
   }
 
   tickTock() {
-    //this.date = new Date();
-    //this.now = this.date.getTime();
-    //this.future = new Date(this.future.getTime() - 1000);
     let now = new Date();
     if (this.future > now) {
       let differefence = new Date(this.future.valueOf() - now.valueOf())

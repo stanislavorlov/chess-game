@@ -3,7 +3,7 @@ from typing import Optional, List
 from beanie import Document, Link
 from pydantic import BaseModel, Field
 from datetime import datetime
-from core.infrastructure.models.game_history_document import GameHistoryDocument
+#from core.infrastructure.models.game_history_document import GameHistoryDocument
 
 
 class GameState(BaseModel):
@@ -29,7 +29,9 @@ class GameDocument(Document):
     state: GameState
     format: GameFormat
     players: Players
-    history: List[Link[GameHistoryDocument]] = Field(default_factory=list)
+    # ToDo: provide a ref in HistoryDocument
+    # https://beanie-odm.dev/tutorial/inserting-into-the-database/
+    # history: List[Link[GameHistoryDocument]] # = Field(default_factory=list)
     result: str
 
     class Config:

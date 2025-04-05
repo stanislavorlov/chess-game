@@ -1,8 +1,11 @@
 import uuid
 from datetime import datetime
+from typing import Optional
 
-from beanie import Document, TimeSeriesConfig, Granularity
+from beanie import Document, TimeSeriesConfig, Granularity, Link
 from pydantic import Field
+
+from core.infrastructure.models import GameDocument
 
 
 class GameHistoryDocument(Document):
@@ -12,6 +15,9 @@ class GameHistoryDocument(Document):
     history_time: datetime = Field(default_factory=datetime.now)
     history_meta: str
     action_type: str
+    # ToDo: provide a ref to GameDocument
+    # https://beanie-odm.dev/tutorial/inserting-into-the-database/
+    game: Optional[Link[GameDocument]]
 
     class Config:
         pass

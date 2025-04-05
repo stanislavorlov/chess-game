@@ -12,19 +12,19 @@ from core.domain.value_objects.game_information import GameInformation
 from core.domain.value_objects.game_status import GameStatus
 from core.domain.value_objects.game_state import GameState
 from core.domain.value_objects.side import Side
-from core.infrastructure.models import GameDocument
+from core.infrastructure.models import GameDocument, GameHistoryDocument
 from core.infrastructure.translators.game_history_translator import GameHistoryTranslator
 
 
 class GameTranslator:
 
     @staticmethod
-    async def document_to_domain(document: GameDocument) -> ChessGame:
+    def document_to_domain(document: GameDocument, history_docs: list[GameHistoryDocument]) -> ChessGame:
         game_id: ChessGameId = ChessGameId(str(document.game_id))
         players = Players(PlayerId(document.players.white_id), PlayerId(document.players.black_id))
         game_format = GameFormat.parse_string(document.format.value, document.format.time_remaining, document.format.additional_time)
 
-        history = GameHistoryTranslator.document_to_domain(document.history)
+        history = GameHistoryTranslator.document_to_domain(history_docs)
 
         game_state = GameState(GameStatus(document.state.status), Side(document.state.turn))
         game_info = GameInformation(game_format, document.date, document.game_name)
@@ -56,7 +56,8 @@ class GameTranslator:
             format=game_format,
             players=players,
             result='',
-            game_name=game.information.name
+            game_name=game.information.name,
+            #history=GameHistoryTranslator.domain_to_document(game.game_id.value, game.history)
         )
 
         return new_game

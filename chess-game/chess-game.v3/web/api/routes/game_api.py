@@ -56,12 +56,3 @@ async def get_board(game_id: uuid.UUID):
         return {
             "status": 400
         }
-
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-
-    while True:
-        data = await websocket.receive_json()
-
-        await websocket.send_json(data)

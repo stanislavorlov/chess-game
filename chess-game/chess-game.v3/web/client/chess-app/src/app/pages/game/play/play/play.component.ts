@@ -15,6 +15,7 @@ import { CreateGame } from './models/create-game';
 import { ChessGame } from 'src/app/services/models/chess-game';
 import { ApiResult } from 'src/app/services/models/api-result';
 import { ActivatedRoute, Router } from '@angular/router';
+import { PlayService } from 'src/app/services/play.service';
 
 @Component({
   selector: 'app-play',
@@ -55,7 +56,7 @@ export class PlayComponent implements OnInit {
   @ViewChild('minutes', { static: true }) minutes: ElementRef<HTMLInputElement> = {} as ElementRef;
   @ViewChild('seconds', { static: true }) seconds: ElementRef<HTMLInputElement> = {} as ElementRef;
 
-  constructor(private renderer: Renderer2, private chessService: ChessService) {
+  constructor(private renderer: Renderer2, private chessService: ChessService, private playService: PlayService) {
     this.formats = [
       { value: 'bullet', viewValue: 'Bullet' },
       { value: 'blitz', viewValue: 'Blitz' },
@@ -88,13 +89,20 @@ export class PlayComponent implements OnInit {
           }, 1000);
         }
       });
+
+      this.playService.getMessages().subscribe(data => {
+        console.log(data);
+      })
     }
+
+    this.playService.sendMessage('Hello WebSocket');
   }
 
   tickTock() {
     let now = new Date();
     if (this.future > now) {
-      let differefence = new Date(this.future.valueOf() - now.valueOf())
+      let differefence = new Date(this.future.valueOf() - now.valueOf());
+      // ToDo: bind variables instead of ref
       this.minutes.nativeElement.innerText = differefence.getMinutes().toString();
       this.seconds.nativeElement.innerText = differefence.getSeconds().toString();
     } else {
@@ -222,5 +230,7 @@ export class PlayComponent implements OnInit {
     if (!!htmlElement) {
       htmlElement.style.setProperty('border','1px solid red','');
     }
+
+    this.playService.sendMessage('test message');
   }
 }

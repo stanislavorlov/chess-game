@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, Renderer2 } from '@angular/core';
+import { Component, ElementRef, inject, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -41,10 +41,19 @@ export class PlayComponent implements OnInit {
   public additionalTime = '';
   gameName = 'New Game 1';
 
+  //date: Date;
+  //now: number;
+  //difference: number;
+  future: Date;
+  timeot: NodeJS.Timeout
+
   public game: ChessGame;
 
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+
+  @ViewChild('minutes', { static: true }) minutes: ElementRef<HTMLInputElement> = {} as ElementRef;
+  @ViewChild('seconds', { static: true }) seconds: ElementRef<HTMLInputElement> = {} as ElementRef;
 
   constructor(private renderer: Renderer2, private chessService: ChessService) {
     this.formats = [
@@ -70,8 +79,40 @@ export class PlayComponent implements OnInit {
 
           console.log('loading game');
           console.log(this.game);
+
+          let now: Date = new Date();
+          this.future = new Date(now.getTime() + this.game.game_format.remaining_time * 1000);
+
+          this.timeot = setInterval(() => {
+            this.tickTock();
+
+            //let targetDate: Date = new Date(2025, 5, 20);
+            
+            //now.setMinutes(now.getMinutes() + this.game.game_format.remaining_time)
+            //now.setSeconds(now.getSeconds() + this.game.game_format.remaining_time)
+            
+            //let targetTime: number = future.getTime();
+            //this.difference = targetTime - this.now;
+            //this.difference = this.difference / (1000 * 60 * 60 * 24);
+
+            //this.future = new Date(this.future.getTime() - 1000);
+          }, 1000);
         }
       });
+    }
+  }
+
+  tickTock() {
+    //this.date = new Date();
+    //this.now = this.date.getTime();
+    //this.future = new Date(this.future.getTime() - 1000);
+    let now = new Date();
+    if (this.future > now) {
+      let differefence = new Date(this.future.valueOf() - now.valueOf())
+      this.minutes.nativeElement.innerText = differefence.getMinutes().toString();
+      this.seconds.nativeElement.innerText = differefence.getSeconds().toString();
+    } else {
+      clearInterval(this.timeot);
     }
   }
 

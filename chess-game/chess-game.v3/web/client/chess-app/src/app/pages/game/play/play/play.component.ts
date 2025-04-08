@@ -7,7 +7,6 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { Position } from './models/position';
 import { NgFor, NgIf } from '@angular/common';
 import { ChessService } from 'src/app/services/chess.service';
 import { GameFormat } from './models/game-format';
@@ -36,19 +35,19 @@ import { PlayService } from 'src/app/services/play.service';
 })
 export class PlayComponent implements OnInit {
   private lastClickedElement: HTMLElement | null = null;
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private future: Date;
+  private timeot: NodeJS.Timeout;
+
   public formats: GameFormat[];
   public selectedFormat = '';
   public selectedTime = '';
   public additionalTime = '';
-  gameName = 'New Game 1';
-
-  future: Date;
-  timeot: NodeJS.Timeout
-
+  public gameName = 'New Game 1';
+  public positions: Record<number, Square[]>;
+  public ranks: Array<string>;
   public game: ChessGame;
-
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
 
   @ViewChild('minutes', { static: true }) minutes: ElementRef<HTMLInputElement> = {} as ElementRef;
   @ViewChild('seconds', { static: true }) seconds: ElementRef<HTMLInputElement> = {} as ElementRef;
@@ -71,13 +70,8 @@ export class PlayComponent implements OnInit {
     const gameId = this.route.snapshot.paramMap.get('id');
     
     if (!!gameId) {
-      // ToDo: initialize existing game
-      // ToDo: make read-only view
-
       this.chessService.getGame(gameId).subscribe((result: ApiResult<ChessGame>) => {
         if (result.status == 200) {
-          console.log(this.game);
-
           this.game = result.data;
           this.gameName = this.game.name;
 
@@ -95,7 +89,12 @@ export class PlayComponent implements OnInit {
 
       this.playService.getMessages().subscribe(data => {
         console.log(data);
-      })
+      });
+    } else {
+      let newGame = this.chessService.newGame();
+
+      this.positions = groupBy(newGame.board, square => square.rank);
+      this.ranks = Object.keys(this.positions) as Array<string>;
     }
 
     this.playService.sendMessage('Hello WebSocket');
@@ -112,9 +111,6 @@ export class PlayComponent implements OnInit {
       clearInterval(this.timeot);
     }
   }
-
-  positions: Record<number, Square[]>
-  ranks: Array<string>
 
   startGame(): void {
     const new_game = new CreateGame();
@@ -154,10 +150,10 @@ export class PlayComponent implements OnInit {
     this.additionalTime = additional;
   }
 
-  clickBoard(position: Position): void {
-    console.log('clicked square: ' + position.square + ', selected piece: ' + position.piece)
+  clickBoard(square: Square): void {
+    console.log('clicked square: ' + square.square + ', selected piece: ' + square.piece)
 
-    var htmlElement = document.getElementById('td-'+position.square);
+    var htmlElement = document.getElementById('td-'+square.square);
     if (!!htmlElement) {
       htmlElement.style.setProperty('border','1px solid red','');
     }

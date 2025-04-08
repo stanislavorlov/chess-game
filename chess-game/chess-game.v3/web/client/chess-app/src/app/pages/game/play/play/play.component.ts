@@ -150,8 +150,8 @@ export class PlayComponent implements OnInit {
     this.additionalTime = additional;
   }
 
-  clickBoard(square: Square): void {
-    console.log('clicked square: ' + square.square + ', selected piece: ' + square.piece)
+  clickBoard(rank: string, square: Square): void {
+    console.log('clicked square: ' + square.square + ', selected piece: ' + square.piece);
 
     var htmlElement = document.getElementById('td-'+square.square);
     if (!!htmlElement) {

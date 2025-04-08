@@ -22,10 +22,10 @@
                                 <th>g</th>
                                 <th>h</th>
                             </tr>
-                            <tr *ngFor="let position of positions">
-                                <th>{{ position.key }}</th>
-                                <td *ngFor="let item of position.group" data-id="td-{{item.square}}"
-                                    (click)="clickBoard(item)" class="{{item.color}}">
+                            <tr *ngFor="let rank of ranks">
+                                <th>{{ rank }}</th>
+                                <td *ngFor="let item of positions[convertToNumber(rank)]" data-id="td-{{item.square}}"
+                                    (click)="clickBoard(item)" class="{{item.color == 'B' ? 'light' : 'dark' }}">
                                     <img *ngIf="item.piece" src="./assets/images/pieces/{{item.piece}}.png"
                                          height="100%">
                                 </td>

@@ -39,6 +39,9 @@ class ChessGameQueryHandler(RequestHandler[ChessGameQuery, ChessGameQueryResult]
         board = Board()
         board.reply(game.history)
 
+        print('length of history')
+        print(game.history.count())
+
         return ChessGameQueryResult(
             game_id=game.game_id.value,
             date=game.information.date,
@@ -46,4 +49,5 @@ class ChessGameQueryHandler(RequestHandler[ChessGameQuery, ChessGameQueryResult]
             state=state_result,
             game_format=format_result,
             players=players_result,
+            board=board.serialize()
         )

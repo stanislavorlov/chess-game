@@ -3,7 +3,3 @@ export interface Position {
     piece: string;
     color: string;
   }
-  export interface GroupedPosition {
-    key: string;
-    group: Position[];
-  }

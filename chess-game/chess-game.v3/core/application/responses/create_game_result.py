@@ -28,3 +28,4 @@ class ChessGameQueryResult(Response):
     state: GameStateQueryResult
     game_format: GameFormatQueryResult
     players: PlayersQueryResult
+    board: []

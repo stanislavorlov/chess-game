@@ -14,9 +14,9 @@ class Rank:
         self._rank = rank
 
     @property
-    def rank(self) -> int:
+    def value(self) -> int:
         """Returns the rank as an integer."""
-        return self._rank
+        return self._rank + 1
 
     def to_index(self) -> int:
         return self._rank

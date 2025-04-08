@@ -29,7 +29,6 @@ class ChessGame(AggregateRoot):
     @staticmethod
     def create(game_id: ChessGameId, game_info: GameInformation, players: Players):
         history = ChessGameHistory.empty()
-
         history.record(GameCreated(game_id=game_id))
 
         chess_game = ChessGame(game_id, game_info,

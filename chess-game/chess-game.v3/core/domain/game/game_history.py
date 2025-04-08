@@ -1,11 +1,14 @@
 from typing import List
+
 from diator.events import DomainEvent
+
+from core.domain.game.history_entry import ChessGameHistoryEntry
 from core.domain.kernel.entity import Entity
 
 
 class ChessGameHistory(Entity):
 
-    def __init__(self, history: List[DomainEvent]):
+    def __init__(self, history: List[ChessGameHistoryEntry]):
         super().__init__()
         self._gameHistory = history
 
@@ -13,7 +16,10 @@ class ChessGameHistory(Entity):
     def empty():
         return ChessGameHistory([])
 
-    def record(self, entry: DomainEvent):
+    def record(self, domain_event: DomainEvent):
+        seq_number = len(self._gameHistory)
+        entry = ChessGameHistoryEntry(seq_number+1, domain_event)
+
         self._gameHistory.append(entry)
 
     def last(self):

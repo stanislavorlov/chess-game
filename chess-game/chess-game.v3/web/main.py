@@ -17,6 +17,8 @@ app.include_router(api_router)
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    # http://restack.io/p/fastapi-answer-websocket-kafka
+    # https://adarsharegmi121.medium.com/building-real-time-applications-with-fastapi-and-apache-kafka-83f2c34b165d
 
     mediator = build_mediator()
 

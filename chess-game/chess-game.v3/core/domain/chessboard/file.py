@@ -16,12 +16,12 @@ class File:
         return self._file
 
     def to_index(self) -> int:
-        """Converts the file to a 1-based index ('a' -> 1, ..., 'h' -> 8)."""
+        """Converts the file to a 0-based index ('a' -> 0, ..., 'h' -> 7)."""
         return ord(self._file) - ord('a')
 
     @classmethod
     def from_index(cls, index: int):
-        """Creates a File object from a 1-based index."""
+        """Creates a File object from a 0-based index."""
         if index < 0 or index > 7:
             raise ValueError(f"Invalid index: '{index}'. Must be between 0 and 7.")
         file = chr(ord('a') + index)

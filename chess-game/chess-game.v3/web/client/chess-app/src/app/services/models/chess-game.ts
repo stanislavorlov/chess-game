@@ -6,6 +6,7 @@ export class ChessGame {
     state: GameState;
     game_format: GameFormat;
     players: Players;
+    board: Square[];
 }
 export class GameState {
     turn: string;
@@ -20,4 +21,10 @@ export class GameFormat {
 export class Players {
     white_id: string;
     black_id: string;
+}
+export class Square {
+    square: string;
+    piece: string;
+    color: string;
+    rank: number;
 }

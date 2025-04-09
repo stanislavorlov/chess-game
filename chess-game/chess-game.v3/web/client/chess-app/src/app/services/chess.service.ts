@@ -2,8 +2,9 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { throwError } from 'rxjs';
 import { CreateGame } from '../pages/game/play/play/models/create-game';
-import { ChessGame } from './models/chess-game';
+import { ChessGame, Square } from './models/chess-game';
 import { ApiResult } from './models/api-result';
+import { PieceFactory } from '../pages/game/play/play/models/pieces/piece_factory';
 
 @Injectable({
   providedIn: 'root'
@@ -415,6 +416,13 @@ export class ChessService {
 
   getGame(game_id: string) {
     return this.httpClient.get<ApiResult<ChessGame>>('/api/game/board/' + game_id);
+  }
+
+  movePiece(from: Square, to: Square) {
+    let piece_acronym = from.piece
+    let piece = PieceFactory.getPiece('', piece_acronym)
+
+    return piece.validate_move(from, to);
   }
 
   private handleError(error: HttpErrorResponse) {

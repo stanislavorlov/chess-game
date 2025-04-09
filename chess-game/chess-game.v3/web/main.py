@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from starlette.websockets import WebSocket
+from starlette.websockets import WebSocket, WebSocketState
 from core.infrastructure.config.config import initiate_database
 from core.infrastructure.mediator.mediator import build_mediator
 from web.api.main import api_router
@@ -23,11 +23,14 @@ async def websocket_endpoint(websocket: WebSocket):
     mediator = build_mediator()
 
     while True:
-        data = await websocket.receive_json()
+        if websocket.application_state == WebSocketState.CONNECTED and websocket.client_state == WebSocketState.CONNECTED:
+            data = await websocket.receive_json()
 
-        print(data)
+            print(data)
 
-        await websocket.send_json(data)
+            await websocket.send_json(data)
+        else:
+            print('WebSocket is not in state Connected')
 
 # to run - execute the command below
 # fastapi dev main.py

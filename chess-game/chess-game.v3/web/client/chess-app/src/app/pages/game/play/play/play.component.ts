@@ -39,6 +39,7 @@ export class PlayComponent implements OnInit {
   private readonly router = inject(Router);
   private future: Date;
   private timeot: NodeJS.Timeout;
+  private selectedSquare: Square | null = null;
 
   public formats: GameFormat[];
   public selectedFormat = '';
@@ -150,12 +151,28 @@ export class PlayComponent implements OnInit {
     this.additionalTime = additional;
   }
 
-  clickBoard(rank: string, square: Square): void {
+  clickBoard(square: Square): void {
     console.log('clicked square: ' + square.square + ', selected piece: ' + square.piece);
 
-    var htmlElement = document.getElementById('td-'+square.square);
-    if (!!htmlElement) {
-      htmlElement.style.setProperty('border','1px solid red','');
+    if (!!this.selectedSquare) {
+      let fromElement = document.getElementById('td-'+this.selectedSquare.square);
+      fromElement?.style.setProperty('border', 'none','');
+
+      if (!!this.selectedSquare.piece) {
+        if (this.chessService.movePiece(this.selectedSquare, square)) {
+          square.piece = this.selectedSquare.piece;
+          this.selectedSquare.piece = '';
+        }
+      }
+
+      //let toElement = document.getElementById('td-'+square.square);
+      //toElement?.style.setProperty('border','1px solid red','');
+
+      this.selectedSquare = null;
+    } else {
+      let htmlElement = document.getElementById('td-'+square.square);
+      htmlElement?.style.setProperty('border','1px solid red','');
+      this.selectedSquare = square;
     }
 
     //this.playService.sendMessage('test message');

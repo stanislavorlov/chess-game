@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, NgZone, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -33,13 +33,14 @@ import { PlayService } from 'src/app/services/play.service';
   templateUrl: './play.component.html',
   styleUrl: './play.component.scss'
 })
-export class PlayComponent implements OnInit {
+export class PlayComponent implements OnInit, OnDestroy {
   private lastClickedElement: HTMLElement | null = null;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private future: Date;
-  private timeot: NodeJS.Timeout;
+  //private timeot: NodeJS.Timeout;
   private selectedSquare: Square | null = null;
+  private worker: Worker | undefined;
 
   public formats: GameFormat[];
   public selectedFormat = '';
@@ -50,10 +51,12 @@ export class PlayComponent implements OnInit {
   public ranks: Array<string>;
   public game: ChessGame;
 
+  time = 0;
+
   @ViewChild('minutes', { static: true }) minutes: ElementRef<HTMLInputElement> = {} as ElementRef;
   @ViewChild('seconds', { static: true }) seconds: ElementRef<HTMLInputElement> = {} as ElementRef;
 
-  constructor(private renderer: Renderer2, private chessService: ChessService, private playService: PlayService) {
+  constructor(private renderer: Renderer2, private ngZone: NgZone, private chessService: ChessService, private playService: PlayService) {
     this.formats = [
       { value: 'bullet', viewValue: 'Bullet' },
       { value: 'blitz', viewValue: 'Blitz' },
@@ -82,9 +85,24 @@ export class PlayComponent implements OnInit {
           let now: Date = new Date();
           this.future = new Date(now.getTime() + this.game.game_format.remaining_time * 1000);
 
-          this.timeot = setInterval(() => {
+          //ToDo: WebWorker
+          /*this.timeot = setInterval(() => {
             this.tickTock();
-          }, 1000);
+          }, 1000);*/
+          
+          let worker = this.worker;
+          this.ngZone.runOutsideAngular(() => {
+            worker = new Worker(new URL('src/app/services/timer.worker', import.meta.url), {
+              type: 'module'
+            });
+            worker.onmessage = ({ data }) => {
+              this.time = data.time;
+              //console.log(this.time);
+              this.tickTock();
+            };
+
+            worker.postMessage({ command: 'start', interval: 1000 });
+          });
         }
       });
 
@@ -101,6 +119,13 @@ export class PlayComponent implements OnInit {
     this.playService.sendMessage('Hello WebSocket');
   }
 
+  ngOnDestroy(): void {
+    if (this.worker) {
+      this.worker.postMessage({ command: 'stop' });
+      this.worker.terminate();
+    }
+  }
+
   tickTock() {
     let now = new Date();
     if (this.future > now) {
@@ -109,7 +134,11 @@ export class PlayComponent implements OnInit {
       this.minutes.nativeElement.innerText = differefence.getMinutes().toString();
       this.seconds.nativeElement.innerText = differefence.getSeconds().toString();
     } else {
-      clearInterval(this.timeot);
+      //clearInterval(this.timeot);
+      if (this.worker) {
+        this.worker.postMessage({ command: 'stop' });
+        this.worker.terminate();
+      }
     }
   }
 

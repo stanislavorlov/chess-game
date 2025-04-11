@@ -7,32 +7,38 @@
     <mat-card-content class="b-t-1">
         <div class="row">
             <div class="col-lg-7">
-                <form>
-                    <div class="row">
-                        <table class="chess-board">
-                            <tbody>
-                                <tr>
-                                    <th></th>
-                                    <th>a</th>
-                                    <th>b</th>
-                                    <th>c</th>
-                                    <th>d</th>
-                                    <th>e</th>
-                                    <th>f</th>
-                                    <th>g</th>
-                                    <th>h</th>
-                                </tr>
-                                <tr *ngFor="let rank of ranks">
-                                    <th>{{ rank }}</th>
-                                    <td *ngFor="let item of positions[convertToNumber(rank)]" data-id="td-{{item.square}}"
-                                        (click)="clickBoard(item)" class="{{item.color == 'B' ? 'light' : 'dark' }}">
-                                        <img *ngIf="item.piece" src="./assets/images/pieces/{{item.piece}}.png" height="100%">
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </form>
+                <div class="row">
+                    <div style="font-weight: bold;">Player 1</div>
+                    <div style="margin-left: 10px;"><span id="timer1"></span></div>
+                </div>
+                <div class="row">
+                    <table class="chess-board">
+                        <tbody>
+                            <tr>
+                                <th></th>
+                                <th>a</th>
+                                <th>b</th>
+                                <th>c</th>
+                                <th>d</th>
+                                <th>e</th>
+                                <th>f</th>
+                                <th>g</th>
+                                <th>h</th>
+                            </tr>
+                            <tr *ngFor="let rank of ranks">
+                                <th>{{ rank }}</th>
+                                <td *ngFor="let item of positions[convertToNumber(rank)]" data-id="td-{{item.square}}"
+                                    (click)="clickBoard(item)" class="{{item.color == 'B' ? 'light' : 'dark' }}">
+                                    <img *ngIf="item.piece" src="./assets/images/pieces/{{item.piece}}.png" height="100%">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row">
+                    <div>Player 2</div>
+                    <div><span id="timer2"></span></div>
+                </div>
             </div>
             <div class="col-lg-4">
                 <div *ngIf="!game">
@@ -67,7 +73,7 @@
                 </div>
                 <div ng-show="!!game">
                     <!-- ToDo: timer component -->
-                    <div class="wrapper">
+                    <!-- <div class="wrapper">
                         <div class="description">
                             <p>Minutes</p>
                             <p>Seconds</p>
@@ -76,7 +82,7 @@
                             <p #minutes></p>
                             <p #seconds></p>
                         </div>
-                    </div>
+                    </div> -->
                     <h2>Game history</h2>
                 </div>
             </div>

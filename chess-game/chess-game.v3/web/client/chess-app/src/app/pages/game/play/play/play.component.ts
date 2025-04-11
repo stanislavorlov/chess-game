@@ -40,7 +40,7 @@ export class PlayComponent implements OnInit, OnDestroy {
   private future: Date;
   //private timeot: NodeJS.Timeout;
   private selectedSquare: Square | null = null;
-  private worker: Worker | undefined;
+  //private worker: Worker | undefined;
 
   public formats: GameFormat[];
   public selectedFormat = '';
@@ -53,8 +53,8 @@ export class PlayComponent implements OnInit, OnDestroy {
 
   time = 0;
 
-  @ViewChild('minutes', { static: true }) minutes: ElementRef<HTMLInputElement> = {} as ElementRef;
-  @ViewChild('seconds', { static: true }) seconds: ElementRef<HTMLInputElement> = {} as ElementRef;
+  //@ViewChild('minutes', { static: true }) minutes: ElementRef<HTMLInputElement> = {} as ElementRef;
+  //@ViewChild('seconds', { static: true }) seconds: ElementRef<HTMLInputElement> = {} as ElementRef;
 
   constructor(private renderer: Renderer2, private ngZone: NgZone, private chessService: ChessService, private playService: PlayService) {
     this.formats = [
@@ -84,13 +84,29 @@ export class PlayComponent implements OnInit, OnDestroy {
 
           let now: Date = new Date();
           this.future = new Date(now.getTime() + this.game.game_format.remaining_time * 1000);
+          let that = this;
+
+          console.log(this.future);
+
+          let timerId = setInterval(function() {
+            // if player1 is playing, update timer 1
+            // add boolean variavle to switch timer to player 2
+            let time1 = document.getElementById('timer1');
+            let now = new Date();
+            let differefence = new Date(that.future.valueOf() - now.valueOf());
+            if (time1) {
+              time1.innerText = differefence.getMinutes().toString() + 'm ' + differefence.getSeconds().toString() + 's';
+            }
+          }, 1000);
 
           //ToDo: WebWorker
           /*this.timeot = setInterval(() => {
             this.tickTock();
           }, 1000);*/
           
-          let worker = this.worker;
+
+          // ToDo: should be 2 separate timers for players
+          /*let worker = this.worker;
           this.ngZone.runOutsideAngular(() => {
             worker = new Worker(new URL('src/app/services/timer.worker', import.meta.url), {
               type: 'module'
@@ -102,7 +118,7 @@ export class PlayComponent implements OnInit, OnDestroy {
             };
 
             worker.postMessage({ command: 'start', interval: 1000 });
-          });
+          });*/
         }
       });
 
@@ -120,13 +136,13 @@ export class PlayComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.worker) {
+    /*if (this.worker) {
       this.worker.postMessage({ command: 'stop' });
       this.worker.terminate();
-    }
+    }*/
   }
 
-  tickTock() {
+  /*tickTock() {
     let now = new Date();
     if (this.future > now) {
       let differefence = new Date(this.future.valueOf() - now.valueOf());
@@ -140,7 +156,7 @@ export class PlayComponent implements OnInit, OnDestroy {
         this.worker.terminate();
       }
     }
-  }
+  }*/
 
   startGame(): void {
     const new_game = new CreateGame();

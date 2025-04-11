@@ -13,7 +13,6 @@ export class Board {
         let that = this;
 
         squares.forEach(function (square: Square) {
-            debugger;
             const [file,rank] = square.square;
             const fileIdx = that.files.indexOf(file);
             const rankIdx = that.ranks.indexOf(Number(rank));

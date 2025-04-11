@@ -4,7 +4,7 @@ import { throwError } from 'rxjs';
 import { CreateGame } from '../pages/game/play/play/models/create-game';
 import { ChessGame, Square } from './models/chess-game';
 import { ApiResult } from './models/api-result';
-import { PieceFactory } from '../pages/game/play/play/models/pieces/piece_factory';
+import { Board } from './models/board';
 
 @Injectable({
   providedIn: 'root'
@@ -418,11 +418,10 @@ export class ChessService {
     return this.httpClient.get<ApiResult<ChessGame>>('/api/game/board/' + game_id);
   }
 
-  movePiece(from: Square, to: Square) {
-    let piece_acronym = from.piece
-    let piece = PieceFactory.getPiece('', piece_acronym)
-
-    return piece.validate_move(from, to);
+  validateMovement(from: Square, to: Square, board: Square[]) {
+    let chess_board = new Board(board);
+    
+    return chess_board.isValidMove(from, to);
   }
 
   private handleError(error: HttpErrorResponse) {

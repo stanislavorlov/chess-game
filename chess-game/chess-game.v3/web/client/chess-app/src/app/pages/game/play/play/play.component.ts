@@ -159,7 +159,7 @@ export class PlayComponent implements OnInit {
       fromElement?.style.setProperty('border', 'none','');
 
       if (!!this.selectedSquare.piece) {
-        if (this.chessService.movePiece(this.selectedSquare, square)) {
+        if (this.chessService.validateMovement(this.selectedSquare, square, this.game.board)) {
           square.piece = this.selectedSquare.piece;
           this.selectedSquare.piece = '';
         }

@@ -2,21 +2,21 @@ from core.domain.movements.delta.delta import Delta
 
 
 class Rank:
-    _valid_ranks = range(0, 8)  # Valid ranks are integers from 0 to 7
+    _valid_ranks = range(1, 9)  # Valid ranks are integers from 1 to 8
 
     def __init__(self, rank: int):
-        self._start = 0
-        self._end = 7
+        self._start = 1
+        self._end = 8
 
         # Validate that the rank is between 1 and 8
         if rank not in Rank._valid_ranks:
-            raise ValueError(f"Invalid rank: '{rank}'. Must be an integer between 0 and 7.")
+            raise ValueError(f"Invalid rank: '{rank}'. Must be an integer between 1 and 8.")
         self._rank = rank
 
     @property
     def value(self) -> int:
         """Returns the rank as an integer."""
-        return self._rank + 1
+        return self._rank
 
     def to_index(self) -> int:
         return self._rank
@@ -24,42 +24,42 @@ class Rank:
     @classmethod
     def from_index(cls, index: int):
         """Creates a Rank object from an integer index."""
-        if index < 0 or index > 7:
-            raise ValueError(f"Invalid index: '{index}'. Must be between 0 and 7.")
+        if index < 1 or index > 8:
+            raise ValueError(f"Invalid index: '{index}'. Must be between 1 and 8.")
         return cls(index)
 
     # Class-level properties for ranks 1 to 8
     @classmethod
     def r1(cls):
-        return cls(0)
-
-    @classmethod
-    def r2(cls):
         return cls(1)
 
     @classmethod
-    def r3(cls):
+    def r2(cls):
         return cls(2)
 
     @classmethod
-    def r4(cls):
+    def r3(cls):
         return cls(3)
 
     @classmethod
-    def r5(cls):
+    def r4(cls):
         return cls(4)
 
     @classmethod
-    def r6(cls):
+    def r5(cls):
         return cls(5)
 
     @classmethod
-    def r7(cls):
+    def r6(cls):
         return cls(6)
 
     @classmethod
-    def r8(cls):
+    def r7(cls):
         return cls(7)
+
+    @classmethod
+    def r8(cls):
+        return cls(8)
 
     def __eq__(self, other) -> bool:
         """Equality comparison."""

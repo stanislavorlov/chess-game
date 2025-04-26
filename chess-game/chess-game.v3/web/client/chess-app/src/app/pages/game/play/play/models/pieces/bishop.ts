@@ -14,11 +14,7 @@ export class Bishop extends Piece {
     }
 
     override validateMove(from: Square, to: Square): boolean {
-        const [from_file, from_rank] = from.square;
-        const [to_file, to_rank] = to.square;
-
-        let delta_file = Math.abs((to_file.charCodeAt(0) - 'a'.charCodeAt(0)) - (from_file.charCodeAt(0) - 'a'.charCodeAt(0)));
-        let delta_rank = Math.abs(parseInt(from_rank) - parseInt(to_rank));
+        const [delta_file, delta_rank] = this.calculateMoveDeltas(from, to);
 
         return delta_file == delta_rank;
     }

@@ -14,6 +14,13 @@ export class Queen extends Piece {
     }
 
     override validateMove(from: Square, to: Square): boolean {
-        throw new Error("Method not implemented.");
+        const [delta_file, delta_rank] = this.calculateMoveDeltas(from, to);
+        // rook
+        if (delta_file == 0 || delta_rank == 0) {
+            return true;
+        }
+
+        // bishop
+        return delta_file == delta_rank
     }
 }

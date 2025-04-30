@@ -37,12 +37,9 @@ export class PlayComponent implements OnInit, OnDestroy {
   private lastClickedElement: HTMLElement | null = null;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private future1: Date;
-  private future2: Date;
-  //private timeot: NodeJS.Timeout;
   private selectedSquare: Square | null = null;
-  //private worker: Worker | undefined;
-
+  private secondsRemaining1: number;
+  private secondsRemaining2: number;
   private switchPlayer: boolean = true;
 
   public formats: GameFormat[];
@@ -55,9 +52,6 @@ export class PlayComponent implements OnInit, OnDestroy {
   public game: ChessGame;
 
   time = 0;
-
-  //@ViewChild('minutes', { static: true }) minutes: ElementRef<HTMLInputElement> = {} as ElementRef;
-  //@ViewChild('seconds', { static: true }) seconds: ElementRef<HTMLInputElement> = {} as ElementRef;
 
   constructor(private renderer: Renderer2, private ngZone: NgZone, private chessService: ChessService, private playService: PlayService) {
     this.formats = [
@@ -73,6 +67,13 @@ export class PlayComponent implements OnInit, OnDestroy {
     return Number(rank);
   }
 
+  formatSeconds(totalSeconds: number): string {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    return minutes.toString() + 'm ' + seconds.toString().padStart(2, '0') + 's';
+  }
+
   ngOnInit(): void {
     const gameId = this.route.snapshot.paramMap.get('id');
     
@@ -85,28 +86,25 @@ export class PlayComponent implements OnInit, OnDestroy {
           this.positions = groupBy(this.game.board, square => square.rank);
           this.ranks = Object.keys(this.positions) as Array<string>;
 
-          let now: Date = new Date();
-          this.future1 = new Date(now.getTime() + this.game.game_format.remaining_time * 1000);
           let that = this;
 
-          //console.log(this.future);
+          this.secondsRemaining1 = this.game.game_format.remaining_time;
+          this.secondsRemaining2 = this.game.game_format.remaining_time;
 
-          let timerId = setInterval(function() {
-            // if player1 is playing, update timer 1
-            // add boolean variavle to switch timer to player 2
+          let timerId1 = setInterval(function() {
             if (that.switchPlayer) {
               let time1 = document.getElementById('timer1');
-              let now1 = new Date();
-              let differefence1 = new Date(that.future1.valueOf() - now1.valueOf());
+
               if (time1) {
-                time1.innerText = differefence1.getMinutes().toString() + 'm ' + differefence1.getSeconds().toString() + 's';
+                time1.innerText = that.formatSeconds(that.secondsRemaining1)
+                that.secondsRemaining1 -= 1;
               }
             } else {
               let time2 = document.getElementById('timer2');
-              let now2 = new Date();
-              let differefence2 = new Date(that.future2.valueOf() - now2.valueOf());
+
               if (time2) {
-                time2.innerText = differefence2.getMinutes().toString() + 'm ' + differefence2.getSeconds().toString() + 's';
+                time2.innerText = that.formatSeconds(that.secondsRemaining2)
+                that.secondsRemaining2 -= 1;
               }
             }
           }, 1000);
@@ -153,22 +151,6 @@ export class PlayComponent implements OnInit, OnDestroy {
       this.worker.terminate();
     }*/
   }
-
-  /*tickTock() {
-    let now = new Date();
-    if (this.future > now) {
-      let differefence = new Date(this.future.valueOf() - now.valueOf());
-      // ToDo: bind variables instead of ref
-      this.minutes.nativeElement.innerText = differefence.getMinutes().toString();
-      this.seconds.nativeElement.innerText = differefence.getSeconds().toString();
-    } else {
-      //clearInterval(this.timeot);
-      if (this.worker) {
-        this.worker.postMessage({ command: 'stop' });
-        this.worker.terminate();
-      }
-    }
-  }*/
 
   startGame(): void {
     const new_game = new CreateGame();
@@ -220,16 +202,8 @@ export class PlayComponent implements OnInit, OnDestroy {
           square.piece = this.selectedSquare.piece;
           this.selectedSquare.piece = '';
           this.switchPlayer = !this.switchPlayer;
-          if (!this.future2) {
-            console.log('future 2 player');
-            let now: Date = new Date();
-            this.future2 = new Date(now.getTime() + this.game.game_format.remaining_time * 1000);
-          }
         }
       }
-
-      //let toElement = document.getElementById('td-'+square.square);
-      //toElement?.style.setProperty('border','1px solid red','');
 
       this.selectedSquare = null;
     } else {

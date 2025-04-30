@@ -73,8 +73,11 @@
                 </div>
                 <div ng-show="!!game">
                     <h2>Game history</h2>
-                    <ul>
-                        <li *ngFor="let entry of history"> <img src="./assets/images/pieces/{{entry.piece}}.png" height="20px">{{entry.square}}</li>
+                    <ul class="history">
+                        <li class="history-item" *ngFor="let entry of history">
+                            <img src="./assets/images/pieces/{{entry.piece}}.png">
+                            <span>{{entry.square}}</span>
+                        </li>
                     </ul>
                 </div>
             </div>

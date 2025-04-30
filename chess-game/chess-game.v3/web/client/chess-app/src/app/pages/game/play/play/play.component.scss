@@ -43,3 +43,18 @@
       }
     }
   }
+
+  .history {
+    list-style: none;
+  }
+
+  .history-item {
+    display: flex;
+    align-items: center; /* vertical alignment */
+    gap: 8px;             /* spacing between img and text */
+    list-style: none;     /* optional: removes default bullet */
+  }
+
+  .history-item img {
+    height: 20px;
+  }

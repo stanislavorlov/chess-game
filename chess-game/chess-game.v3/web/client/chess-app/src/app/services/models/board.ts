@@ -2,6 +2,7 @@ import { Piece } from "src/app/pages/game/play/play/models/pieces/piece";
 import { Square } from "./chess-game";
 import { PieceFactory } from "src/app/pages/game/play/play/models/pieces/piece_factory";
 import { PieceType } from "src/app/pages/game/play/play/models/pieces/piece_type";
+import { Direction } from "./direction";
 
 export class Board {
     private board: (Piece | null)[][];
@@ -48,7 +49,8 @@ export class Board {
             // Pawn, Rook, Bishop, King, Queen
             // ToDo: iterate though the list [from:to] to check for any piece on a route
             if (piece.type == PieceType.Pawn) {
-                if (rankIdx < toRankIdx) {
+                const direction = rankIdx - toRankIdx > 0 ? Direction.Up : Direction.Down;
+                if (direction == Direction.Down) {
                     for (let step = rankIdx+1; step <= toRankIdx; step++) {
                         if (this.board[fileIdx][step] != null) {
                             return false;
@@ -62,7 +64,8 @@ export class Board {
                     }
                 }
             } else if (piece.type == PieceType.Rook) {
-
+                // ToDo: Up, Down, Left, Right
+                
             } else if (piece.type == PieceType.Bishop) {
 
             } else if (piece.type == PieceType.Queen) {

@@ -37,10 +37,13 @@ export class PlayComponent implements OnInit, OnDestroy {
   private lastClickedElement: HTMLElement | null = null;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private future: Date;
+  private future1: Date;
+  private future2: Date;
   //private timeot: NodeJS.Timeout;
   private selectedSquare: Square | null = null;
   //private worker: Worker | undefined;
+
+  private switchPlayer: boolean = true;
 
   public formats: GameFormat[];
   public selectedFormat = '';
@@ -83,19 +86,28 @@ export class PlayComponent implements OnInit, OnDestroy {
           this.ranks = Object.keys(this.positions) as Array<string>;
 
           let now: Date = new Date();
-          this.future = new Date(now.getTime() + this.game.game_format.remaining_time * 1000);
+          this.future1 = new Date(now.getTime() + this.game.game_format.remaining_time * 1000);
           let that = this;
 
-          console.log(this.future);
+          //console.log(this.future);
 
           let timerId = setInterval(function() {
             // if player1 is playing, update timer 1
             // add boolean variavle to switch timer to player 2
-            let time1 = document.getElementById('timer1');
-            let now = new Date();
-            let differefence = new Date(that.future.valueOf() - now.valueOf());
-            if (time1) {
-              time1.innerText = differefence.getMinutes().toString() + 'm ' + differefence.getSeconds().toString() + 's';
+            if (that.switchPlayer) {
+              let time1 = document.getElementById('timer1');
+              let now1 = new Date();
+              let differefence1 = new Date(that.future1.valueOf() - now1.valueOf());
+              if (time1) {
+                time1.innerText = differefence1.getMinutes().toString() + 'm ' + differefence1.getSeconds().toString() + 's';
+              }
+            } else {
+              let time2 = document.getElementById('timer2');
+              let now2 = new Date();
+              let differefence2 = new Date(that.future2.valueOf() - now2.valueOf());
+              if (time2) {
+                time2.innerText = differefence2.getMinutes().toString() + 'm ' + differefence2.getSeconds().toString() + 's';
+              }
             }
           }, 1000);
 
@@ -207,6 +219,12 @@ export class PlayComponent implements OnInit, OnDestroy {
         if (this.chessService.validateMovement(this.selectedSquare, square, this.game.board)) {
           square.piece = this.selectedSquare.piece;
           this.selectedSquare.piece = '';
+          this.switchPlayer = !this.switchPlayer;
+          if (!this.future2) {
+            console.log('future 2 player');
+            let now: Date = new Date();
+            this.future2 = new Date(now.getTime() + this.game.game_format.remaining_time * 1000);
+          }
         }
       }
 

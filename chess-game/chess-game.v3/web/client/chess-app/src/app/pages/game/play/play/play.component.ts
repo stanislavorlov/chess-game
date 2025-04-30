@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, NgZone, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { Component, inject, NgZone, OnDestroy, OnInit, Renderer2 } from '@angular/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -111,27 +111,6 @@ export class PlayComponent implements OnInit, OnDestroy {
               }
             }
           }, 1000);
-
-          //ToDo: WebWorker
-          /*this.timeot = setInterval(() => {
-            this.tickTock();
-          }, 1000);*/
-          
-
-          // ToDo: should be 2 separate timers for players
-          /*let worker = this.worker;
-          this.ngZone.runOutsideAngular(() => {
-            worker = new Worker(new URL('src/app/services/timer.worker', import.meta.url), {
-              type: 'module'
-            });
-            worker.onmessage = ({ data }) => {
-              this.time = data.time;
-              //console.log(this.time);
-              this.tickTock();
-            };
-
-            worker.postMessage({ command: 'start', interval: 1000 });
-          });*/
         }
       });
 
@@ -149,10 +128,6 @@ export class PlayComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    /*if (this.worker) {
-      this.worker.postMessage({ command: 'stop' });
-      this.worker.terminate();
-    }*/
   }
 
   startGame(): void {

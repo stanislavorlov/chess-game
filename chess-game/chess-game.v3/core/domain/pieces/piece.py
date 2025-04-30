@@ -19,7 +19,7 @@ class Piece(object):
     def get_side(self):
         return self._side
 
-    def get_acronym(self) -> str:
+    def get_abbreviation(self) -> str:
         return f"{self._side}{self._type.value}".lower()
 
     def get_piece_id(self):

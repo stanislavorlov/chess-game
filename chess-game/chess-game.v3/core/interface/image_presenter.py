@@ -84,7 +84,7 @@ class ImagePresenter(AbstractPresenter):
 
     @staticmethod
     def get_image(piece: Piece) -> str:
-        return f"./interface/Content/{piece.get_acronym()}.png"
+        return f"./interface/Content/{piece.get_abbreviation()}.png"
 
     @staticmethod
     def get_square_size():

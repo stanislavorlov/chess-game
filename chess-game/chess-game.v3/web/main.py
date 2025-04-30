@@ -1,6 +1,9 @@
+import json
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from starlette.websockets import WebSocket, WebSocketState
+
+from core.domain.movements.movement import Movement
 from core.infrastructure.config.config import initiate_database
 from core.infrastructure.mediator.mediator import build_mediator
 from web.api.main import api_router
@@ -24,13 +27,17 @@ async def websocket_endpoint(websocket: WebSocket):
 
     while True:
         if websocket.application_state == WebSocketState.CONNECTED and websocket.client_state == WebSocketState.CONNECTED:
-            data = await websocket.receive_json()
+            json_string: str = await websocket.receive_text()
+            try:
+                serialized_data = json.loads(json_string)
 
-            print(data)
+                print(serialized_data)
 
-            await websocket.send_json(data)
-        else:
-            print('WebSocket is not in state Connected')
+                # movement = Movement()
+
+                await websocket.send_json(json_string)
+            except:
+                print('Could not deserialize json message via SignalR' + json_string)
 
 # to run - execute the command below
 # fastapi dev main.py

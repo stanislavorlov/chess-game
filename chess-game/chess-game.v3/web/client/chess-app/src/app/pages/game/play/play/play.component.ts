@@ -16,6 +16,7 @@ import { ApiResult } from 'src/app/services/models/api-result';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlayService } from 'src/app/services/play.service';
 import { HistoryEntry } from 'src/app/services/models/history';
+import { Movement } from 'src/app/services/models/movement';
 
 @Component({
   selector: 'app-play',
@@ -123,8 +124,6 @@ export class PlayComponent implements OnInit, OnDestroy {
       this.positions = groupBy(newGame.board, square => square.rank);
       this.ranks = Object.keys(this.positions) as Array<string>;
     }
-
-    this.playService.sendMessage('Hello WebSocket');
   }
 
   ngOnDestroy(): void {
@@ -169,8 +168,6 @@ export class PlayComponent implements OnInit, OnDestroy {
   }
 
   clickBoard(square: Square): void {
-    console.log('clicked square: ' + square.square + ', selected piece: ' + square.piece);
-
     if (!!this.selectedSquare) {
       let fromElement = document.getElementById('td-'+this.selectedSquare.square);
       fromElement?.style.setProperty('border', 'none','');
@@ -178,15 +175,16 @@ export class PlayComponent implements OnInit, OnDestroy {
       if (!!this.selectedSquare.piece) {
         if (this.chessService.validateMovement(this.selectedSquare, square, this.game.board)) {
           square.piece = this.selectedSquare.piece;
-          this.selectedSquare.piece = '';
+          this.selectedSquare.piece = null;
           this.switchPlayer = !this.switchPlayer;
 
           let entry = new HistoryEntry();
           entry.square = `${this.selectedSquare.square}${square.square}`;
-          entry.piece = square.piece;
+          entry.piece = square.piece.abbreviation;
 
           this.history.push(entry);
-          console.log(this.history);
+          
+          this.playService.sendMessage(new Movement(entry.piece, this.selectedSquare.square, square.square));
         }
       }
 

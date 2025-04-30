@@ -22,9 +22,17 @@ export class Players {
     white_id: string;
     black_id: string;
 }
+export class Piece {
+    abbreviation: string;
+    piece_id: string;
+
+    public constructor(init?:Partial<Piece>) {
+        Object.assign(this, init);
+    }
+}
 export class Square {
     square: string;
-    piece: string;
+    piece: Piece | null;
     color: string;
     rank: number;
 }

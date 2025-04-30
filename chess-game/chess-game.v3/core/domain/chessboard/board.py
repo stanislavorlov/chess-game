@@ -110,12 +110,22 @@ class Board(ValueObject):
         return list_of_moves
 
     def serialize(self):
+
+        def build_piece(s: Square):
+            if s.piece:
+                return {
+                    'piece_id': s.piece.get_piece_id().value,
+                    'abbreviation': s.piece.get_abbreviation()
+                }
+
+            return None
+
         board_array = []
         for position in self._board:
             square = self._board[position]
             board_array.append({
                 'square': str(square.position),
-                'piece': square.piece.get_acronym() if square.piece else '',
+                'piece': build_piece(square),
                 'color': str(square.color),
                 'rank': square.position.rank.value
             })

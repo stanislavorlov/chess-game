@@ -1,3 +1,4 @@
+import { Piece } from "src/app/services/models/chess-game";
 import { Side } from "../side";
 import { Bishop } from "./bishop";
 import { King } from "./king";
@@ -8,8 +9,8 @@ import { Rook } from "./rook";
 
 export class PieceFactory {
     
-    static getPiece(piece_id: string, type: string) {
-        switch (type.toLowerCase()) {
+    static getPiece(piece_id: string, piece: Piece) {
+        switch (piece.abbreviation.toLowerCase()) {
             case 'wp':
                 return new Pawn(piece_id, Side.white);
             case 'bp':

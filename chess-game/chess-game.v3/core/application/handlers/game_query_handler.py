@@ -42,6 +42,8 @@ class ChessGameQueryHandler(RequestHandler[ChessGameQuery, ChessGameQueryResult]
         print('length of history')
         print(game.history.count())
 
+        # ToDo: return PieceId to client
+
         return ChessGameQueryResult(
             game_id=game.game_id.value,
             date=game.information.date,

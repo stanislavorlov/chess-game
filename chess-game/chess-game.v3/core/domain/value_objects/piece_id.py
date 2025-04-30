@@ -11,3 +11,7 @@ class PieceId(ValueObject):
     @staticmethod
     def generate_id():
         return PieceId(str(uuid.uuid4()))
+
+    @property
+    def value(self):
+        return self._value

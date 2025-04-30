@@ -11,7 +11,9 @@ import { Board } from './models/board';
 })
 export class ChessService {
 
-  constructor(private httpClient: HttpClient) { }
+  constructor(private httpClient: HttpClient) {
+
+  }
 
   startGame(game: CreateGame) {
     return this.httpClient.post<ApiResult<ChessGame>>('/api/game/create_board/', {
@@ -421,7 +423,11 @@ export class ChessService {
   validateMovement(from: Square, to: Square, board: Square[]) {
     let chess_board = new Board(board);
     
-    return chess_board.isValidMove(from, to);
+    if (chess_board.isValidMove(from, to)) {
+        return true;
+    }
+
+    return false;
   }
 
   private handleError(error: HttpErrorResponse) {

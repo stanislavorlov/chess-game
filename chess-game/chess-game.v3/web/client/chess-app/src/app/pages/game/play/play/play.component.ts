@@ -15,6 +15,7 @@ import { ChessGame, Square } from 'src/app/services/models/chess-game';
 import { ApiResult } from 'src/app/services/models/api-result';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlayService } from 'src/app/services/play.service';
+import { HistoryEntry } from 'src/app/services/models/history';
 
 @Component({
   selector: 'app-play',
@@ -50,6 +51,7 @@ export class PlayComponent implements OnInit, OnDestroy {
   public positions: Record<number, Square[]>;
   public ranks: Array<string>;
   public game: ChessGame;
+  public history: HistoryEntry[];
 
   time = 0;
 
@@ -61,6 +63,7 @@ export class PlayComponent implements OnInit, OnDestroy {
     ]
 
     this.selectedFormat = this.formats[1].value;
+    this.history = [];
   }
 
   convertToNumber(rank: any) {
@@ -202,6 +205,13 @@ export class PlayComponent implements OnInit, OnDestroy {
           square.piece = this.selectedSquare.piece;
           this.selectedSquare.piece = '';
           this.switchPlayer = !this.switchPlayer;
+
+          let entry = new HistoryEntry();
+          entry.square = `${this.selectedSquare.square}${square.square}`;
+          entry.piece = square.piece;
+
+          this.history.push(entry);
+          console.log(this.history);
         }
       }
 

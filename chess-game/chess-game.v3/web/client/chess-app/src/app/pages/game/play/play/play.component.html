@@ -71,7 +71,7 @@
                         <button mat-flat-button color="primary" (click)="startGame()" class="m-r-8">Play</button>
                     </div>
                 </div>
-                <div *ngIf="gameInitialized()">
+                <div *ngIf="game">
                     <h2>Game history</h2>
                     <ul class="history">
                         <li class="history-item" *ngFor="let entry of game.history">

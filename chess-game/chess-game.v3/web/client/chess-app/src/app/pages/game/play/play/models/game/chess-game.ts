@@ -1,6 +1,7 @@
 import { Board } from "src/app/pages/game/play/play/models/board/board";
 import { Movement } from "src/app/services/models/movement";
 import { Cell } from "../board/ cell";
+import { Side } from "../side";
 
 export class ChessGame {
 
@@ -8,6 +9,9 @@ export class ChessGame {
     private _name: string;
     private _format: GameFormat;
     private _board: Board;
+    private _whiteTimer: number;
+    private _blackTimer: number;
+    private _turn: Side;
 
     public history: Movement[];
 
@@ -16,8 +20,10 @@ export class ChessGame {
         this._name = name;
         this._format = format;
         this._board = board;
-
         this.history = [];
+        this._whiteTimer = format.remaining;
+        this._blackTimer = format.remaining;
+        this._turn = Side.white;
     }
 
     get id() {
@@ -40,6 +46,14 @@ export class ChessGame {
         return this._format;
     }
 
+    get whiteTimer() {
+        return this._whiteTimer;
+    }
+
+    get blackTimer() {
+        return this._blackTimer;
+    }
+
     public movePiece(from_: Cell, to: Cell) {
         if (this._board.isValidMove(from_, to)) {
             to.piece = from_.piece;
@@ -50,10 +64,24 @@ export class ChessGame {
                 this.history.push(entry);
             }
 
+            this.switchTurn();
+
             return true;
         }
 
         return false;
+    }
+
+    public timerTick() {
+        if (this._turn == Side.white) {
+            this._whiteTimer -= 1;
+        } else {
+            this._blackTimer -= 1;
+        }
+    }
+
+    private switchTurn() {
+        this._turn = (this._turn == Side.black) ? Side.white : Side.black;
     }
 }
 

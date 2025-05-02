@@ -41,9 +41,7 @@ export class PlayComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private selectedSquare: Cell | null = null;
-  private secondsRemaining1: number;
-  private secondsRemaining2: number;
-  private switchPlayer: boolean = true;
+  private gameTimer: NodeJS.Timeout;
 
   public formats: TimeSelector[];
   public selectedFormat = '';
@@ -90,25 +88,19 @@ export class PlayComponent implements OnInit, OnDestroy {
 
           let that = this;
 
-          this.secondsRemaining1 = this.game.format.remaining;
-          this.secondsRemaining2 = this.game.format.remaining;
+          this.gameTimer = setInterval(function() {
+            let whiteTimer = document.getElementById('timer1');
+            let blackTimer = document.getElementById('timer2');
 
-          let timerId1 = setInterval(function() {
-            if (that.switchPlayer) {
-              let time1 = document.getElementById('timer1');
-
-              if (time1) {
-                time1.innerText = that.formatSeconds(that.secondsRemaining1)
-                that.secondsRemaining1 -= 1;
-              }
-            } else {
-              let time2 = document.getElementById('timer2');
-
-              if (time2) {
-                time2.innerText = that.formatSeconds(that.secondsRemaining2)
-                that.secondsRemaining2 -= 1;
-              }
+            if (whiteTimer) {
+              whiteTimer.innerText = that.formatSeconds(that.game.whiteTimer);
             }
+
+            if (blackTimer) {
+              blackTimer.innerText = that.formatSeconds(that.game.blackTimer);
+            }
+
+            that.game.timerTick();
           }, 1000);
         }
       });
@@ -122,6 +114,9 @@ export class PlayComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (!!this.gameTimer) {
+      clearInterval(this.gameTimer);
+    }
   }
 
   startGame(): void {
@@ -170,7 +165,7 @@ export class PlayComponent implements OnInit, OnDestroy {
 
       if (!!this.selectedSquare.piece) {
         if (this.game.movePiece(this.selectedSquare, square)) {
-          this.switchPlayer = !this.switchPlayer;
+          //this.switchPlayer = !this.switchPlayer;
 
           let historyEntry = this.game.history.at(-1);
 

@@ -9,8 +9,10 @@ from core.application.handlers.game_query_handler import ChessGameQueryHandler
 from core.application.handlers.game_started_handler import GameStartedEventHandler
 from core.application.handlers.create_game_handler import CreateGameCommandHandler
 from core.application.commands.create_game_command import CreateGameCommand
+from core.application.handlers.piece_moved_handler import PieceMovedHandler
 from core.application.queries.chess_game_query import ChessGameQuery
 from core.domain.events.game_started import GameStartedEvent
+from core.domain.events.piece_moved import PieceMoved
 from core.infrastructure.repositories.chess_game_repository import ChessGameRepository
 
 
@@ -20,6 +22,7 @@ def build_mediator() -> Mediator:
     container.register(GameStartedEventHandler)
     container.register(CreateGameCommandHandler)
     container.register(ChessGameQueryHandler)
+    container.register(PieceMovedHandler)
 
     rodi_container = RodiContainer()
     rodi_container.attach_external_container(container)
@@ -32,6 +35,7 @@ def build_mediator() -> Mediator:
     request_map = RequestMap()
     request_map.bind(CreateGameCommand, CreateGameCommandHandler)
     request_map.bind(ChessGameQuery, ChessGameQueryHandler)
+    request_map.bind(PieceMoved, PieceMovedHandler)
 
     event_emitter = EventEmitter(
         event_map=event_map, container=rodi_container, message_broker=None

@@ -1,9 +1,16 @@
 import json
+import traceback
+import uuid
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from starlette.websockets import WebSocket, WebSocketState
 
-from core.domain.movements.movement import Movement
+from core.domain.chessboard.position import Position
+from core.domain.events.piece_moved import PieceMoved
+from core.domain.pieces.piece_factory import PieceFactory
+from core.domain.value_objects.game_id import ChessGameId
+from core.domain.value_objects.piece_id import PieceId
+from core.domain.value_objects.side import Side
 from core.infrastructure.config.config import initiate_database
 from core.infrastructure.mediator.mediator import build_mediator
 from web.api.main import api_router
@@ -32,12 +39,27 @@ async def websocket_endpoint(websocket: WebSocket):
                 serialized_data = json.loads(json_string)
 
                 print(serialized_data)
+                #{'game_id': '2f2c4f12-e536-4bb5-bc3a-d3049d9baf9f',
+                # 'piece': {'_id': '112d2c5e-e43b-4e0d-83a1-c3291e0a9146', '_side': {'_value': 'W'}, '_type': 'P'},
+                # 'from': 'e2', 'to': 'e4'}
 
-                # movement = Movement()
+                side = Side.black()
+                if serialized_data['piece']['_side']['_value'] == 'W':
+                    side = Side.white()
+
+                piece_id = PieceId(serialized_data['piece']['_id'])
+
+                piece_moved = PieceMoved(
+                    game_id=ChessGameId(uuid.UUID(serialized_data['game_id'])),
+                    piece=PieceFactory.create(piece_id, side, serialized_data['piece']['_type']),
+                    from_=Position.parse(serialized_data['from']),
+                    to=Position.parse(serialized_data['to']))
+
+                await mediator.send(piece_moved)
 
                 await websocket.send_json(json_string)
-            except:
-                print('Could not deserialize json message via SignalR' + json_string)
+            except Exception:
+                print('Could not deserialize json message via SignalR' + traceback.format_exc())
 
 # to run - execute the command below
 # fastapi dev main.py

@@ -60,7 +60,7 @@ export class ChessGame {
             from_.piece = null;
 
             if (!!to.piece) {
-                let entry = new Movement(to.piece, from_.id, to.id);
+                let entry = new Movement(this.id, to.piece, from_.id, to.id);
                 this.history.push(entry);
             }
 

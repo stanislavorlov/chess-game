@@ -1,6 +1,7 @@
 from core.domain.chessboard.file import File
 from core.domain.chessboard.rank import Rank
 
+
 class Position:
 
     def __init__(self, file: File, rank: Rank):
@@ -11,7 +12,7 @@ class Position:
         if isinstance(other, Position):
             return self._file == other._file and self._rank == other._rank
 
-        return  False
+        return False
 
     def __str__(self):
         return f"{self._file}{self._rank}"
@@ -26,3 +27,9 @@ class Position:
     @property
     def rank(self) -> Rank:
         return self._rank
+
+    @staticmethod
+    def parse(value: str):
+        file, rank = value[0], value[1]
+
+        return Position(File(file), Rank(int(rank)))

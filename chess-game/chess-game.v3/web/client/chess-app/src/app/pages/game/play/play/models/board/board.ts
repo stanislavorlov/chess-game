@@ -2,7 +2,6 @@ import { Piece } from "src/app/pages/game/play/play/models/pieces/piece";
 import { PieceFactory } from "src/app/pages/game/play/play/models/pieces/piece_factory";
 import { PieceType } from "src/app/pages/game/play/play/models/pieces/piece_type";
 import { Direction } from "../../../../../../services/models/direction";
-import { Movement } from "../../../../../../services/models/movement";
 import { Cell } from "./ cell";
 import { SquareDto } from "src/app/services/models/chess-game-dto";
 import { Rook } from "../pieces/rook";
@@ -17,11 +16,9 @@ export class Board {
     private _board: Record<number, Cell[]>;
     private _files: string[] = ['a','b','c','d','e','f','g','h'];
     private _ranks: number[] = [1,2,3,4,5,6,7,8];
-    private _history: Movement[];
 
     constructor(squares: SquareDto[]) {
         this._board = {};
-        this._history = [];
 
         let that = this;
 
@@ -34,7 +31,7 @@ export class Board {
 
             let piece: Piece | null = null;
             if (!!square.piece) {
-                piece = PieceFactory.getPiece('', square.piece);
+                piece = PieceFactory.getPiece(square.piece);
             }
             that._board[rank].push(new Cell(file, Number(rank), square.color, piece));
         });
@@ -124,10 +121,6 @@ export class Board {
         ];
     }
 
-    /*get positions() {
-        return this.groupBy(this.board, square => square.rank);
-    }*/
-
     get ranks() {
         return this._ranks;
     }
@@ -163,7 +156,7 @@ export class Board {
                         return false;
                     }
                 }
-                
+
             } else if (piece.type == PieceType.Rook) {
                 // ToDo: Up, Down, Left, Right
                 

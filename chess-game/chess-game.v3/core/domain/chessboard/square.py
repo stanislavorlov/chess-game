@@ -15,7 +15,7 @@ class Square:
     @property
     def color(self):
         return Side.black() if \
-            ((self._position.file.to_index() +
+            ((self._position.file.to_index() + 1 +
               self._position.rank.to_index()) % 2 == 0) \
             else Side.white()
 

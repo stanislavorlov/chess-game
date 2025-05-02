@@ -2,9 +2,11 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { throwError } from 'rxjs';
 import { CreateGame } from '../pages/game/play/play/models/create-game';
-import { ChessGame, Piece, Square } from './models/chess-game';
+import { ChessGameDto } from './models/chess-game-dto';
 import { ApiResult } from './models/api-result';
-import { Board } from './models/board';
+import { Board } from '../pages/game/play/play/models/board/board';
+import { ChessGame, GameFormat } from '../pages/game/play/play/models/game/chess-game';
+import { Cell } from '../pages/game/play/play/models/board/ cell';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +18,7 @@ export class ChessService {
   }
 
   startGame(game: CreateGame) {
-    return this.httpClient.post<ApiResult<ChessGame>>('/api/game/create_board/', {
+    return this.httpClient.post<ApiResult<ChessGameDto>>('/api/game/create_board/', {
       name: game.name,
       game_format: game.format,
       time: game.time,
@@ -25,409 +27,24 @@ export class ChessService {
   }
 
   newGame() {
-    let chessGame = new ChessGame();
+    let board = new Board([]);
+    board.initialize();
 
-    chessGame.board = [
-      {
-          "square": "a0",
-          "piece": new Piece({ abbreviation:"wr"}),
-          "color": "B",
-          "rank": 1
-      },
-      {
-          "square": "a1",
-          "piece": new Piece({ abbreviation:"wp"}),
-          "color": "W",
-          "rank": 2
-      },
-      {
-          "square": "a2",
-          "piece": null,
-          "color": "B",
-          "rank": 3
-      },
-      {
-          "square": "a3",
-          "piece": null,
-          "color": "W",
-          "rank": 4
-      },
-      {
-          "square": "a4",
-          "piece": null,
-          "color": "B",
-          "rank": 5
-      },
-      {
-          "square": "a5",
-          "piece": null,
-          "color": "W",
-          "rank": 6
-      },
-      {
-          "square": "a6",
-          "piece": new Piece({ abbreviation: "bp"}),
-          "color": "B",
-          "rank": 7
-      },
-      {
-          "square": "a7",
-          "piece": new Piece({ abbreviation: "br" }),
-          "color": "W",
-          "rank": 8
-      },
-      {
-          "square": "b0",
-          "piece": new Piece({ abbreviation: "wn" }),
-          "color": "W",
-          "rank": 1
-      },
-      {
-          "square": "b1",
-          "piece": new Piece({ abbreviation: "wp" }),
-          "color": "B",
-          "rank": 2
-      },
-      {
-          "square": "b2",
-          "piece": null,
-          "color": "W",
-          "rank": 3
-      },
-      {
-          "square": "b3",
-          "piece": null,
-          "color": "B",
-          "rank": 4
-      },
-      {
-          "square": "b4",
-          "piece": null,
-          "color": "W",
-          "rank": 5
-      },
-      {
-          "square": "b5",
-          "piece": null,
-          "color": "B",
-          "rank": 6
-      },
-      {
-          "square": "b6",
-          "piece": new Piece({ abbreviation: "bp" }),
-          "color": "W",
-          "rank": 7
-      },
-      {
-          "square": "b7",
-          "piece": new Piece({ abbreviation: "bn" }),
-          "color": "B",
-          "rank": 8
-      },
-      {
-          "square": "c0",
-          "piece": new Piece({ abbreviation: "wb" }),
-          "color": "B",
-          "rank": 1
-      },
-      {
-          "square": "c1",
-          "piece": new Piece({ abbreviation: "wp" }),
-          "color": "W",
-          "rank": 2
-      },
-      {
-          "square": "c2",
-          "piece": null,
-          "color": "B",
-          "rank": 3
-      },
-      {
-          "square": "c3",
-          "piece": null,
-          "color": "W",
-          "rank": 4
-      },
-      {
-          "square": "c4",
-          "piece": null,
-          "color": "B",
-          "rank": 5
-      },
-      {
-          "square": "c5",
-          "piece": null,
-          "color": "W",
-          "rank": 6
-      },
-      {
-          "square": "c6",
-          "piece": new Piece({ abbreviation: "bp" }),
-          "color": "B",
-          "rank": 7
-      },
-      {
-          "square": "c7",
-          "piece": new Piece({ abbreviation: "bb" }),
-          "color": "W",
-          "rank": 8
-      },
-      {
-          "square": "d0",
-          "piece": new Piece({ abbreviation: "wq" }),
-          "color": "W",
-          "rank": 1
-      },
-      {
-          "square": "d1",
-          "piece": new Piece({ abbreviation: "wp" }),
-          "color": "B",
-          "rank": 2
-      },
-      {
-          "square": "d2",
-          "piece": null,
-          "color": "W",
-          "rank": 3
-      },
-      {
-          "square": "d3",
-          "piece": null,
-          "color": "B",
-          "rank": 4
-      },
-      {
-          "square": "d4",
-          "piece": null,
-          "color": "W",
-          "rank": 5
-      },
-      {
-          "square": "d5",
-          "piece": null,
-          "color": "B",
-          "rank": 6
-      },
-      {
-          "square": "d6",
-          "piece": new Piece({ abbreviation: "bp" }),
-          "color": "W",
-          "rank": 7
-      },
-      {
-          "square": "d7",
-          "piece": new Piece({ abbreviation: "bq" }),
-          "color": "B",
-          "rank": 8
-      },
-      {
-          "square": "e0",
-          "piece": new Piece({ abbreviation: "wk" }),
-          "color": "B",
-          "rank": 1
-      },
-      {
-          "square": "e1",
-          "piece": new Piece({ abbreviation: "wp" }),
-          "color": "W",
-          "rank": 2
-      },
-      {
-          "square": "e2",
-          "piece": null,
-          "color": "B",
-          "rank": 3
-      },
-      {
-          "square": "e3",
-          "piece": null,
-          "color": "W",
-          "rank": 4
-      },
-      {
-          "square": "e4",
-          "piece": null,
-          "color": "B",
-          "rank": 5
-      },
-      {
-          "square": "e5",
-          "piece": null,
-          "color": "W",
-          "rank": 6
-      },
-      {
-          "square": "e6",
-          "piece": new Piece({ abbreviation: "bp" }),
-          "color": "B",
-          "rank": 7
-      },
-      {
-          "square": "e7",
-          "piece": new Piece({ abbreviation: "bk" }),
-          "color": "W",
-          "rank": 8
-      },
-      {
-          "square": "f0",
-          "piece": new Piece({ abbreviation: "wb" }),
-          "color": "W",
-          "rank": 1
-      },
-      {
-          "square": "f1",
-          "piece": new Piece({ abbreviation: "wp" }),
-          "color": "B",
-          "rank": 2
-      },
-      {
-          "square": "f2",
-          "piece": null,
-          "color": "W",
-          "rank": 3
-      },
-      {
-          "square": "f3",
-          "piece": null,
-          "color": "B",
-          "rank": 4
-      },
-      {
-          "square": "f4",
-          "piece": null,
-          "color": "W",
-          "rank": 5
-      },
-      {
-          "square": "f5",
-          "piece": null,
-          "color": "B",
-          "rank": 6
-      },
-      {
-          "square": "f6",
-          "piece": new Piece({ abbreviation: "bp" }),
-          "color": "W",
-          "rank": 7
-      },
-      {
-          "square": "f7",
-          "piece": new Piece({ abbreviation: "bb" }),
-          "color": "B",
-          "rank": 8
-      },
-      {
-          "square": "g0",
-          "piece": new Piece({ abbreviation: "wn" }),
-          "color": "B",
-          "rank": 1
-      },
-      {
-          "square": "g1",
-          "piece": new Piece({ abbreviation: "wp" }),
-          "color": "W",
-          "rank": 2
-      },
-      {
-          "square": "g2",
-          "piece": null,
-          "color": "B",
-          "rank": 3
-      },
-      {
-          "square": "g3",
-          "piece": null,
-          "color": "W",
-          "rank": 4
-      },
-      {
-          "square": "g4",
-          "piece": null,
-          "color": "B",
-          "rank": 5
-      },
-      {
-          "square": "g5",
-          "piece": null,
-          "color": "W",
-          "rank": 6
-      },
-      {
-          "square": "g6",
-          "piece": new Piece({ abbreviation: "bp" }),
-          "color": "B",
-          "rank": 7
-      },
-      {
-          "square": "g7",
-          "piece": new Piece({ abbreviation: "bn" }),
-          "color": "W",
-          "rank": 8
-      },
-      {
-          "square": "h0",
-          "piece": new Piece({ abbreviation: "wr" }),
-          "color": "W",
-          "rank": 1
-      },
-      {
-          "square": "h1",
-          "piece": new Piece({ abbreviation: "wp" }),
-          "color": "B",
-          "rank": 2
-      },
-      {
-          "square": "h2",
-          "piece": null,
-          "color": "W",
-          "rank": 3
-      },
-      {
-          "square": "h3",
-          "piece": null,
-          "color": "B",
-          "rank": 4
-      },
-      {
-          "square": "h4",
-          "piece": null,
-          "color": "W",
-          "rank": 5
-      },
-      {
-          "square": "h5",
-          "piece": null,
-          "color": "B",
-          "rank": 6
-      },
-      {
-          "square": "h6",
-          "piece": new Piece({ abbreviation: "bp" }),
-          "color": "W",
-          "rank": 7
-      },
-      {
-          "square": "h7",
-          "piece": new Piece({ abbreviation: "br" }),
-          "color": "B",
-          "rank": 8
-      }];
-
-    return chessGame;
+    return new ChessGame('', 'Chess Game 1', new GameFormat('', 0, 0), board);
   }
 
   getGame(game_id: string) {
-    return this.httpClient.get<ApiResult<ChessGame>>('/api/game/board/' + game_id);
+    return this.httpClient.get<ApiResult<ChessGameDto>>('/api/game/board/' + game_id);
   }
 
-  validateMovement(from: Square, to: Square, board: Square[]) {
-    let chess_board = new Board(board);
+  validateMovement(from: Cell, to: Cell, board: Board) {
+    /*let chess_board = new Board(board);
     
     if (chess_board.isValidMove(from, to)) {
         return true;
-    }
+    }*/
 
-    return false;
+    return board.isValidMove(from, to);
   }
 
   private handleError(error: HttpErrorResponse) {

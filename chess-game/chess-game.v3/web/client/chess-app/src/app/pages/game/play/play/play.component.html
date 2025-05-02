@@ -1,7 +1,7 @@
 <mat-card class="cardWithShadow theme-card">
-    <mat-card-header>
+    <mat-card-header *ngIf="game">
         <mat-form-field appearance="outline" class="w-100 game-name">
-            <input matInput type="text" [(ngModel)]="gameName">
+            <input matInput type="text" [(ngModel)]="game.name">
         </mat-form-field>
     </mat-card-header>
     <mat-card-content class="b-t-1">
@@ -12,7 +12,7 @@
                     <div style="margin-left: 10px;"><span id="timer1"></span></div>
                 </div>
                 <div class="row">
-                    <table class="chess-board">
+                    <table class="chess-board" *ngIf="game">
                         <tbody>
                             <tr>
                                 <th></th>
@@ -25,10 +25,10 @@
                                 <th>g</th>
                                 <th>h</th>
                             </tr>
-                            <tr *ngFor="let rank of ranks">
+                            <tr *ngFor="let rank of game.board.ranks">
                                 <th>{{ rank }}</th>
-                                <td *ngFor="let item of positions[convertToNumber(rank)]" data-id="td-{{item.square}}"
-                                    (click)="clickBoard(item)" class="{{item.color == 'B' ? 'light' : 'dark' }}">
+                                <td *ngFor="let item of game.board.files(rank)" data-id="cell-{{item.id}}"
+                                    (click)="clickBoard(item)" class="{{item.color == 'B' ? 'dark' : 'light' }}">
                                     <img *ngIf="item.piece" src="./assets/images/pieces/{{item.piece.abbreviation}}.png" height="100%">
                                 </td>
                             </tr>
@@ -41,7 +41,7 @@
                 </div>
             </div>
             <div class="col-lg-4">
-                <div *ngIf="!game">
+                <div *ngIf="!gameInitialized()">
                     <mat-label class="f-w-600 m-b-8 d-block">Time selector</mat-label>
                     <mat-form-field appearance="outline" class="w-100">
                         <mat-select [(value)]="selectedFormat">
@@ -71,11 +71,11 @@
                         <button mat-flat-button color="primary" (click)="startGame()" class="m-r-8">Play</button>
                     </div>
                 </div>
-                <div ng-show="!!game">
+                <div *ngIf="gameInitialized()">
                     <h2>Game history</h2>
                     <ul class="history">
                         <li class="history-item" *ngFor="let entry of history">
-                            <img src="./assets/images/pieces/{{entry.piece}}.png">
+                            <img src="./assets/images/pieces/{{entry.piece.abbreviation}}.png">
                             <span>{{entry.square}}</span>
                         </li>
                     </ul>

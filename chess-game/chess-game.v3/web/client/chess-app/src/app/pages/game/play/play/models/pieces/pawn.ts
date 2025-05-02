@@ -1,4 +1,4 @@
-import { Square } from "src/app/services/models/chess-game";
+import { Cell } from "../board/ cell";
 import { Side } from "../side";
 import { Piece } from "./piece";
 import { PieceType } from "./piece_type";
@@ -13,7 +13,7 @@ export class Pawn extends Piece {
         super(piece_id, side, PieceType.Pawn);
     }
 
-    override validateMove(from: Square, to: Square): boolean {
+    override validateMove(from: Cell, to: Cell): boolean {
         const [delta_file, delta_rank] = this.calculateMoveDeltas(from, to);
 
         return delta_file == 0 && (delta_rank == 1 || delta_rank == 2);

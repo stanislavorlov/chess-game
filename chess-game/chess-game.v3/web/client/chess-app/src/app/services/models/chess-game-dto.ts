@@ -1,38 +1,38 @@
-export class ChessGame {
+export class ChessGameDto {
     game_id: string;
     moves_count: number;
     date: Date;
     name: string;
-    state: GameState;
-    game_format: GameFormat;
-    players: Players;
-    board: Square[];
+    state: GameStateDto;
+    game_format: GameFormatDto;
+    players: PlayersDto;
+    board: SquareDto[];
 }
-export class GameState {
+export class GameStateDto {
     turn: string;
     started: boolean;
     finished: boolean;
 }
-export class GameFormat {
+export class GameFormatDto {
     value: string;
     remaining_time: number;
     additional_time: number;
 }
-export class Players {
+export class PlayersDto {
     white_id: string;
     black_id: string;
 }
-export class Piece {
+export class PieceDto {
     abbreviation: string;
     piece_id: string;
 
-    public constructor(init?:Partial<Piece>) {
+    public constructor(init?:Partial<PieceDto>) {
         Object.assign(this, init);
     }
 }
-export class Square {
+export class SquareDto {
     square: string;
-    piece: Piece | null;
+    piece: PieceDto | null;
     color: string;
     rank: number;
 }

@@ -1,5 +1,6 @@
 import { Board } from "src/app/pages/game/play/play/models/board/board";
 import { Movement } from "src/app/services/models/movement";
+import { Cell } from "../board/ cell";
 
 export class ChessGame {
 
@@ -8,11 +9,15 @@ export class ChessGame {
     private _format: GameFormat;
     private _board: Board;
 
+    public history: Movement[];
+
     constructor(id: string, name: string, format: GameFormat, board: Board) {
         this._id = id;
         this._name = name;
         this._format = format;
         this._board = board;
+
+        this.history = [];
     }
 
     get id() {
@@ -33,6 +38,22 @@ export class ChessGame {
 
     get format() {
         return this._format;
+    }
+
+    public movePiece(from_: Cell, to: Cell) {
+        if (this._board.isValidMove(from_, to)) {
+            to.piece = from_.piece;
+            from_.piece = null;
+
+            if (!!to.piece) {
+                let entry = new Movement(to.piece, from_.id, to.id);
+                this.history.push(entry);
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }
 

@@ -37,16 +37,6 @@ export class ChessService {
     return this.httpClient.get<ApiResult<ChessGameDto>>('/api/game/board/' + game_id);
   }
 
-  validateMovement(from: Cell, to: Cell, board: Board) {
-    /*let chess_board = new Board(board);
-    
-    if (chess_board.isValidMove(from, to)) {
-        return true;
-    }*/
-
-    return board.isValidMove(from, to);
-  }
-
   private handleError(error: HttpErrorResponse) {
     if (error.status === 0) {
       // A client-side or network error occurred. Handle it accordingly.

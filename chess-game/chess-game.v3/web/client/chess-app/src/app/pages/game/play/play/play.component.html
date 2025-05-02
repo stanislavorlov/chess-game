@@ -74,7 +74,7 @@
                 <div *ngIf="gameInitialized()">
                     <h2>Game history</h2>
                     <ul class="history">
-                        <li class="history-item" *ngFor="let entry of history">
+                        <li class="history-item" *ngFor="let entry of game.history">
                             <img src="./assets/images/pieces/{{entry.piece.abbreviation}}.png">
                             <span>{{entry.square}}</span>
                         </li>

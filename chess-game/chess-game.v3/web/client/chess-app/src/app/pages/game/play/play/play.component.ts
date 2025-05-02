@@ -14,7 +14,6 @@ import { ChessGameDto } from 'src/app/services/models/chess-game-dto';
 import { ApiResult } from 'src/app/services/models/api-result';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlayService } from 'src/app/services/play.service';
-import { Movement } from 'src/app/services/models/movement';
 import { ChessGame, GameFormat } from './models/game/chess-game';
 import { Board } from 'src/app/pages/game/play/play/models/board/board';
 import { TimeSelector } from './models/timeSelector';
@@ -51,8 +50,6 @@ export class PlayComponent implements OnInit, OnDestroy {
   public selectedTime = '';
   public additionalTime = '';
   public game: ChessGame;
-  // ToDo: move history to ChessGame
-  public history: Movement[];
 
   constructor(private renderer: Renderer2, private chessService: ChessService, private playService: PlayService) {
     this.formats = [
@@ -62,7 +59,6 @@ export class PlayComponent implements OnInit, OnDestroy {
     ]
 
     this.selectedFormat = this.formats[1].value;
-    this.history = [];
   }
 
   formatSeconds(totalSeconds: number): string {
@@ -173,17 +169,12 @@ export class PlayComponent implements OnInit, OnDestroy {
       fromElement?.style.setProperty('border', 'none','');
 
       if (!!this.selectedSquare.piece) {
-        if (this.chessService.validateMovement(this.selectedSquare, square, this.game.board)) {
-          square.piece = this.selectedSquare.piece;
-          this.selectedSquare.piece = null;
+        if (this.game.movePiece(this.selectedSquare, square)) {
           this.switchPlayer = !this.switchPlayer;
 
-          let entry = new Movement(square.piece, this.selectedSquare.id, square.id);
+          let historyEntry = this.game.history.at(-1);
 
-          // ToDo: move to chess game
-          this.history.push(entry);
-          
-          this.playService.sendMessage(entry);
+          this.playService.sendMessage(historyEntry);
         }
       }
 

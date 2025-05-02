@@ -178,11 +178,6 @@ export class PlayComponent implements OnInit, OnDestroy {
           this.selectedSquare.piece = null;
           this.switchPlayer = !this.switchPlayer;
 
-          /*let entry = new Movement()
-          entry.square = `${this.selectedSquare.square}${square.square}`;
-          entry.piece = square.piece.abbreviation;
-          entry.piece_id = square.piece.piece_id;*/
-
           let entry = new Movement(square.piece, this.selectedSquare.id, square.id);
 
           // ToDo: move to chess game
@@ -198,7 +193,5 @@ export class PlayComponent implements OnInit, OnDestroy {
       htmlElement?.style.setProperty('border','1px solid red','');
       this.selectedSquare = square;
     }
-
-    //this.playService.sendMessage('test message');
   }
 }

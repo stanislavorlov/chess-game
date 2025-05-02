@@ -6,7 +6,6 @@ import { ChessGameDto } from './models/chess-game-dto';
 import { ApiResult } from './models/api-result';
 import { Board } from '../pages/game/play/play/models/board/board';
 import { ChessGame, GameFormat } from '../pages/game/play/play/models/game/chess-game';
-import { Cell } from '../pages/game/play/play/models/board/ cell';
 
 @Injectable({
   providedIn: 'root'

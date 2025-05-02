@@ -165,8 +165,6 @@ export class PlayComponent implements OnInit, OnDestroy {
 
       if (!!this.selectedSquare.piece) {
         if (this.game.movePiece(this.selectedSquare, square)) {
-          //this.switchPlayer = !this.switchPlayer;
-
           let historyEntry = this.game.history.at(-1);
 
           this.playService.sendMessage(historyEntry);
@@ -174,9 +172,11 @@ export class PlayComponent implements OnInit, OnDestroy {
       }
 
       this.selectedSquare = null;
+
     } else {
       let htmlElement = document.getElementById('cell-'+square.id);
       htmlElement?.style.setProperty('border','1px solid red','');
+      
       this.selectedSquare = square;
     }
   }

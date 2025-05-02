@@ -1,4 +1,3 @@
-//import { Square } from "src/app/services/models/chess-game-dto";
 import { Cell } from "../board/ cell";
 import { Side } from "../side";
 import { PieceType } from "./piece_type";
@@ -35,9 +34,6 @@ export abstract class Piece {
     abstract validateMove(from: Cell, to: Cell) : boolean;
 
     calculateMoveDeltas(from: Cell, to: Cell) {
-        //const [from_file, from_rank] = from;
-        //const [to_file, to_rank] = to.square;
-
         let delta_file = Math.abs((to.file.charCodeAt(0) - 'a'.charCodeAt(0)) - (from.file.charCodeAt(0) - 'a'.charCodeAt(0)));
         let delta_rank = Math.abs(from.rank - to.rank);
 

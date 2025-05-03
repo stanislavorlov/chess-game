@@ -22,7 +22,7 @@ class GameHistoryDocument(Document):
             time_field="history_time",
             meta_field="action_type",
             granularity=Granularity.hours,
-            bucket_max_span_seconds=3600,
+            bucket_max_span_seconds=2592000,
             expire_after_seconds=2
         )
 

@@ -1,6 +1,10 @@
-class ChessGameHistoryEntry:
+from core.domain.kernel.entity import Entity
+
+
+class ChessGameHistoryEntry(Entity):
 
     def __init__(self, sequence_number: int, history_event):
+        super().__init__()
         self._seq_number = sequence_number
         self._history_event = history_event
 

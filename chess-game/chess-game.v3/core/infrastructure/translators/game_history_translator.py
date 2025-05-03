@@ -4,6 +4,7 @@ from typing import List
 from beanie import PydanticObjectId
 from core.domain.events.game_created import GameCreated
 from core.domain.events.piece_moved import PieceMoved
+from core.domain.events.piece_moved_completed import PieceMovedCompleted
 from core.domain.game.game_history import ChessGameHistory
 from core.domain.game.history_entry import ChessGameHistoryEntry
 from core.domain.pieces.piece import Piece
@@ -21,6 +22,7 @@ class GameHistoryTranslator:
     def document_to_domain(history_document: List[GameHistoryDocument]):
         history: List[ChessGameHistoryEntry] = []
         for history_item in history_document:
+            #history_item.id
             json_document = history_item.model_dump_json()
             json_obj = json.loads(json_document)
 
@@ -48,6 +50,7 @@ class GameHistoryTranslator:
 
         history_list = list()
 
+        # ToDo: sequence number
         for history_entry in history:
             match history_entry.action_type:
                 case GameCreated.__name__:
@@ -56,7 +59,7 @@ class GameHistoryTranslator:
                         sequence_number=history_entry.sequence_number,
                         game=game.link_from_id(game_id)
                     ))
-                case PieceMoved.__name__:
+                case PieceMovedCompleted.__name__:
                     # ToDo: dict
                     history_list.append(PieceMovedDocument(
                         game_id=game_id,

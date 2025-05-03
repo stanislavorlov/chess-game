@@ -14,3 +14,5 @@ class PieceMovedHandler(RequestHandler[PieceMoved, None]):
 
         game = await self.repository.find(event.game_id.value)
         game.move_piece(PlayerId(''), event.from_, event.to)
+
+        await self.repository.save(game)

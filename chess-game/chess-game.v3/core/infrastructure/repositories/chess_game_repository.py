@@ -21,7 +21,8 @@ class ChessGameRepository:
 
         return GameTranslator.document_to_domain(created_game, histories)
 
-    async def find(self, doc_id: PydanticObjectId) -> ChessGame:
+    @staticmethod
+    async def find(doc_id: PydanticObjectId) -> ChessGame:
         document = await GameDocument.get(doc_id, fetch_links=True)
         histories = await GameHistoryDocument.find(GameHistoryDocument.game_id == document.id).to_list()
 
@@ -45,7 +46,8 @@ class ChessGameRepository:
     #         return game
     #     return False
 
-    async def save(self, game: ChessGame):
+    @staticmethod
+    async def save(game: ChessGame):
         document = await GameDocument.get(game.game_id.value)
 
         await document.update(Set(
@@ -54,3 +56,16 @@ class ChessGameRepository:
                 GameDocument.game_name: game.information.name,
             }
         ))
+
+        history_document = GameHistoryTranslator.domain_to_document(
+            game.game_id.value,
+            document,
+            game.history)
+
+        # ToDo: retrieve existing history
+        # ToDo: sequence number in DB with provided
+
+        # ToDo: may be differentiate existing from the new ones via ID (or via sequence number)
+        histories = []
+        for created_history in history_document:
+            histories.append(await created_history.create())

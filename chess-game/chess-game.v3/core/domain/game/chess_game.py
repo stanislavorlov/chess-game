@@ -3,6 +3,8 @@ from core.domain.events.game_created import GameCreated
 from core.domain.events.game_start_failed import GameStartFailed
 from core.domain.events.game_started import GameStartedEvent
 from core.domain.events.piece_move_failed import PieceMoveFailed
+from core.domain.events.piece_moved import PieceMoved
+from core.domain.events.piece_moved_completed import PieceMovedCompleted
 from core.domain.game.game_history import ChessGameHistory
 from core.domain.kernel.aggregate_root import AggregateRoot
 from core.domain.players.player_id import PlayerId
@@ -68,18 +70,20 @@ class ChessGame(AggregateRoot):
             return self.raise_event(GameStartedEvent(game_id=self.game_id))
 
     def move_piece(self, player_id: PlayerId, _from: Position, to: Position):
-        if not self._state.is_started:
-            return self.raise_event(PieceMoveFailed(from_=_from, to=to, reason='Game was not started', piece=None))
-        elif self._state.is_finished:
-            return self.raise_event(PieceMoveFailed(from_=_from, to=to, reason='Game has finished'))
+        self._history.record(PieceMovedCompleted(game_id=self.game_id,from_=_from,to=to))
 
-        piece = self._board.get_piece(_from)
-        if PlayerId(piece.get_side()) != player_id:
-            return self.raise_event(PieceMoveFailed(from_=_from, to=to, reason="Piece doesn't belong to player"))
-
-        if PlayerId(self._state.turn) != player_id:
-            return self.raise_event(PieceMoveFailed(from_=_from, to=to,
-                                                       reason=f"It is not order of {player_id} player"))
+        # if not self._state.is_started:
+        #     return self.raise_event(PieceMoveFailed(from_=_from, to=to, reason='Game was not started', piece=None))
+        # elif self._state.is_finished:
+        #     return self.raise_event(PieceMoveFailed(from_=_from, to=to, reason='Game has finished'))
+        #
+        # piece = self._board.get_piece(_from)
+        # if PlayerId(piece.get_side()) != player_id:
+        #     return self.raise_event(PieceMoveFailed(from_=_from, to=to, reason="Piece doesn't belong to player"))
+        #
+        # if PlayerId(self._state.turn) != player_id:
+        #     return self.raise_event(PieceMoveFailed(from_=_from, to=to,
+        #                                                reason=f"It is not order of {player_id} player"))
 
 
     def calculate_move_effect(self):

@@ -1,7 +1,7 @@
 import json
 import uuid
 from typing import List
-import bson
+from beanie import PydanticObjectId
 from core.domain.events.game_created import GameCreated
 from core.domain.events.piece_moved import PieceMoved
 from core.domain.game.game_history import ChessGameHistory
@@ -44,7 +44,7 @@ class GameHistoryTranslator:
         return ChessGameHistory(history)
 
     @staticmethod
-    def domain_to_document(game_id: uuid.UUID, game: GameDocument, history: ChessGameHistory):
+    def domain_to_document(game_id: PydanticObjectId, game: GameDocument, history: ChessGameHistory):
 
         history_list = list()
 
@@ -54,16 +54,15 @@ class GameHistoryTranslator:
                     history_list.append(GameCreatedDocument(
                         game_id=game_id,
                         sequence_number=history_entry.sequence_number,
-                        game=game.link_from_id(bson.Binary.from_uuid(game_id))
+                        game=game.link_from_id(game_id)
                     ))
                 case PieceMoved.__name__:
                     # ToDo: dict
-
                     history_list.append(PieceMovedDocument(
                         game_id=game_id,
                         sequence_number=history_entry.sequence_number,
                         piece_id=uuid.uuid4(),
-                        game=game.link_from_id(bson.Binary.from_uuid(game_id)),
+                        game=game.link_from_id(game_id),
                         from_position='',
                         to_position=''
                     ))

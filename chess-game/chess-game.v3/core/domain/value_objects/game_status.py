@@ -5,6 +5,10 @@ class GameStatus(ValueObject):
     __slots__ = ['_value']
 
     @classmethod
+    def created(cls):
+        return cls("CREATED")
+
+    @classmethod
     def started(cls):
         return cls("STARTED")
 

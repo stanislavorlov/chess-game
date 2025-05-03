@@ -1,16 +1,12 @@
-import uuid
 from typing import Optional, List
-from beanie import Document, Link
+from beanie import Document, Link, PydanticObjectId
 from pydantic import BaseModel, Field
 from datetime import datetime
-#from core.infrastructure.models.game_history_document import GameHistoryDocument
 
 
 class GameState(BaseModel):
     captured: Optional[list] = None
     turn: str
-    started: bool
-    finished: bool
     status: str
 
 class GameFormat(BaseModel):
@@ -23,7 +19,7 @@ class Players(BaseModel):
     black_id: str
 
 class GameDocument(Document):
-    game_id: uuid.UUID
+    id: Optional[PydanticObjectId] = Field(None, alias='_id')
     date: datetime
     game_name: str
     state: GameState

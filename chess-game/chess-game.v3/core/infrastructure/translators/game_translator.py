@@ -17,7 +17,7 @@ class GameTranslator:
 
     @staticmethod
     def document_to_domain(document: GameDocument, history_docs: list[GameHistoryDocument]) -> ChessGame:
-        game_id: ChessGameId = ChessGameId(document.game_id)
+        game_id: ChessGameId = ChessGameId(document.id)
         players = Players(PlayerId(document.players.white_id), PlayerId(document.players.black_id))
         game_format = GameFormat.parse_string(document.format.value, document.format.time_remaining, document.format.additional_time)
 
@@ -33,8 +33,6 @@ class GameTranslator:
         game_state = core.infrastructure.models.game_document.GameState(
             captured=None,
             turn=str(game.game_state.turn),
-            started=game.game_state.is_started,
-            finished=game.game_state.is_finished,
             status=str(game.game_state.get_status())
         )
         game_format = core.infrastructure.models.game_document.GameFormat(
@@ -47,7 +45,7 @@ class GameTranslator:
             black_id=''
         )
         new_game: GameDocument = GameDocument(
-            game_id=game.game_id.value,
+            _id=game.game_id.value,
             date=game.information.date,
             state=game_state,
             format=game_format,

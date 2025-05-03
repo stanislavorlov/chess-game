@@ -3,7 +3,7 @@ from core.domain.events.game_created import GameCreated
 from core.infrastructure.repositories.chess_game_repository import ChessGameRepository
 
 
-class GameCreatedHandler(EventHandler[GameCreated]):
+class GameCreatedEventHandler(EventHandler[GameCreated]):
 
     def __init__(self, repo: ChessGameRepository):
         self._chess_game_repo = repo
@@ -15,6 +15,8 @@ class GameCreatedHandler(EventHandler[GameCreated]):
 
     async def handle(self, event: GameCreated) -> None:
         print('GameCreatedHandler handle GameCreated')
-        chess_game = await self._chess_game_repo.find_by_id(event.game_id)
+        chess_game = await self._chess_game_repo.find(event.game_id.value)
 
         chess_game.start()
+
+        await self._chess_game_repo.save(chess_game)

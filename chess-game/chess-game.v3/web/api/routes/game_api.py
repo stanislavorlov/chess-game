@@ -1,5 +1,5 @@
 import traceback
-import uuid
+from beanie import PydanticObjectId
 from fastapi import APIRouter
 from core.application.commands.create_game_command import CreateGameCommand
 from core.application.queries.chess_game_query import ChessGameQuery
@@ -34,11 +34,11 @@ async def create_board(model: CreateBoard):
         }
 
 @router.get("/board/{game_id}")
-async def get_board(game_id: uuid.UUID):
+async def get_board(game_id: str):
     mediator = build_mediator()
 
     try:
-        game_id = ChessGameId(game_id)
+        game_id = ChessGameId(PydanticObjectId(game_id))
 
         query_result = await mediator.send(ChessGameQuery(game_id=game_id))
 

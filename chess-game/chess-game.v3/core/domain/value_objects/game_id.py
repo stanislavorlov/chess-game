@@ -1,21 +1,15 @@
-import uuid
+from beanie import PydanticObjectId
+from bson import ObjectId
 from core.domain.kernel.value_object import ValueObject
 
 class ChessGameId(ValueObject):
 
-    def __init__(self, value: uuid.UUID):
+    def __init__(self, value: PydanticObjectId):
         super().__init__()
         self._value = value
 
-    # @staticmethod
-    # def _validate(value: str):
-    #     try:
-    #         uuid.UUID(value)
-    #     except ValueError:
-    #         raise ValueError(f"Invalid UUID format: {value}")
-
     @property
-    def value(self) -> uuid.UUID:
+    def value(self) -> PydanticObjectId:
         return self._value
 
     def __eq__(self, other):
@@ -24,7 +18,7 @@ class ChessGameId(ValueObject):
         return False
 
     def __str__(self):
-        return self._value
+        return str(self._value)
 
     def __repr__(self):
         return f"ObjectId({self._value})"
@@ -34,4 +28,7 @@ class ChessGameId(ValueObject):
 
     @staticmethod
     def generate_id():
-        return ChessGameId(uuid.uuid4())
+        new_oid = ObjectId()
+        pydantic_oid = PydanticObjectId(new_oid)
+
+        return ChessGameId(pydantic_oid)

@@ -1,10 +1,10 @@
 import json
 import traceback
-import uuid
 from contextlib import asynccontextmanager
+
+from beanie import PydanticObjectId
 from fastapi import FastAPI
 from starlette.websockets import WebSocket, WebSocketState
-
 from core.domain.chessboard.position import Position
 from core.domain.events.piece_moved import PieceMoved
 from core.domain.pieces.piece_factory import PieceFactory
@@ -33,6 +33,8 @@ async def websocket_endpoint(websocket: WebSocket):
     mediator = build_mediator()
 
     while True:
+        # ToDo: get Event from Queue
+
         if websocket.application_state == WebSocketState.CONNECTED and websocket.client_state == WebSocketState.CONNECTED:
             json_string: str = await websocket.receive_text()
             try:
@@ -48,9 +50,10 @@ async def websocket_endpoint(websocket: WebSocket):
                     side = Side.white()
 
                 piece_id = PieceId(serialized_data['piece']['_id'])
+                game_id = PydanticObjectId(serialized_data['game_id'])
 
                 piece_moved = PieceMoved(
-                    game_id=ChessGameId(uuid.UUID(serialized_data['game_id'])),
+                    game_id=ChessGameId(game_id),
                     piece=PieceFactory.create(piece_id, side, serialized_data['piece']['_type']),
                     from_=Position.parse(serialized_data['from']),
                     to=Position.parse(serialized_data['to']))

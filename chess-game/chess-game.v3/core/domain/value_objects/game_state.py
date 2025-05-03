@@ -26,7 +26,7 @@ class GameState(ValueObject):
         return self._status
 
     def update_status(self, status: GameStatus):
-        if self.is_started() and status == GameStatus.finished():
+        if status != GameStatus.finished():
             self._status = status
 
     def switch_turn(self):

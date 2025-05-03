@@ -32,7 +32,7 @@ class ChessGame(AggregateRoot):
         history.record(GameCreated(game_id=game_id))
 
         chess_game = ChessGame(game_id, game_info,
-                               GameState(GameStatus.started(), Side.white()),
+                               GameState(GameStatus.created(), Side.white()),
                                players, history)
 
         chess_game.raise_event(GameCreated(game_id=chess_game.game_id))
@@ -61,14 +61,15 @@ class ChessGame(AggregateRoot):
 
     def start(self):
         if self._state.is_started:
-            return self.raise_event(GameStartFailed())
+            return self.raise_event(GameStartFailed(game_id=self.game_id))
         else:
             self._state.update_status(GameStatus.started())
+
             return self.raise_event(GameStartedEvent(game_id=self.game_id))
 
     def move_piece(self, player_id: PlayerId, _from: Position, to: Position):
         if not self._state.is_started:
-            return self.raise_event(PieceMoveFailed(from_=_from, to=to, reason='Game was not started'))
+            return self.raise_event(PieceMoveFailed(from_=_from, to=to, reason='Game was not started', piece=None))
         elif self._state.is_finished:
             return self.raise_event(PieceMoveFailed(from_=_from, to=to, reason='Game has finished'))
 
@@ -79,9 +80,6 @@ class ChessGame(AggregateRoot):
         if PlayerId(self._state.turn) != player_id:
             return self.raise_event(PieceMoveFailed(from_=_from, to=to,
                                                        reason=f"It is not order of {player_id} player"))
-
-        # ToDo: check available moves
-        canMoveToSelectedPosition = False
 
 
     def calculate_move_effect(self):

@@ -1,9 +1,6 @@
-from diator.events import DomainEvent
-
-
 class ChessGameHistoryEntry:
 
-    def __init__(self, sequence_number: int, history_event: DomainEvent):
+    def __init__(self, sequence_number: int, history_event):
         self._seq_number = sequence_number
         self._history_event = history_event
 

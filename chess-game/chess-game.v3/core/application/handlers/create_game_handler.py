@@ -22,7 +22,8 @@ class CreateGameCommandHandler(RequestHandler[CreateGameCommand, None]):
         game_info = GameInformation(request.game_format, datetime.datetime.now(), request.name)
 
         chess_game = ChessGame.create(request.game_id, game_info, Players(PlayerId(''), PlayerId('')))
+        domain_events = chess_game.domain_events
 
-        chess_game = await self._repository.create(chess_game)
+        await self._repository.create(chess_game)
 
-        self._events.extend(chess_game.domain_events)
+        self._events.extend(domain_events)

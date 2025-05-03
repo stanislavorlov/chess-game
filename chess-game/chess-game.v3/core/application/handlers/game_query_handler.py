@@ -17,7 +17,7 @@ class ChessGameQueryHandler(RequestHandler[ChessGameQuery, ChessGameQueryResult]
         return self._events
 
     async def handle(self, request: ChessGameQuery) -> ChessGameQueryResult:
-        game = await self._repository.find_by_id(request.game_id)
+        game = await self._repository.find(request.game_id.value)
 
         state_result = GameStateQueryResult(
             turn = game.game_state.turn.value(),
@@ -39,13 +39,8 @@ class ChessGameQueryHandler(RequestHandler[ChessGameQuery, ChessGameQueryResult]
         board = Board()
         board.reply(game.history)
 
-        print('length of history')
-        print(game.history.count())
-
-        # ToDo: return PieceId to client
-
         return ChessGameQueryResult(
-            game_id=game.game_id.value,
+            game_id=str(game.game_id),
             date=game.information.date,
             name=game.information.name,
             state=state_result,

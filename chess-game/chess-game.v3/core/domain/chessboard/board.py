@@ -51,8 +51,8 @@ class Board(ValueObject):
                     self._board[position] = Square(position, None)
 
     def reply(self, game_history: ChessGameHistory):
-        for domain_event in game_history:
-            self.apply(domain_event)
+        for history_entry in game_history:
+            self.apply(history_entry.history_event)
 
     def apply(self, domain_event: DomainEvent):
         match domain_event:
@@ -77,8 +77,8 @@ class Board(ValueObject):
         from_ = piece_moved.from_
         to = piece_moved.to
 
-        del self._board[from_]
-        self._board[to] = piece
+        self._board[from_] = Square(from_, None)
+        self._board[to] = Square(to, piece)
 
     def piece_captured(self, piece_captured: PieceCaptured):
         pass
@@ -102,8 +102,8 @@ class Board(ValueObject):
         # ToDo: stockfish
         # https://official-stockfish.github.io/docs/stockfish-wiki/Developers.html
 
-        for position, piece in self._board.items():
-            move = Movement()
+        for position, square in self._board.items():
+            move = Movement(square.piece, position, position)
 
             list_of_moves.append(move)
 

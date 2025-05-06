@@ -2,12 +2,10 @@ from core.domain.chessboard.position import Position
 from core.domain.events.game_created import GameCreated
 from core.domain.events.game_start_failed import GameStartFailed
 from core.domain.events.game_started import GameStartedEvent
-from core.domain.events.piece_move_failed import PieceMoveFailed
-from core.domain.events.piece_moved import PieceMoved
 from core.domain.events.piece_moved_completed import PieceMovedCompleted
 from core.domain.game.game_history import ChessGameHistory
 from core.domain.kernel.aggregate_root import AggregateRoot
-from core.domain.players.player_id import PlayerId
+from core.domain.pieces.piece import Piece
 from core.domain.players.players import Players
 from core.domain.value_objects.game_id import ChessGameId
 from core.domain.value_objects.game_information import GameInformation
@@ -69,8 +67,8 @@ class ChessGame(AggregateRoot):
 
             return self.raise_event(GameStartedEvent(game_id=self.game_id))
 
-    def move_piece(self, player_id: PlayerId, _from: Position, to: Position):
-        self._history.record(PieceMovedCompleted(game_id=self.game_id,from_=_from,to=to))
+    def move_piece(self, piece: Piece, _from: Position, to: Position):
+        self._history.record(PieceMovedCompleted(game_id=self.game_id,from_=_from,to=to, piece=piece))
 
         # if not self._state.is_started:
         #     return self.raise_event(PieceMoveFailed(from_=_from, to=to, reason='Game was not started', piece=None))

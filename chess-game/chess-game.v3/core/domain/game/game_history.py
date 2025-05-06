@@ -4,6 +4,7 @@ from diator.events import DomainEvent
 
 from core.domain.game.history_entry import ChessGameHistoryEntry
 from core.domain.kernel.entity import Entity
+from core.domain.value_objects.history_entry_id import HistoryEntryId
 
 
 class ChessGameHistory(Entity):
@@ -18,7 +19,7 @@ class ChessGameHistory(Entity):
 
     def record(self, domain_event: DomainEvent):
         seq_number = len(self._gameHistory)
-        entry = ChessGameHistoryEntry(seq_number+1, domain_event)
+        entry = ChessGameHistoryEntry(HistoryEntryId.empty(), seq_number+1, domain_event)
 
         self._gameHistory.append(entry)
 

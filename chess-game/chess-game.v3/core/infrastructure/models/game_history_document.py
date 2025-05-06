@@ -1,8 +1,8 @@
 import uuid
 from datetime import datetime
-from typing import Optional, Literal
+from typing import Optional
 from beanie import Document, TimeSeriesConfig, Granularity, Link, PydanticObjectId
-from pydantic import Field
+from pydantic import Field, BaseModel
 from core.infrastructure.models import GameDocument
 
 
@@ -29,8 +29,13 @@ class GameHistoryDocument(Document):
 class GameCreatedDocument(GameHistoryDocument):
     action_type: str = Field(default="game_created")
 
+class PieceModel(BaseModel):
+    piece_id: uuid.UUID
+    side: str
+    type: str
+
 class PieceMovedDocument(GameHistoryDocument):
     action_type: str = Field(default="piece_moved")
-    piece_id: uuid.UUID
+    piece: PieceModel
     from_position: str
     to_position: str

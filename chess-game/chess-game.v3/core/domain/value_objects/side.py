@@ -17,6 +17,9 @@ class Side(ValueObject):
 
     def value(self) -> str:
         return str(self)
+
+    def __eq__(self, other: 'Side'):
+        return str(self) == str(other)
     
     def __init__(self, value) -> None:
         super().__init__()

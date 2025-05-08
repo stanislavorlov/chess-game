@@ -1,7 +1,5 @@
 from typing import List
-
 from diator.events import DomainEvent
-
 from core.domain.game.history_entry import ChessGameHistoryEntry
 from core.domain.kernel.entity import Entity
 from core.domain.value_objects.history_entry_id import HistoryEntryId

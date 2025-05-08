@@ -1,17 +1,14 @@
 from diator.requests import RequestHandler
+from core.application.services.movement_service import MovementService
 from core.domain.events.piece_moved import PieceMoved
-from core.infrastructure.repositories.chess_game_repository import ChessGameRepository
 
 
 class PieceMovedHandler(RequestHandler[PieceMoved, None]):
 
-    def __init__(self, repository: ChessGameRepository):
-        self.repository = repository
+    def __init__(self, movement_service: MovementService):
+        self.movement_service = movement_service
 
     async def handle(self, event: PieceMoved) -> None:
         print('PieceMovedHandler got called')
 
-        game = await self.repository.find(event.game_id.value)
-        game.move_piece(event.piece, event.from_, event.to)
-
-        await self.repository.save(game)
+        await self.movement_service.move_piece(event.game_id, event.piece, event.from_, event.to)

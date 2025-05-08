@@ -39,11 +39,6 @@ async def websocket_endpoint(websocket: WebSocket):
             try:
                 serialized_data = json.loads(json_string)
 
-                print(serialized_data)
-                #{'game_id': '2f2c4f12-e536-4bb5-bc3a-d3049d9baf9f',
-                # 'piece': {'_id': '112d2c5e-e43b-4e0d-83a1-c3291e0a9146', '_side': {'_value': 'W'}, '_type': 'P'},
-                # 'from': 'e2', 'to': 'e4'}
-
                 side = Side.black()
                 if serialized_data['piece']['_side']['_value'] == 'W':
                     side = Side.white()

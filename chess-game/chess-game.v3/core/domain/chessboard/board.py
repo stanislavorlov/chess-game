@@ -9,8 +9,8 @@ from core.domain.events.king_checkmated import KingCheckMated
 from core.domain.events.pawn_promoted import PawnPromoted
 from core.domain.events.piece_captured import PieceCaptured
 from core.domain.events.piece_moved import PieceMoved
-from core.domain.game.game_history import ChessGameHistory
-from core.domain.kernel.value_object import ValueObject
+from core.domain.game.chess_game import ChessGame
+from core.domain.kernel.entity import Entity
 from core.domain.movements.movement import Movement
 from core.domain.pieces.bishop import Bishop
 from core.domain.pieces.king import King
@@ -22,36 +22,15 @@ from core.domain.value_objects.piece_id import PieceId
 from core.domain.value_objects.side import Side
 
 
-class Board(ValueObject):
+class Board(Entity):
 
-    def __init__(self):
+    def __init__(self, game: ChessGame):
         super().__init__()
-
+        self._game = game
         self._board: dict[Position, Square] = {}
+        self.__board_initialize__(self._board)
 
-        for file in File.a():
-            for rank in Rank.r1():
-                piece_color = Side.white() if rank in (Rank.r1(), Rank.r2()) else Side.black()
-                position = Position(file, rank)
-
-                if rank in (Rank.r2(), Rank.r7()):
-                    self._board[position] = Square(position, Pawn(PieceId.generate_id(), piece_color))
-                elif rank in (Rank.r1(), Rank.r8()):
-                    if file in (File.a(), File.h()):
-                        self._board[position] = Square(position, Rook(PieceId.generate_id(), piece_color))
-                    elif file in (File.b(), File.g()):
-                        self._board[position] = Square(position, Knight(PieceId.generate_id(), piece_color))
-                    elif file in (File.c(), File.f()):
-                        self._board[position] = Square(position, Bishop(PieceId.generate_id(), piece_color))
-                    elif file == File.d():
-                        self._board[position] = Square(position, Queen(PieceId.generate_id(), piece_color))
-                    else:
-                        self._board[position] = Square(position, King(PieceId.generate_id(), piece_color))
-                else:
-                    self._board[position] = Square(position, None)
-
-    def reply(self, game_history: ChessGameHistory):
-        for history_entry in game_history:
+        for history_entry in game.history:
             self.apply(history_entry.history_event)
 
     def apply(self, domain_event: DomainEvent):
@@ -109,25 +88,38 @@ class Board(ValueObject):
 
         return list_of_moves
 
-    def serialize(self):
+    def move_piece(self, movement: Movement):
+        # ToDo: validate if movement valid in terms of current board
 
-        def build_piece(s: Square):
-            if s.piece:
-                return {
-                    'piece_id': s.piece.get_piece_id().value,
-                    'abbreviation': s.piece.get_abbreviation()
-                }
 
-            return None
+        self._game.move_piece(movement.piece, movement.from_position, movement.to_position)
 
-        board_array = []
-        for position in self._board:
-            square = self._board[position]
-            board_array.append({
-                'square': str(square.position),
-                'piece': build_piece(square),
-                'color': str(square.color),
-                'rank': square.position.rank.value
-            })
 
-        return board_array
+    @staticmethod
+    def __board_initialize__(board: dict[Position, Square]):
+        for file in File.a():
+            for rank in Rank.r1():
+                piece_color = Side.white() if rank in (Rank.r1(), Rank.r2()) else Side.black()
+                position = Position(file, rank)
+
+                if rank in (Rank.r2(), Rank.r7()):
+                    board[position] = Square(position, Pawn(PieceId.generate_id(), piece_color))
+                elif rank in (Rank.r1(), Rank.r8()):
+                    if file in (File.a(), File.h()):
+                        board[position] = Square(position, Rook(PieceId.generate_id(), piece_color))
+                    elif file in (File.b(), File.g()):
+                        board[position] = Square(position, Knight(PieceId.generate_id(), piece_color))
+                    elif file in (File.c(), File.f()):
+                        board[position] = Square(position, Bishop(PieceId.generate_id(), piece_color))
+                    elif file == File.d():
+                        board[position] = Square(position, Queen(PieceId.generate_id(), piece_color))
+                    else:
+                        board[position] = Square(position, King(PieceId.generate_id(), piece_color))
+                else:
+                    board[position] = Square(position, None)
+
+    def __iter__(self):
+        return iter(self._board)
+
+    def __getitem__(self, item: Position):
+        return self._board[item]

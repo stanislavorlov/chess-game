@@ -23,3 +23,6 @@ class Delta:
     @staticmethod
     def any():
         return Delta(100)
+
+    def __str__(self):
+        return str(self._delta)

@@ -1,27 +1,29 @@
-from domain.chessboard.position import Position
-from domain.movements.movement import Movement
-from domain.movements.movement_intent import MovementIntent
-from domain.movements.movement_specification import MovementSpecification
-from domain.movements.direction.direction import Vector, Direction
-from domain.pieces.piece import Piece
+from core.domain.chessboard.board import Board
+from core.domain.chessboard.position import Position
+from core.domain.movements.movement import Movement
+from core.domain.movements.movement_intent_factory import MovementIntentFactory
+from core.domain.movements.movement_specification import MovementSpecification
+from core.domain.pieces.piece import Piece
+from core.domain.value_objects.game_id import ChessGameId
+from core.infrastructure.repositories.chess_game_repository import ChessGameRepository
+
 
 class MovementService:
 
-    def calculate_direction(self):
-        return Direction.forward()
+    def __init__(self, repo: ChessGameRepository):
+        self.repository = repo
 
-    def move_piece(self, piece: Piece, from_: Position, to: Position):
+    async def move_piece(self, game_id: ChessGameId, piece: Piece, from_: Position, to: Position):
+        game = await self.repository.find(game_id.value)
+
         movement: Movement = Movement(piece, from_, to)
-        intent = MovementIntent(from_.file - to.file, from_.rank - to.rank, self.calculate_direction())
+        board = Board(game)
 
-        if self._specification.is_satisfied_by(movement):
-            print('move piece')
-            # update game state
-            # return success action
-        else:
-            print('invalid move')
-            # return invalid action
+        movement_specification = MovementSpecification(piece.get_rule())
+        movement_intent = MovementIntentFactory.create(movement)
 
-        # if game state allows movement
+        if movement_specification.is_satisfied_by(movement_intent):
+            print('Specification satisfied')
+            board.move_piece(movement)
 
-        # if chessboard allow movement
+        await self.repository.save(game)

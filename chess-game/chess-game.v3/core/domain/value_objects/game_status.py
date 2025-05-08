@@ -19,6 +19,12 @@ class GameStatus(ValueObject):
     def __str__(self):
         return self._value
 
+    def __eq__(self, other: 'GameStatus'):
+        if isinstance(other, GameStatus):
+            return self._value == other._value
+
+        return False
+
     def __init__(self, value: str):
         super().__init__()
 

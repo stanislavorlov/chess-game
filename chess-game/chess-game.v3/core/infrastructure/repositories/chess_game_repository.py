@@ -11,6 +11,7 @@ class ChessGameRepository:
 
     @staticmethod
     async def create(chess_game: ChessGame) -> ChessGame:
+        # ToDo: translators into Factory or AutoMappers
         game_document = GameTranslator.domain_to_document(chess_game)
         history_document = GameHistoryTranslator.domain_to_document(chess_game.game_id.value, game_document, chess_game.history)
 
@@ -60,8 +61,13 @@ class ChessGameRepository:
 
         await document.update(Set(
             {
+                # GameDocument.state.captured:
+                # GameDocument.format.time_remaining
+                # GameDocument.format.additional_time
+                GameDocument.state.turn: game.game_state.turn.value(),
                 GameDocument.state.status: str(game.game_state.get_status()),
                 GameDocument.game_name: game.information.name,
+                # GameDocument.result
             }
         ))
 

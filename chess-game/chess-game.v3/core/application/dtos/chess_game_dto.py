@@ -4,28 +4,29 @@ from diator.response import Response
 
 
 @dataclass(frozen=True, kw_only=True)
-class GameStateQueryResult:
+class GameStateDto:
     turn: str
     started: bool
     finished: bool
 
 @dataclass(frozen=True, kw_only=True)
-class GameFormatQueryResult:
+class GameFormatDto:
     value: str
     remaining_time: timedelta
     additional_time: timedelta
 
 @dataclass(frozen=True, kw_only=True)
-class PlayersQueryResult:
+class PlayersDto:
     white_id: str
     black_id: str
 
 @dataclass(frozen=True, kw_only=True)
-class ChessGameQueryResult(Response):
+class ChessGameDto(Response):
     game_id: str
     date: datetime
     name: str
-    state: GameStateQueryResult
-    game_format: GameFormatQueryResult
-    players: PlayersQueryResult
-    board: []
+    state: GameStateDto
+    game_format: GameFormatDto
+    players: PlayersDto
+    board: list
+    history: list

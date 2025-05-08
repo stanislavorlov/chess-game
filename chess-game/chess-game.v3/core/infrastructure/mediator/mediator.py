@@ -4,7 +4,6 @@ from diator.mediator import Mediator
 from diator.middlewares import MiddlewareChain
 from diator.requests import RequestMap
 from rodi import Container
-
 from core.application.handlers.game_created_handler import GameCreatedEventHandler
 from core.application.handlers.game_query_handler import ChessGameQueryHandler
 from core.application.handlers.game_started_handler import GameStartedEventHandler
@@ -12,6 +11,7 @@ from core.application.handlers.create_game_handler import CreateGameCommandHandl
 from core.application.commands.create_game_command import CreateGameCommand
 from core.application.handlers.piece_moved_handler import PieceMovedHandler
 from core.application.queries.chess_game_query import ChessGameQuery
+from core.application.services.movement_service import MovementService
 from core.domain.events.game_created import GameCreated
 from core.domain.events.game_started import GameStartedEvent
 from core.domain.events.piece_moved import PieceMoved
@@ -21,6 +21,7 @@ from core.infrastructure.repositories.chess_game_repository import ChessGameRepo
 def build_mediator() -> Mediator:
     container = Container()
     container.register(ChessGameRepository)
+    container.register(MovementService)
     container.register(GameStartedEventHandler)
     container.register(CreateGameCommandHandler)
     container.register(ChessGameQueryHandler)

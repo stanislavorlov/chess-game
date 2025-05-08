@@ -55,7 +55,8 @@ export class ChessGame {
     }
 
     public movePiece(from_: Cell, to: Cell) {
-        if (this._board.isValidMove(from_, to)) {
+        let isTurnFollowed = from_.piece?.side?.value == this._turn.value;
+        if (this._board.isValidMove(from_, to) && isTurnFollowed) {
             to.piece = from_.piece;
             from_.piece = null;
 

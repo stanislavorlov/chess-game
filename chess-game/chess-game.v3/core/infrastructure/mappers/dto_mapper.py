@@ -1,6 +1,7 @@
 from core.application.dtos.chess_game_dto import ChessGameDto, GameStateDto, GameFormatDto, PlayersDto
 from core.domain.chessboard.board import Board
 from core.domain.chessboard.square import Square
+from core.domain.events.piece_moved import PieceMoved
 from core.domain.game.chess_game import ChessGame
 from core.domain.game.game_history import ChessGameHistory
 
@@ -44,7 +45,17 @@ class DtoMapper:
         output = []
 
         for item in history:
-            pass
+
+            if item.action_type in [PieceMoved.__name__]:
+                output.append({
+                    'sequence': item.sequence_number,
+                    'piece': {
+                        'id': item.history_event.piece.get_piece_id().value,
+                        'abbreviation': item.history_event.piece.get_abbreviation(),
+                    },
+                    'from': str(item.history_event.from_),
+                    'to': str(item.history_event.to),
+                })
 
         return output
 

@@ -1,5 +1,4 @@
 from abc import abstractmethod
-
 from core.domain.pieces.piece_type import PieceType
 from core.domain.value_objects.piece_id import PieceId
 from core.domain.value_objects.side import Side
@@ -11,10 +10,10 @@ class Piece(object):
         self._type = type_
         
     def is_white(self) -> bool:
-        return self._side == Side.white
+        return self._side == Side.white()
     
     def is_black(self) -> bool:
-        return self._side == Side.black
+        return self._side == Side.black()
 
     def get_side(self):
         return self._side

@@ -7,6 +7,13 @@ export class ChessGameDto {
     game_format: GameFormatDto;
     players: PlayersDto;
     board: SquareDto[];
+    history: HistoryEntryDto[];
+}
+export class HistoryEntryDto {
+    sequence: number;
+    piece: PieceDto;
+    from: string;
+    to: string;
 }
 export class GameStateDto {
     turn: string;

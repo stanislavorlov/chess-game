@@ -10,7 +10,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { NgFor, NgIf } from '@angular/common';
 import { ChessService } from 'src/app/services/chess.service';
 import { CreateGame } from './models/create-game';
-import { ChessGameDto } from 'src/app/services/models/chess-game-dto';
+import { ChessGameDto, HistoryEntryDto } from 'src/app/services/models/chess-game-dto';
 import { ApiResult } from 'src/app/services/models/api-result';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlayService } from 'src/app/services/play.service';
@@ -18,6 +18,8 @@ import { ChessGame, GameFormat } from './models/game/chess-game';
 import { Board } from 'src/app/pages/game/play/play/models/board/board';
 import { TimeSelector } from './models/timeSelector';
 import { Cell } from './models/board/ cell';
+import { Movement } from 'src/app/services/models/movement';
+import { PieceFactory } from './models/pieces/piece_factory';
 
 @Component({
   selector: 'app-play',
@@ -87,6 +89,12 @@ export class PlayComponent implements OnInit, OnDestroy {
             new Board(data.board));
 
           let that = this;
+
+          data.history.forEach(function(value: HistoryEntryDto) {
+            let piece = PieceFactory.getPiece(value.piece);
+
+            that.game.history.push(new Movement(that.game.id, piece, value.from, value.to));
+          });
 
           this.gameTimer = setInterval(function() {
             let whiteTimer = document.getElementById('timer1');

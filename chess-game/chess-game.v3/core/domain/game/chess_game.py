@@ -84,25 +84,20 @@ class ChessGame(AggregateRoot):
         return False
 
     def move_piece(self, piece: Piece, _from: Position, to: Position):
-        print('ChessGame.move_piece')
         if not self._state.is_started:
-            print('Not started.')
             self.raise_event(
                 PieceMoveFailed(piece=piece, from_=_from, to=to, reason='Game was not started'))
         elif self._state.is_finished:
-            print('already finished.')
             self.raise_event(
                 PieceMoveFailed(piece=piece, from_=_from, to=to, reason='Game has finished'))
         # ToDo: validate King checked, Player Side, Turn
         elif not self._state.turn == piece.get_side():
-            print('wrong turn.')
             self.raise_event(
                 PieceMoveFailed(piece=piece, from_=_from, to=to, reason="Piece doesn't belong to player"))
         elif self.is_check and piece.get_piece_type() != PieceType.King:
             self.raise_event(
                 PieceMoveFailed(piece=piece, from_=_from, to=to, reason="King is checked"))
         else:
-            print('valid move. record to history.')
             self.__record_to_history(
                 PieceMovedCompleted(game_id=self.game_id,from_=_from,to=to, piece=piece))
 

@@ -10,3 +10,7 @@ Back-end API
 sudo lsof -t -i tcp:8000 | xargs kill -9
 
 Client app
+
+
+Chess-engine
+Chess-application

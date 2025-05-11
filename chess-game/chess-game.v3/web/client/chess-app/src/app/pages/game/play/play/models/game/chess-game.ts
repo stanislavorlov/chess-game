@@ -15,7 +15,7 @@ export class ChessGame {
 
     public history: Movement[];
 
-    constructor(id: string, name: string, format: GameFormat, board: Board) {
+    constructor(id: string, name: string, format: GameFormat, board: Board, turn: Side) {
         this._id = id;
         this._name = name;
         this._format = format;
@@ -23,7 +23,7 @@ export class ChessGame {
         this.history = [];
         this._whiteTimer = format.remaining;
         this._blackTimer = format.remaining;
-        this._turn = Side.white;
+        this._turn = turn;
     }
 
     get id() {

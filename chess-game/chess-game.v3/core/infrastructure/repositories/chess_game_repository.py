@@ -1,8 +1,10 @@
 from beanie import PydanticObjectId
+from beanie.odm.operators.find.logical import And
 from beanie.odm.operators.update.general import Set
 from core.domain.game.chess_game import ChessGame
 from core.infrastructure.models.game_document import GameDocument
-from core.infrastructure.models.game_history_document import GameCreatedDocument, PieceMovedDocument
+from core.infrastructure.models.game_history_document import GameCreatedDocument, PieceMovedDocument, \
+    GameStartedDocument, PieceCapturedDocument
 from core.infrastructure.translators.game_history_translator import GameHistoryTranslator
 from core.infrastructure.translators.game_translator import GameTranslator
 
@@ -18,24 +20,49 @@ class ChessGameRepository:
         created_game = await game_document.create()
         histories = []
         for created_history in history_document:
-            histories.append(await created_history.create())
+             histories.append(await created_history.create())
+             return GameTranslator.document_to_domain(created_game, histories, [], [], [])
 
-        return GameTranslator.document_to_domain(created_game, histories, [])
+        return await ChessGameRepository.find(created_game.id)
 
     @staticmethod
     async def find(doc_id: PydanticObjectId) -> ChessGame:
         document = await GameDocument.get(doc_id, fetch_links=True)
 
         created_documents = await GameCreatedDocument.find(
-            GameCreatedDocument.game_id == document.id and
-            GameCreatedDocument.action_type == 'game_created').to_list()
+            And(
+                GameCreatedDocument.game_id == document.id,
+                GameCreatedDocument.action_type == 'game_created'
+            )
+        ).to_list()
+
+        game_started_documents = await GameStartedDocument.find(
+            And(
+                GameCreatedDocument.game_id == document.id,
+                GameCreatedDocument.action_type == 'game_started'
+            )
+        ).to_list()
 
         moved_documents = await PieceMovedDocument.find(
-            PieceMovedDocument.game_id == document.id and
-            PieceMovedDocument.action_type == 'piece_moved').to_list()
+            And(
+                PieceMovedDocument.game_id == document.id,
+                PieceMovedDocument.action_type == 'piece_moved'
+            )
+        ).to_list()
+
+        captured_documents = await PieceCapturedDocument.find(
+            And(
+                PieceCapturedDocument.game_id == document.id,
+                PieceCapturedDocument.action_type == 'piece_captured'
+            )
+        ).to_list()
 
         # ToDo: separate translators for GameCreated and PieceMoved documents
-        return GameTranslator.document_to_domain(document, created_documents, moved_documents)
+        return GameTranslator.document_to_domain(document,
+                                                 game_created_docs=created_documents,
+                                                 game_started_docs=game_started_documents,
+                                                 piece_moved_docs=moved_documents,
+                                                 piece_captured_docs=captured_documents)
 
     # async def find_by_id(self, game_id: ChessGameId) -> ChessGame:
     #     document = await GameDocument.find_one(GameDocument.game_id == game_id.value, fetch_links=True)
@@ -65,7 +92,7 @@ class ChessGameRepository:
                 # GameDocument.format.time_remaining
                 # GameDocument.format.additional_time
                 GameDocument.state.turn: game.game_state.turn.value(),
-                GameDocument.state.status: str(game.game_state.get_status()),
+                #GameDocument.state.status: str(game.game_state.get_status()),
                 GameDocument.game_name: game.information.name,
                 # GameDocument.result
             }

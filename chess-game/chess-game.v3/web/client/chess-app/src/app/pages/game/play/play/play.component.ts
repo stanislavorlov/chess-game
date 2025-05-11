@@ -20,6 +20,7 @@ import { TimeSelector } from './models/timeSelector';
 import { Cell } from './models/board/ cell';
 import { Movement } from 'src/app/services/models/movement';
 import { PieceFactory } from './models/pieces/piece_factory';
+import { Side } from './models/side';
 
 @Component({
   selector: 'app-play',
@@ -86,7 +87,8 @@ export class PlayComponent implements OnInit, OnDestroy {
             data.game_id,
             data.name, 
             new GameFormat(data.game_format.value, data.game_format.remaining_time, data.game_format.additional_time),
-            new Board(data.board));
+            new Board(data.board),
+          Side.parse(data.state.turn));
 
           let that = this;
 

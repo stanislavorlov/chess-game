@@ -1,4 +1,3 @@
-from core.domain.chessboard.board import Board
 from core.domain.chessboard.position import Position
 from core.domain.movements.movement import Movement
 from core.domain.movements.movement_intent_factory import MovementIntentFactory
@@ -17,13 +16,12 @@ class MovementService:
         game = await self.repository.find(game_id.value)
 
         movement: Movement = Movement(piece, from_, to)
-        board = Board(game)
 
         movement_specification = MovementSpecification(piece.get_rule())
         movement_intent = MovementIntentFactory.create(movement)
 
         if movement_specification.is_satisfied_by(movement_intent):
             print('Specification satisfied')
-            board.move_piece(movement)
+            game.move_piece(movement.piece, movement.from_position, movement.to_position)
 
         await self.repository.save(game)

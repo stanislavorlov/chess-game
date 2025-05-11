@@ -28,4 +28,6 @@ class ChessGameHistory(Entity):
         return len(self._gameHistory)
 
     def __iter__(self):
+        self._gameHistory.sort(key=lambda entry: entry.sequence_number)
+
         return iter(self._gameHistory)

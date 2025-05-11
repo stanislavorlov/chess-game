@@ -27,8 +27,6 @@ class DtoMapper:
             black_id=str(game.players.black)
         )
 
-        board = Board(game)
-
         return ChessGameDto(
             game_id=str(game.game_id),
             date=game.information.date,
@@ -36,7 +34,7 @@ class DtoMapper:
             state=state_result,
             game_format=format_result,
             players=players_result,
-            board=DtoMapper.map_board(board),
+            board=DtoMapper.map_board(game.get_board()),
             history=DtoMapper.map_history(game.history),
         )
 

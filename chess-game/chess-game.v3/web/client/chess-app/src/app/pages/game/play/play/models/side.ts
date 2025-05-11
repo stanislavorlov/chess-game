@@ -11,4 +11,14 @@ export class Side {
     get value(): string {
         return this._value;
     }
+
+    static parse(value: string) {
+        if (value == this.white.value)
+            return Side.white;
+        else if (value == this.black.value)
+            return Side.black;
+        else {
+            throw new Error('Un-supported Side value for parsing provided');
+        }
+    }
 }

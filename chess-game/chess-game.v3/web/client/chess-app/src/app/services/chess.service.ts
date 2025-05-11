@@ -6,6 +6,7 @@ import { ChessGameDto } from './models/chess-game-dto';
 import { ApiResult } from './models/api-result';
 import { Board } from '../pages/game/play/play/models/board/board';
 import { ChessGame, GameFormat } from '../pages/game/play/play/models/game/chess-game';
+import { Side } from '../pages/game/play/play/models/side';
 
 @Injectable({
   providedIn: 'root'
@@ -29,7 +30,7 @@ export class ChessService {
     let board = new Board([]);
     board.initialize();
 
-    return new ChessGame('', 'Chess Game 1', new GameFormat('', 0, 0), board);
+    return new ChessGame('', 'Chess Game 1', new GameFormat('', 0, 0), board, Side.white);
   }
 
   getGame(game_id: string) {

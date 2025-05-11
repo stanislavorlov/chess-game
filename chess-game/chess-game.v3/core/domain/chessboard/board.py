@@ -1,5 +1,4 @@
 from typing import List
-from diator.events import DomainEvent
 from core.domain.chessboard.file import File
 from core.domain.chessboard.position import Position
 from core.domain.chessboard.rank import Rank
@@ -9,8 +8,7 @@ from core.domain.events.king_checkmated import KingCheckMated
 from core.domain.events.pawn_promoted import PawnPromoted
 from core.domain.events.piece_captured import PieceCaptured
 from core.domain.events.piece_moved import PieceMoved
-from core.domain.game.chess_game import ChessGame
-from core.domain.kernel.entity import Entity
+from core.domain.kernel.value_object import ValueObject
 from core.domain.movements.movement import Movement
 from core.domain.pieces.bishop import Bishop
 from core.domain.pieces.king import King
@@ -22,34 +20,12 @@ from core.domain.value_objects.piece_id import PieceId
 from core.domain.value_objects.side import Side
 
 
-class Board(Entity):
+class Board(ValueObject):
 
-    def __init__(self, game: ChessGame):
+    def __init__(self):
         super().__init__()
-        self._game = game
         self._board: dict[Position, Square] = {}
         self.__board_initialize__(self._board)
-
-        for history_entry in game.history:
-            self.apply(history_entry.history_event)
-
-    def apply(self, domain_event: DomainEvent):
-        match domain_event:
-
-            case PieceMoved() as event:
-                self.piece_moved(event)
-
-            case PieceCaptured() as event:
-                self.piece_captured(event)
-
-            case PawnPromoted() as event:
-                self.pawn_promoted(event)
-
-            case KingChecked() as event:
-                self.king_checked(event)
-
-            case KingCheckMated() as event:
-                self.king_checkmated(event)
 
     def piece_moved(self, piece_moved: PieceMoved):
         piece = piece_moved.piece
@@ -87,13 +63,6 @@ class Board(Entity):
             list_of_moves.append(move)
 
         return list_of_moves
-
-    def move_piece(self, movement: Movement):
-        # ToDo: validate if movement valid in terms of current board
-
-
-        self._game.move_piece(movement.piece, movement.from_position, movement.to_position)
-
 
     @staticmethod
     def __board_initialize__(board: dict[Position, Square]):

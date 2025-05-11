@@ -5,12 +5,15 @@ from datetime import datetime
 
 
 class GameState(BaseModel):
-    captured: Optional[list] = None
+    # ToDo: should be restored from History
+    #captured: Optional[list] = None
     turn: str
-    status: str
+    # ToDo: should be restored from History
+    #status: str
 
 class GameFormat(BaseModel):
     value: str
+    # ToDo: store start/end datetime instead of remaining time
     time_remaining: str
     additional_time: str
 
@@ -25,9 +28,7 @@ class GameDocument(Document):
     state: GameState
     format: GameFormat
     players: Players
-    # ToDo: provide a ref in HistoryDocument
-    # https://beanie-odm.dev/tutorial/inserting-into-the-database/
-    # history: List[Link[GameHistoryDocument]] # = Field(default_factory=list)
+    # ToDo: should be restored from history
     result: str
 
     class Config:

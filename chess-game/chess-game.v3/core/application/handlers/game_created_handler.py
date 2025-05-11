@@ -17,6 +17,7 @@ class GameCreatedEventHandler(EventHandler[GameCreated]):
         print('GameCreatedHandler handle GameCreated')
         chess_game = await self._chess_game_repo.find(event.game_id.value)
 
+        # ToDo: player lookup logic & validation
         chess_game.start()
 
         await self._chess_game_repo.save(chess_game)

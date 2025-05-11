@@ -29,6 +29,10 @@ class GameHistoryDocument(Document):
 class GameCreatedDocument(GameHistoryDocument):
     action_type: str = Field(default="game_created")
 
+class GameStartedDocument(GameHistoryDocument):
+    action_type: str = Field(default="game_started")
+    started_date: datetime
+
 class PieceModel(BaseModel):
     piece_id: uuid.UUID
     side: str
@@ -37,5 +41,12 @@ class PieceModel(BaseModel):
 class PieceMovedDocument(GameHistoryDocument):
     action_type: str = Field(default="piece_moved")
     piece: PieceModel
+    from_position: str
+    to_position: str
+
+class PieceCapturedDocument(GameHistoryDocument):
+    action_type: str = Field(default="piece_captured")
+    captured_piece: PieceModel
+    piece_has_attacked: PieceModel
     from_position: str
     to_position: str

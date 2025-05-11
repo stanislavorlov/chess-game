@@ -13,7 +13,7 @@ from core.application.handlers.piece_moved_handler import PieceMovedHandler
 from core.application.queries.chess_game_query import ChessGameQuery
 from core.application.services.movement_service import MovementService
 from core.domain.events.game_created import GameCreated
-from core.domain.events.game_started import GameStartedEvent
+from core.domain.events.game_started import GameStarted
 from core.domain.events.piece_moved import PieceMoved
 from core.infrastructure.repositories.chess_game_repository import ChessGameRepository
 
@@ -32,7 +32,7 @@ def build_mediator() -> Mediator:
     rodi_container.attach_external_container(container)
 
     event_map = EventMap()
-    event_map.bind(GameStartedEvent, GameStartedEventHandler)
+    event_map.bind(GameStarted, GameStartedEventHandler)
     event_map.bind(GameCreated, GameCreatedEventHandler)
 
     middleware_chain = MiddlewareChain()

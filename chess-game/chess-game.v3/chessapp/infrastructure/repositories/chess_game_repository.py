@@ -4,7 +4,7 @@ from beanie.odm.operators.update.general import Set
 from chessapp.domain.game.chess_game import ChessGame
 from chessapp.infrastructure.models.game_document import GameDocument
 from chessapp.infrastructure.models.game_history_document import GameCreatedDocument, PieceMovedDocument, \
-    GameStartedDocument, PieceCapturedDocument
+    GameStartedDocument, PieceCapturedDocument, GameHistoryDocument
 from chessapp.infrastructure.translators.game_history_translator import GameHistoryTranslator
 from chessapp.infrastructure.translators.game_translator import GameTranslator
 
@@ -13,7 +13,10 @@ class ChessGameRepository:
 
     @staticmethod
     async def create(chess_game: ChessGame) -> ChessGame:
-        # ToDo: translators into Factory or AutoMappers
+
+        # ToDo: Repository should invoke Factory to restore DB collection into Domain objects
+        # ToDo: Repository should invoke Factory to save Domain into DB collection
+
         game_document = GameTranslator.domain_to_document(chess_game)
         history_document = GameHistoryTranslator.domain_to_document(chess_game.game_id.value, game_document, chess_game.history)
 
@@ -27,7 +30,14 @@ class ChessGameRepository:
 
     @staticmethod
     async def find(doc_id: PydanticObjectId) -> ChessGame:
-        document = await GameDocument.get(doc_id, fetch_links=True)
+        history = await GameHistoryDocument.find(GameHistoryDocument.game_id == doc_id, fetch_links=True).to_list()
+        print('fetched history')
+        print(history)
+
+        document = await GameDocument.find(GameDocument.id == doc_id, fetch_links=True).to_list()
+
+        print('history length')
+        print(document)
 
         created_documents = await GameCreatedDocument.find(
             And(

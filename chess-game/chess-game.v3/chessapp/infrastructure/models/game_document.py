@@ -30,6 +30,7 @@ class GameDocument(Document):
     players: Players
     # ToDo: should be restored from history
     result: str
+    #history: List[Link[GameHistoryDocument]]
 
     class Config:
         pass

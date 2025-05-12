@@ -11,7 +11,7 @@ class GameHistoryDocument(Document):
     sequence_number: int
     history_time: datetime = Field(default_factory=datetime.now)
     action_type: str
-    game: Optional[Link[GameDocument]]
+    game: Link[GameDocument]
 
     class Config:
         pass

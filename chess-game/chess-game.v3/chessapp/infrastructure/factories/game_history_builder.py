@@ -34,7 +34,7 @@ class ChessGameHistoryBuilder:
                 sequence_number=game_started_doc.sequence_number,
                 history_event=GameStarted(
                     game_id=ChessGameId(game_started_doc.game_id),
-                    started_date=game_started_doc.started_date)
+                    started_date=game_started_doc.action_date)
             ))
 
     def build_piece_moved_events(self, piece_moved_docs: list[PieceMovedDocument]):

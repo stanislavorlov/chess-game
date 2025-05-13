@@ -4,8 +4,8 @@ from contextlib import asynccontextmanager
 from beanie import PydanticObjectId
 from fastapi import FastAPI
 from starlette.websockets import WebSocket, WebSocketState
+from chessapp.application.commands.move_piece_command import MovePieceCommand
 from chessapp.domain.chessboard.position import Position
-from chessapp.domain.events.piece_moved import PieceMoved
 from chessapp.domain.pieces.piece_factory import PieceFactory
 from chessapp.domain.value_objects.game_id import ChessGameId
 from chessapp.domain.value_objects.piece_id import PieceId
@@ -47,7 +47,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 piece_id = PieceId(serialized_data['piece']['_id'])
                 game_id = PydanticObjectId(serialized_data['game_id'])
 
-                piece_moved = PieceMoved(
+                piece_moved = MovePieceCommand(
                     game_id=ChessGameId(game_id),
                     piece=PieceFactory.create(piece_id, side, serialized_data['piece']['_type']),
                     from_=Position.parse(serialized_data['from']),

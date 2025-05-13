@@ -8,7 +8,6 @@ from chessapp.domain.events.game_started import GameStarted
 from chessapp.domain.events.piece_captured import PieceCaptured
 from chessapp.domain.events.piece_move_failed import PieceMoveFailed
 from chessapp.domain.events.piece_moved import PieceMoved
-from chessapp.domain.events.piece_moved_completed import PieceMovedCompleted
 from chessapp.domain.game.game_history import ChessGameHistory
 from chessapp.domain.kernel.aggregate_root import AggregateRoot
 from chessapp.domain.pieces.piece import Piece
@@ -120,7 +119,7 @@ class ChessGame(AggregateRoot):
                 PieceMoveFailed(piece=piece, from_=_from, to=to, reason="King is checked"))
         else:
             self.raise_event(
-                PieceMovedCompleted(game_id=self.game_id,from_=_from,to=to, piece=piece))
+                PieceMoved(game_id=self.game_id,from_=_from,to=to, piece=piece))
 
             self.__switch_turn_from(self._state.turn)
 

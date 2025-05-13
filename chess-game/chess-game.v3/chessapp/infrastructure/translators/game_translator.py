@@ -1,13 +1,12 @@
 import chessapp
 from chessapp.domain.game.chess_game import ChessGame
+from chessapp.domain.game.game_history import ChessGameHistory
 from chessapp.domain.value_objects.game_format import GameFormat
 from chessapp.domain.players.player_id import PlayerId
 from chessapp.domain.players.players import Players
 from chessapp.domain.value_objects.game_id import ChessGameId
 from chessapp.domain.value_objects.game_information import GameInformation
 from chessapp.infrastructure.models.game_document import GameDocument
-from chessapp.infrastructure.models.game_history_document import GameCreatedDocument, PieceMovedDocument, \
-    GameStartedDocument, PieceCapturedDocument
 from chessapp.infrastructure.translators.game_history_translator import GameHistoryTranslator
 
 
@@ -15,25 +14,21 @@ class GameTranslator:
 
     @staticmethod
     def document_to_domain(
-            document: GameDocument,
-            game_created_docs: list[GameCreatedDocument],
-            game_started_docs: list[GameStartedDocument],
-            piece_moved_docs: list[PieceMovedDocument],
-            piece_captured_docs: list[PieceCapturedDocument]) -> ChessGame:
+            document: GameDocument) -> ChessGame:
 
         game_id: ChessGameId = ChessGameId(document.id)
         players = Players(PlayerId(document.players.white_id), PlayerId(document.players.black_id))
         game_format = GameFormat.parse_string(document.format.value, document.format.time_remaining, document.format.additional_time)
 
-        history = GameHistoryTranslator.document_to_domain(
-            game_created_docs,
-            game_started_docs,
-            piece_moved_docs,
-            piece_captured_docs)
+        # history = GameHistoryTranslator.document_to_domain(
+        #     game_created_docs,
+        #     game_started_docs,
+        #     piece_moved_docs,
+        #     piece_captured_docs)
 
         game_info = GameInformation(game_format, document.date, document.game_name)
 
-        return ChessGame(game_id, game_info, players, history)
+        return ChessGame(game_id, game_info, players, ChessGameHistory.empty())
 
     @staticmethod
     def domain_to_document(game: ChessGame) -> GameDocument:

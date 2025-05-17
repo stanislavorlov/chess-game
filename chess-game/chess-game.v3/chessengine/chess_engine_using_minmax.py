@@ -1,3 +1,5 @@
+from typing import Optional
+
 import chess
 import chess.engine
 import time
@@ -5,7 +7,7 @@ import chess.svg
 from IPython.display import SVG, display
 from chess import engine
 
-def static_eval(board):
+def static_eval(board: chess.Board):
     i = 0
     evaluation = 0
     x = True
@@ -18,7 +20,7 @@ def static_eval(board):
         evaluation = evaluation + (get_piece_val(str(board.piece_at(i))) if x else -get_piece_val(str(board.piece_at(i))))
     return evaluation
 
-def get_piece_val(piece):
+def get_piece_val(piece: Optional[str]):
     if(piece == None):
         return 0
     value = 0
@@ -38,7 +40,7 @@ def get_piece_val(piece):
     return value
 
 
-def minmax(board_instance, max_depth, current_depth, is_max_player, nodes_per_depth):
+def minmax(board_instance: chess.Board, max_depth: int, current_depth: int, is_max_player: bool, nodes_per_depth: dict):
     # This if else code block is only used for analysis of algorithm, by counting number of nodes explored
     if max_depth - current_depth in nodes_per_depth:
         nodes_per_depth[max_depth - current_depth] += 1
@@ -96,7 +98,7 @@ def minmax(board_instance, max_depth, current_depth, is_max_player, nodes_per_de
         return (best_score, nodes_per_depth)
 
 
-def best_move_using_minmax(board_instance, depth, is_max_player):
+def best_move_using_minmax(board_instance: chess.Board, depth: int, is_max_player: bool):
     best_move_score = -1000000
     best_move = None
 
@@ -114,7 +116,7 @@ def best_move_using_minmax(board_instance, depth, is_max_player):
     return (best_move, nodes_per_depth)
 
 
-def game_between_two_computer(depth=3):
+def game_between_two_computer(depth:int=3):
     board = chess.Board()
 
     for n in range(0, 10):

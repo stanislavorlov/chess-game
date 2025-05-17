@@ -6,7 +6,7 @@ import time
 import chess.svg
 from IPython.display import SVG, display
 
-def static_eval(board) -> int:
+def static_eval(board: chess.Board) -> int:
     i = 0
     evaluation = 0
     x = True
@@ -39,7 +39,7 @@ def get_piece_val(piece: Optional[str]):
     return value
 
 
-def alpha_beta(board_instance, max_depth, current_depth, is_max_player, alpha, beta, nodes_per_depth):
+def alpha_beta(board_instance: chess.Board, max_depth: int, current_depth: int, is_max_player: bool, alpha: int, beta: int, nodes_per_depth: dict):
     # This if else code block is only used for analysis of algorithm, by counting number of nodes explored
     if max_depth - current_depth in nodes_per_depth:
         nodes_per_depth[max_depth - current_depth] += 1

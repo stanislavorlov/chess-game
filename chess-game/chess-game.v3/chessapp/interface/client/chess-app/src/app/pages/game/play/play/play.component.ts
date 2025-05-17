@@ -45,6 +45,7 @@ export class PlayComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private selectedSquare: Cell | null = null;
   private gameTimer: NodeJS.Timeout;
+  private playService: PlayService;
 
   public formats: TimeSelector[];
   public selectedFormat = '';
@@ -52,7 +53,7 @@ export class PlayComponent implements OnInit, OnDestroy {
   public additionalTime = '';
   public game: ChessGame;
 
-  constructor(private renderer: Renderer2, private chessService: ChessService, private playService: PlayService) {
+  constructor(private renderer: Renderer2, private chessService: ChessService) {
     this.formats = [
       { value: 'bullet', viewValue: 'Bullet' },
       { value: 'blitz', viewValue: 'Blitz' },
@@ -79,6 +80,7 @@ export class PlayComponent implements OnInit, OnDestroy {
     const gameId = this.route.snapshot.paramMap.get('id');
     
     if (!!gameId) {
+      this.playService = new PlayService(gameId);
       this.chessService.getGame(gameId).subscribe((result: ApiResult<ChessGameDto>) => {
         if (result.status == 200) {
 

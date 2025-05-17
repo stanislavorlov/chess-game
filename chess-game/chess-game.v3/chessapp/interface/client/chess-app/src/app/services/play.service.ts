@@ -2,15 +2,15 @@ import { Injectable } from '@angular/core';
 import { WebSocketSubject, webSocket } from 'rxjs/webSocket';
 import { Observable } from 'rxjs';
 
-@Injectable({
+/*@Injectable({
   providedIn: 'root'
-})
+})*/
 export class PlayService {
 
   private socket$: WebSocketSubject<any>;
 
-  constructor() {
-    this.socket$ = webSocket('ws://localhost:8000/ws');
+  constructor(game_id: string) {
+    this.socket$ = webSocket('ws://localhost:8000/ws/'+game_id);
   }
 
   // Send a message to the server

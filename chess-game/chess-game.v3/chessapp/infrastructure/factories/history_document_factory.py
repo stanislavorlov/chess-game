@@ -29,7 +29,6 @@ class GameHistoryDocumentFactory:
                 to_position='',
             )
 
-            print(history_entry.action_type)
             match history_entry.action_type:
                 case GameCreated.__name__:
                     history_document.action_type = GameCreated.__name__

@@ -1,7 +1,6 @@
 import uuid
 from datetime import datetime
 from typing import Optional
-
 from beanie import Document, TimeSeriesConfig, Granularity, PydanticObjectId
 from pydantic import Field, BaseModel
 
@@ -22,8 +21,6 @@ class GameHistoryDocument(Document):
     from_position: str
     to_position: str
 
-    #game: Link[GameDocument]
-
     class Config:
         pass
 
@@ -36,23 +33,3 @@ class GameHistoryDocument(Document):
             bucket_max_span_seconds=2592000,
             expire_after_seconds=2
         )
-
-# class GameCreatedDocument(GameHistoryDocument):
-#     action_type: str = Field(default="game_created")
-#
-# class GameStartedDocument(GameHistoryDocument):
-#     action_type: str = Field(default="game_started")
-#     started_date: datetime
-#
-# class PieceMovedDocument(GameHistoryDocument):
-#     action_type: str = Field(default="piece_moved")
-#     piece: PieceModel
-#     from_position: str
-#     to_position: str
-#
-# class PieceCapturedDocument(GameHistoryDocument):
-#     action_type: str = Field(default="piece_captured")
-#     captured_piece: PieceModel
-#     piece_has_attacked: PieceModel
-#     from_position: str
-#     to_position: str

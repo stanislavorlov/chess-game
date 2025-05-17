@@ -17,7 +17,7 @@ class ChessGameHistory(Entity):
 
     def record(self, domain_event: DomainEvent):
         seq_number = len(self._gameHistory)
-        entry = ChessGameHistoryEntry(HistoryEntryId.empty(), seq_number+1, domain_event)
+        entry = ChessGameHistoryEntry(HistoryEntryId.generate_id(), seq_number+1, domain_event)
 
         self._gameHistory.append(entry)
 

@@ -25,9 +25,9 @@ class ChessGameRepository:
         game_document = await GameDocumentFactory.create(chess_game)
         history_documents = await GameHistoryDocumentFactory.create(chess_game)
 
-        for created_history in history_documents:
-            created_doc = await created_history.create()
-            game_document.history.append(created_doc)
+        for history_doc in history_documents:
+            created_history = await history_doc.create()
+            game_document.history.append(Link(created_history, GameHistoryDocument))
 
         created_game = await game_document.create()
 
@@ -40,9 +40,6 @@ class ChessGameRepository:
         #print(history)
 
         document = await GameDocument.find_one(GameDocument.id == doc_id, fetch_links=True)
-
-        print('history length')
-        print(document.history)
 
         return await ChessGameFactory.create(document)
 
@@ -101,21 +98,29 @@ class ChessGameRepository:
 
     @staticmethod
     async def save(game: ChessGame):
-        document = await GameDocument.get(game.game_id.value)
+        print('saving GameDocument')
+        document = await GameDocument.find_one(GameDocument.id == game.game_id.value, fetch_links=True)
+        history_documents = await GameHistoryDocumentFactory.create(game)
 
-        await document.update(Set(
-            {
-                # GameDocument.state.captured:
-                # GameDocument.format.time_remaining
-                # GameDocument.format.additional_time
-                # GameDocument.state.turn: game.game_state.turn.value(),
-                #GameDocument.state.status: str(game.game_state.get_status()),
-                GameDocument.game_name: game.information.name,
-                # GameDocument.result
-            }
-        ))
+        print('History documents after factory:', len(history_documents))
 
-        history_document = []
+        for history_document in history_documents:
+            existing_doc = await GameHistoryDocument.get(history_document.id)
+            if existing_doc is None:
+                created_doc = await history_document.create()
+                document.history.append(Link(created_doc, GameHistoryDocument))
+            # else:
+            #     document.history.append(Link(existing_doc, GameHistoryDocument))
+
+        print('History document after DB save:', len(document.history))
+
+        try:
+            document.game_name = game.information.name
+            await document.save()
+        except Exception as e:
+            print(f"Error updating game document: {e}")
+
+        # history_document = []
 
         # history_document = GameHistoryTranslator.domain_to_document(
         #     game.game_id.value,
@@ -126,6 +131,6 @@ class ChessGameRepository:
         # ToDo: sequence number in DB with provided
 
         # ToDo: may be differentiate existing from the new ones via ID (or via sequence number)
-        histories = []
-        for created_history in history_document:
-            histories.append(await created_history.create())
+        #histories = []
+        #for created_history in history_document:
+        #    histories.append(await created_history.create())

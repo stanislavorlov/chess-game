@@ -12,6 +12,7 @@ class PieceModel(BaseModel):
     type: str
 
 class GameHistoryDocument(Document):
+    id: Optional[PydanticObjectId] = Field(None, alias='_id')
     game_id: PydanticObjectId
     sequence_number: int
     history_time: datetime = Field(default_factory=datetime.now)

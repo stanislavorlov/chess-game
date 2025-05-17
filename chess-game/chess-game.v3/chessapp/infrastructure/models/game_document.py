@@ -18,8 +18,6 @@ class GameDocument(Document):
     format: GameFormat
     players: Players
     history: List[Link[GameHistoryDocument]]
-    # new_item = await GameHistoryDocument().insert()
-    # history.append(Link(new_item))
 
     class Config:
         pass

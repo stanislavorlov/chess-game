@@ -30,10 +30,6 @@ class ChessGameFactory:
                                               document.format.additional_time)
         game_info = GameInformation(game_format, datetime.datetime.now(), document.game_name)
 
-        #resolved_docs = [await link.fetch() for link in document.history]
-        print('game history')
-        print(document.history)
-
         history_entries = list()
         for history in document.history:
             history_document: GameHistoryDocument = history

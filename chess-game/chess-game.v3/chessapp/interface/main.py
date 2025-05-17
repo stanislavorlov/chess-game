@@ -1,8 +1,9 @@
 import json
 import traceback
 from contextlib import asynccontextmanager
-from beanie import PydanticObjectId
+from beanie import PydanticObjectId, init_beanie
 from fastapi import FastAPI
+from motor.motor_asyncio import AsyncIOMotorClient
 from starlette.websockets import WebSocket, WebSocketState
 from chessapp.application.commands.move_piece_command import MovePieceCommand
 from chessapp.domain.chessboard.position import Position
@@ -10,16 +11,24 @@ from chessapp.domain.pieces.piece_factory import PieceFactory
 from chessapp.domain.value_objects.game_id import ChessGameId
 from chessapp.domain.value_objects.piece_id import PieceId
 from chessapp.domain.value_objects.side import Side
-from chessapp.infrastructure.config.config import initiate_database
+from chessapp.infrastructure import models
+from chessapp.infrastructure.config.config import Settings
 from chessapp.infrastructure.mediator.mediator import build_mediator
 from chessapp.interface.api.main import api_router
 
 
 @asynccontextmanager
-async def lifespan(fast_api: FastAPI):
-    await initiate_database()
+async def lifespan(_app: FastAPI):
+    client = AsyncIOMotorClient(Settings().MONGO_HOST)
+    await init_beanie(
+        database=client.get_database(Settings().MONGO_DB),
+        document_models=models.__all__
+    )
 
     yield
+
+    # shutdown code goes here:
+    client.close()
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(api_router)

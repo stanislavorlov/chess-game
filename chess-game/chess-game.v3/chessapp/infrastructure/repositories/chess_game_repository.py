@@ -39,8 +39,6 @@ class ChessGameRepository:
             if existing_doc is None:
                 created_doc = await history_document.create()
                 document.history.append(created_doc)
-            # else:
-            #     document.history.append(Link(existing_doc, GameHistoryDocument))
 
         try:
             document.game_name = game.information.name

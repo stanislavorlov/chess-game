@@ -9,7 +9,11 @@ Back-end API
 
 sudo lsof -t -i tcp:8000 | xargs kill -9
 
-Client app
+Best practices for FastAPI with MongoDB
+https://www.mongodb.com/developer/products/mongodb/8-fastapi-mongodb-best-practices/
+
+Clean Architecture using FastAPI
+https://github.com/0xTheProDev/fastapi-clean-example/tree/main
 
 
 Chess-engine
@@ -21,3 +25,6 @@ https://github.com/mongodb-labs/full-stack-fastapi-mongodb?tab=readme-ov-file
 
 Clean Architecture using FastAPI
 https://github.com/0xTheProDev/fastapi-clean-example/tree/main
+
+Full Stack Fast API on React and MongoDD
+https://github.com/mongodb-labs/full-stack-fastapi-mongodb/tree/main

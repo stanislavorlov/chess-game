@@ -1,5 +1,4 @@
 from datetime import datetime
-from diator.events import DomainEvent
 from chessapp.domain.chessboard.board import Board
 from chessapp.domain.chessboard.position import Position
 from chessapp.domain.events.game_created import GameCreated
@@ -10,6 +9,7 @@ from chessapp.domain.events.piece_move_failed import PieceMoveFailed
 from chessapp.domain.events.piece_moved import PieceMoved
 from chessapp.domain.game.game_history import ChessGameHistory
 from chessapp.domain.kernel.aggregate_root import AggregateRoot
+from chessapp.domain.kernel.base import BaseEvent
 from chessapp.domain.pieces.piece import Piece
 from chessapp.domain.pieces.piece_type import PieceType
 from chessapp.domain.players.players import Players
@@ -43,7 +43,7 @@ class ChessGame(AggregateRoot):
 
         return chess_game
 
-    def apply_event(self, domain_event: DomainEvent):
+    def apply_event(self, domain_event: BaseEvent):
         match domain_event:
             case GameCreated():
                 self._state = GameState(GameStatus.created(), Side.white(), Board())
@@ -139,7 +139,7 @@ class ChessGame(AggregateRoot):
     def promote_pawn(self):
         pass
 
-    def raise_event(self, domain_event: DomainEvent):
+    def raise_event(self, domain_event: BaseEvent):
         self.__record_to_history(domain_event)
 
         super().raise_event(domain_event)
@@ -149,5 +149,5 @@ class ChessGame(AggregateRoot):
 
         self._state = GameState(self._state.status, side, self._state.board)
 
-    def __record_to_history(self, history_record: DomainEvent):
+    def __record_to_history(self, history_record: BaseEvent):
         self._history.record(history_record)

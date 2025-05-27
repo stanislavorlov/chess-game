@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from diator.response import Response
+from chessapp.domain.kernel.base import BaseResponse
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -21,7 +21,7 @@ class PlayersDto:
     black_id: str
 
 @dataclass(frozen=True, kw_only=True)
-class ChessGameDto(Response):
+class ChessGameDto(BaseResponse):
     game_id: str
     date: datetime
     name: str

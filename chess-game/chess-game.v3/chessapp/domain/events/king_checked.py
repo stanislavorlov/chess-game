@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from diator.events import DomainEvent
+from chessapp.domain.kernel.base import BaseEvent
 
 
 @dataclass(frozen=True, kw_only=True)
-class KingChecked(DomainEvent):
+class KingChecked(BaseEvent):
     pass

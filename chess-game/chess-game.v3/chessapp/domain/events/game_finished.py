@@ -1,9 +1,9 @@
 from datetime import datetime
-from diator.events import DomainEvent
+from chessapp.domain.kernel.base import BaseEvent
 from chessapp.domain.value_objects.game_id import ChessGameId
 
 
-class GameFinished(DomainEvent):
+class GameFinished(BaseEvent):
     game_id: ChessGameId
     result: str
     finished_date: datetime

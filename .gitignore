@@ -172,3 +172,11 @@ cython_debug/
 
 # VisualStudio
 .vs/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# JetBrains
+**/*.iml
+**/.idea/misc.xml

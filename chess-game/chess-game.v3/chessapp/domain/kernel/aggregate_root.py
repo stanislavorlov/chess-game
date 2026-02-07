@@ -1,7 +1,7 @@
 from typing import TypeVar
-from diator.events import DomainEvent
+from chessapp.domain.kernel.base import BaseEvent
 
-T = TypeVar('T', bound=DomainEvent)
+T = TypeVar('T', bound=BaseEvent)
 
 
 class AggregateRoot:
@@ -13,8 +13,8 @@ class AggregateRoot:
     def domain_events(self) -> list:
         return self._events
 
-    def raise_event(self, domain_event: DomainEvent):
+    def raise_event(self, domain_event: BaseEvent):
         self._events.append(domain_event)
 
-    def raise_events(self, domain_events: list[DomainEvent]):
+    def raise_events(self, domain_events: list[BaseEvent]):
         self._events.extend(domain_events)

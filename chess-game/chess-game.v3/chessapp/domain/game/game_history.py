@@ -1,6 +1,6 @@
 from typing import List
-from diator.events import DomainEvent
 from chessapp.domain.game.history_entry import ChessGameHistoryEntry
+from chessapp.domain.kernel.base import BaseEvent
 from chessapp.domain.kernel.entity import Entity
 from chessapp.domain.value_objects.history_entry_id import HistoryEntryId
 
@@ -15,7 +15,7 @@ class ChessGameHistory(Entity):
     def empty():
         return ChessGameHistory([])
 
-    def record(self, domain_event: DomainEvent):
+    def record(self, domain_event: BaseEvent):
         seq_number = len(self._gameHistory)
         entry = ChessGameHistoryEntry(HistoryEntryId.generate_id(), seq_number+1, domain_event)
 

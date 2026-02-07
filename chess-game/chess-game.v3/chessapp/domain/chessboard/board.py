@@ -1,5 +1,4 @@
 from typing import List
-
 from chessapp.domain.chessboard.file import File
 from chessapp.domain.chessboard.position import Position
 from chessapp.domain.chessboard.rank import Rank

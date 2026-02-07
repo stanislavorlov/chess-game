@@ -1,5 +1,5 @@
-from diator.events import DomainEvent
+from chessapp.domain.kernel.base import BaseEvent
 
 
-class KingCheckMated(DomainEvent):
+class KingCheckMated(BaseEvent):
     pass

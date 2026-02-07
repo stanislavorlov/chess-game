@@ -20,6 +20,7 @@ from chessapp.infrastructure.config.config import Settings
 from chessapp.infrastructure.mediator.container import init_container, setup_mediator
 from chessapp.infrastructure.mediator.mediator import Mediator
 from chessapp.interface.api.main import api_router
+from chessapp.interface.api.routes import game_api, move_api, piece_api
 from chessapp.interface.api.websockets.managers import BaseConnectionManager, ConnectionManager
 
 
@@ -42,12 +43,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan, debug=True)
 container: Container = None
 
-
-def create_app():
-    app.include_router(api_router)
-    return app
-
-
+app.include_router(game_api.router)
+app.include_router(move_api.router)
+app.include_router(piece_api.router)
 
 @app.websocket("/ws/{game_id}")
 async def websocket_endpoint(

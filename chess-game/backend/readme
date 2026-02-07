@@ -1,13 +1,30 @@
-To run locally run the following command:
+# Chess Game
 
-cd web
+## Project Structure (Clean Architecture)
+- `/backend`: FastAPI service (including domain logic)
+- `/frontend`: Angular client
 
-Back-end API
-- fastapi dev main.py
+## How to run locally
 
-//uvicorn app:app --reload
+### Back-end API
+1. Go to the backend directory:
+   `cd backend`
+2. Activate virtual environment:
+   `source .venv/bin/activate`
+3. Run the application:
+   `uvicorn chessapp.interface.main:app --reload`
 
-sudo lsof -t -i tcp:8000 | xargs kill -9
+### Front-end Client
+1. Go to the frontend directory:
+   `cd frontend`
+2. Install dependencies (if needed):
+   `npm install`
+3. Run the development server:
+   `npm start`
+
+## Docker (Work in Progress)
+To kill existing processes on port 8000:
+`sudo lsof -t -i tcp:8000 | xargs kill -9`
 
 Best practices for FastAPI with MongoDB
 https://www.mongodb.com/developer/products/mongodb/8-fastapi-mongodb-best-practices/

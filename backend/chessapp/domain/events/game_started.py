@@ -8,3 +8,7 @@ from ...domain.value_objects.game_id import ChessGameId
 class GameStarted(BaseEvent):
     game_id: ChessGameId
     started_date: datetime
+
+    @property
+    def event_type(self) -> str:
+        return "game-started"

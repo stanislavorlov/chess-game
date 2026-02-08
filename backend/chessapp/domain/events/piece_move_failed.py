@@ -10,3 +10,7 @@ class PieceMoveFailed(BaseEvent):
     from_: Position = dataclasses.field()
     to: Position = dataclasses.field()
     reason: str = dataclasses.field()
+
+    @property
+    def event_type(self) -> str:
+        return "piece-move-failed"

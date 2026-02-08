@@ -12,3 +12,7 @@ class PieceCaptured(BaseEvent):
     to: Position = dataclasses.field()
     # piece been captured by Piece from PieceMoved
     piece: Piece = dataclasses.field()
+
+    @property
+    def event_type(self) -> str:
+        return "piece-captured"

@@ -1,3 +1,4 @@
+import json
 from typing import Annotated
 
 from fastapi import Depends
@@ -21,5 +22,9 @@ class MovePieceHandler(BaseCommandHandler[MovePieceCommand, None]):
 
         await self.repository.save(game)
 
-        await self.socket_manager.send_all(str(event.game_id.value), 'Ya perdole kurwa!')
+        for event_ in game.domain_events:
+            await self.socket_manager.send_all(
+                str(event.game_id.value),
+                json.dumps(event_.to_dict(), default=str)
+            )
 

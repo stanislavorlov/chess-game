@@ -11,3 +11,7 @@ class PieceMoved(BaseEvent):
     piece: Piece = dataclasses.field()
     from_: Position = dataclasses.field()
     to: Position = dataclasses.field()
+
+    @property
+    def event_type(self) -> str:
+        return "piece-moved"

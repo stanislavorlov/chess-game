@@ -118,7 +118,7 @@ export class PlayComponent implements OnInit, OnDestroy {
       });
 
       this.playService.getMessages().subscribe(data => {
-        console.log(data);
+        console.log('received message:', data);
       });
     } else {
       this.game = this.chessService.newGame();

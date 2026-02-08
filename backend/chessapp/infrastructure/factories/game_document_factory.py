@@ -21,6 +21,7 @@ class GameDocumentFactory:
             _id=game.game_id.value,
             format=game_format,
             players=players,
+            status=str(game.game_state.status),
             game_name=game.information.name,
             history=[]
         )

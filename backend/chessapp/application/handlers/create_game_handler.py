@@ -8,11 +8,13 @@ from ...domain.players.players import Players
 from ...domain.value_objects.game_information import GameInformation
 from ...infrastructure.mappers.dto_mapper import DtoMapper
 from ...infrastructure.repositories.chess_game_repository import ChessGameRepository
+from ...infrastructure.mediator.mediator import Mediator
 
 
 class CreateGameCommandHandler(BaseCommandHandler[CreateGameCommand, ChessGameDto]):
-    def __init__(self, repository: ChessGameRepository):
+    def __init__(self, repository: ChessGameRepository, mediator: Mediator):
         self.repository = repository
+        self.mediator = mediator
 
     async def handle(self, request: CreateGameCommand) -> ChessGameDto:
         game_info = GameInformation(request.game_format, datetime.datetime.now(), request.name)
@@ -20,5 +22,8 @@ class CreateGameCommandHandler(BaseCommandHandler[CreateGameCommand, ChessGameDt
         chess_game = ChessGame.create(request.game_id, game_info, Players(PlayerId(''), PlayerId('')))
 
         created_game = await self.repository.create(chess_game)
+
+        # Dispatch domain events collected in the aggregate
+        await self.mediator.dispatch_events(chess_game)
 
         return DtoMapper.map_game(created_game)

@@ -17,6 +17,7 @@ class GameDocument(Document):
     game_name: str
     format: GameFormat
     players: Players
+    status: str
     history: List[Link[GameHistoryDocument]]
 
     class Config:

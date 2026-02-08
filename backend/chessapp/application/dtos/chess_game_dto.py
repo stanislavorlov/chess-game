@@ -25,6 +25,7 @@ class ChessGameDto(BaseResponse):
     game_id: str
     date: datetime
     name: str
+    status: str
     state: GameStateDto
     game_format: GameFormatDto
     players: PlayersDto

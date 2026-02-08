@@ -31,6 +31,7 @@ class DtoMapper:
             game_id=str(game.game_id),
             date=game.information.date,
             name=game.information.name,
+            status=str(game.game_state.status),
             state=state_result,
             game_format=format_result,
             players=players_result,

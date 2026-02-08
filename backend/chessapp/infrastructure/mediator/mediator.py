@@ -47,8 +47,17 @@ class Mediator:
         handlers: list[BaseEventHandler] = self._events_map[event.__class__]
 
         if not handlers:
-            raise NoHandlerRegisteredException(f'No handler registered for {event.__class__}')
+            # Optionally log that no handler is registered for the event
+            return []
         return [await handler.handle(event) for handler in handlers]
+
+    async def dispatch_events(self, aggregate_root):
+        """Dispatches all domain events from an aggregate and clears them."""
+        events = list(aggregate_root.domain_events)
+        aggregate_root.domain_events.clear()
+        
+        for event in events:
+            await self.handle_event(event)
 
     async def handle_query(self, query: QT) -> Iterable[QR]:
         handlers: list[BaseQueryHandler] = self._query_map[query.__class__]

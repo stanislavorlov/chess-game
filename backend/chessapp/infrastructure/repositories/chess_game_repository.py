@@ -42,6 +42,7 @@ class ChessGameRepository:
 
         try:
             document.game_name = game.information.name
+            document.status = str(game.game_state.status)
             await document.save()
         except Exception as e:
             print(f"Error updating game document: {e}")

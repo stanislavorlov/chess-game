@@ -10,6 +10,9 @@ from ...domain.events.piece_moved import PieceMoved
 from ...domain.game.game_history import ChessGameHistory
 from ...domain.kernel.aggregate_root import AggregateRoot
 from ...domain.kernel.base import BaseEvent
+from ...domain.movements.movement import Movement
+from ...domain.movements.movement_intent_factory import MovementIntentFactory
+from ...domain.movements.movement_specification import MovementSpecification
 from ...domain.pieces.piece import Piece
 from ...domain.pieces.piece_type import PieceType
 from ...domain.players.players import Players
@@ -102,15 +105,12 @@ class ChessGame(AggregateRoot):
         return False
 
     def move_piece(self, piece: Piece, _from: Position, to: Position):
-        # ToDo: self._state.board validate move
-
         if not self._state.is_started:
             self.raise_event(
                 PieceMoveFailed(piece=piece, from_=_from, to=to, reason='Game was not started'))
         elif self._state.is_finished:
             self.raise_event(
                 PieceMoveFailed(piece=piece, from_=_from, to=to, reason='Game has finished'))
-        # ToDo: validate King checked, Player Side, Turn
         elif not self._state.turn == piece.get_side():
             self.raise_event(
                 PieceMoveFailed(piece=piece, from_=_from, to=to, reason="Piece doesn't belong to player"))
@@ -118,10 +118,18 @@ class ChessGame(AggregateRoot):
             self.raise_event(
                 PieceMoveFailed(piece=piece, from_=_from, to=to, reason="King is checked"))
         else:
-            self.raise_event(
-                PieceMoved(game_id=self.game_id,from_=_from,to=to, piece=piece))
+            movement = Movement(piece, _from, to)
+            movement_specification = MovementSpecification(piece.get_rule())
+            movement_intent = MovementIntentFactory.create(movement)
 
-            self.__switch_turn_from(self._state.turn)
+            if movement_specification.is_satisfied_by(movement_intent):
+                self.raise_event(
+                    PieceMoved(game_id=self.game_id, from_=_from, to=to, piece=piece))
+
+                self.__switch_turn_from(self._state.turn)
+            else:
+                self.raise_event(
+                    PieceMoveFailed(piece=piece, from_=_from, to=to, reason="Illegal move for this piece"))
 
         self.calculate_move_effect()
 

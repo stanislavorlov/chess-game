@@ -9,19 +9,18 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from punq import Container
 #from rodi import Container
 from starlette.websockets import WebSocket, WebSocketState, WebSocketDisconnect
-from chessapp.application.commands.move_piece_command import MovePieceCommand
-from chessapp.domain.chessboard.position import Position
-from chessapp.domain.pieces.piece_factory import PieceFactory
-from chessapp.domain.value_objects.game_id import ChessGameId
-from chessapp.domain.value_objects.piece_id import PieceId
-from chessapp.domain.value_objects.side import Side
-from chessapp.infrastructure import models
-from chessapp.infrastructure.config.config import Settings
-from chessapp.infrastructure.mediator.container import init_container, setup_mediator
-from chessapp.infrastructure.mediator.mediator import Mediator
-from chessapp.interface.api.main import api_router
-from chessapp.interface.api.routes import game_api, move_api, piece_api
-from chessapp.interface.api.websockets.managers import BaseConnectionManager, ConnectionManager
+from ..application.commands.move_piece_command import MovePieceCommand
+from ..domain.chessboard.position import Position
+from ..domain.pieces.piece_factory import PieceFactory
+from ..domain.value_objects.game_id import ChessGameId
+from ..domain.value_objects.piece_id import PieceId
+from ..domain.value_objects.side import Side
+from ..infrastructure import models
+from ..infrastructure.config.config import Settings
+from ..infrastructure.mediator.container import init_container, setup_mediator
+from ..infrastructure.mediator.mediator import Mediator
+from ..interface.api.routes import game_api, move_api, piece_api
+from ..interface.api.websockets.managers import BaseConnectionManager, ConnectionManager
 
 
 @asynccontextmanager

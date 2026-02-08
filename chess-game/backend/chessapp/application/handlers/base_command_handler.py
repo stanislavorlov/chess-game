@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TypeVar, Generic
-from chessapp.domain.kernel.base import BaseCommand
+from ...domain.kernel.base import BaseCommand
 
 CT = TypeVar('CT', bound=BaseCommand)
 RT = TypeVar('RT')

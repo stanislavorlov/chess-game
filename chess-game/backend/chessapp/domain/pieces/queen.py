@@ -1,8 +1,8 @@
-from chessapp.domain.pieces.piece import Piece
-from chessapp.domain.pieces.piece_type import PieceType
-from chessapp.domain.rules.movements.queen_rule import QueenRule
-from chessapp.domain.value_objects.piece_id import PieceId
-from chessapp.domain.value_objects.side import Side
+from ...domain.pieces.piece import Piece
+from ...domain.pieces.piece_type import PieceType
+from ...domain.rules.movements.queen_rule import QueenRule
+from ...domain.value_objects.piece_id import PieceId
+from ...domain.value_objects.side import Side
 
 
 class Queen(Piece):

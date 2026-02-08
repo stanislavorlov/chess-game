@@ -1,6 +1,6 @@
-from chessapp.domain.movements.delta.delta import Delta
-from chessapp.domain.movements.movement_intent import MovementIntent
-from chessapp.domain.rules.movements.piece_rule import PieceRule
+from ....domain.movements.delta.delta import Delta
+from ....domain.movements.movement_intent import MovementIntent
+from ....domain.rules.movements.piece_rule import PieceRule
 
 
 class KnightRule(PieceRule):

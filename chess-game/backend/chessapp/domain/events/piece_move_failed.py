@@ -1,7 +1,7 @@
 import dataclasses
-from chessapp.domain.chessboard.position import Position
-from chessapp.domain.kernel.base import BaseEvent
-from chessapp.domain.pieces.piece import Piece
+from ...domain.chessboard.position import Position
+from ...domain.kernel.base import BaseEvent
+from ...domain.pieces.piece import Piece
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

@@ -1,5 +1,5 @@
-from chessapp.domain.chessboard.position import Position
-from chessapp.domain.pieces.piece import Piece
+from ...domain.chessboard.position import Position
+from ...domain.pieces.piece import Piece
 
 class Movement:
 

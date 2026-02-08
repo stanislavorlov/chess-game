@@ -1,6 +1,6 @@
 from beanie import PydanticObjectId
 from bson import ObjectId
-from chessapp.domain.kernel.value_object import ValueObject
+from ...domain.kernel.value_object import ValueObject
 
 class ChessGameId(ValueObject):
 

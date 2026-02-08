@@ -1,5 +1,5 @@
-from chessapp.domain.movements.delta.delta import Delta
-from chessapp.domain.movements.direction.direction import Direction
+from ...domain.movements.delta.delta import Delta
+from ...domain.movements.direction.direction import Direction
 
 class MovementIntent:
 

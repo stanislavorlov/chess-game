@@ -1,4 +1,4 @@
-from chessapp.domain.kernel.entity import Entity
+from ...domain.kernel.entity import Entity
 
 
 class GameRule(Entity):

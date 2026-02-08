@@ -1,5 +1,5 @@
-from chessapp.domain.kernel.entity import Entity
-from chessapp.domain.value_objects.history_entry_id import HistoryEntryId
+from ...domain.kernel.entity import Entity
+from ...domain.value_objects.history_entry_id import HistoryEntryId
 
 
 class ChessGameHistoryEntry(Entity):

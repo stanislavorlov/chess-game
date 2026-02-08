@@ -1,6 +1,6 @@
-from chessapp.domain.movements.direction.direction import Direction
-from chessapp.domain.movements.movement import Movement
-from chessapp.domain.movements.movement_intent import MovementIntent
+from ...domain.movements.direction.direction import Direction
+from ...domain.movements.movement import Movement
+from ...domain.movements.movement_intent import MovementIntent
 
 
 class MovementIntentFactory:

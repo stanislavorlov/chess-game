@@ -1,6 +1,6 @@
-from chessapp.domain.game.chess_game import ChessGame
-from chessapp.infrastructure.models import GameDocument
-from chessapp.infrastructure.models.game_document import GameFormat, Players
+from ...domain.game.chess_game import ChessGame
+from ...infrastructure.models import GameDocument
+from ...infrastructure.models.game_document import GameFormat, Players
 
 
 class GameDocumentFactory:

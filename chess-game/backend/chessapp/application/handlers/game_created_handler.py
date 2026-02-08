@@ -1,6 +1,6 @@
-from chessapp.application.handlers.base_event_handler import BaseEventHandler
-from chessapp.domain.events.game_created import GameCreated
-from chessapp.infrastructure.repositories.chess_game_repository import ChessGameRepository
+from ...application.handlers.base_event_handler import BaseEventHandler
+from ...domain.events.game_created import GameCreated
+from ...infrastructure.repositories.chess_game_repository import ChessGameRepository
 
 
 class GameCreatedEventHandler(BaseEventHandler[GameCreated, None]):

@@ -1,4 +1,4 @@
-from chessapp.domain.rules.game_rule import GameRule
+from ...domain.rules.game_rule import GameRule
 
 
 class CastlingRule(GameRule):

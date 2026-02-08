@@ -1,5 +1,5 @@
-from chessapp.domain.chessboard.file import File
-from chessapp.domain.chessboard.rank import Rank
+from ...domain.chessboard.file import File
+from ...domain.chessboard.rank import Rank
 
 
 class Position:

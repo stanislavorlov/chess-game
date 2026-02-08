@@ -1,11 +1,11 @@
 import datetime
-from chessapp.application.commands.create_game_command import CreateGameCommand
-from chessapp.application.handlers.base_command_handler import BaseCommandHandler
-from chessapp.domain.game.chess_game import ChessGame
-from chessapp.domain.players.player_id import PlayerId
-from chessapp.domain.players.players import Players
-from chessapp.domain.value_objects.game_information import GameInformation
-from chessapp.infrastructure.repositories.chess_game_repository import ChessGameRepository
+from ...application.commands.create_game_command import CreateGameCommand
+from ...application.handlers.base_command_handler import BaseCommandHandler
+from ...domain.game.chess_game import ChessGame
+from ...domain.players.player_id import PlayerId
+from ...domain.players.players import Players
+from ...domain.value_objects.game_information import GameInformation
+from ...infrastructure.repositories.chess_game_repository import ChessGameRepository
 
 
 class CreateGameCommandHandler(BaseCommandHandler[CreateGameCommand, None]):

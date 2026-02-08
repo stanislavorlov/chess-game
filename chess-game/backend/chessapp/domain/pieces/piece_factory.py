@@ -1,12 +1,12 @@
-from chessapp.domain.pieces.bishop import Bishop
-from chessapp.domain.pieces.king import King
-from chessapp.domain.pieces.knight import Knight
-from chessapp.domain.pieces.pawn import Pawn
-from chessapp.domain.pieces.piece_type import PieceType
-from chessapp.domain.pieces.queen import Queen
-from chessapp.domain.pieces.rook import Rook
-from chessapp.domain.value_objects.piece_id import PieceId
-from chessapp.domain.value_objects.side import Side
+from ...domain.pieces.bishop import Bishop
+from ...domain.pieces.king import King
+from ...domain.pieces.knight import Knight
+from ...domain.pieces.pawn import Pawn
+from ...domain.pieces.piece_type import PieceType
+from ...domain.pieces.queen import Queen
+from ...domain.pieces.rook import Rook
+from ...domain.value_objects.piece_id import PieceId
+from ...domain.value_objects.side import Side
 
 
 class PieceFactory(object):

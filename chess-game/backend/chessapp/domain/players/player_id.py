@@ -1,6 +1,6 @@
 from dataclass_factory.naming import lower
-from chessapp.domain.kernel.value_object import ValueObject
-from chessapp.domain.value_objects.side import Side
+from ...domain.kernel.value_object import ValueObject
+from ...domain.value_objects.side import Side
 
 
 class PlayerId(ValueObject):

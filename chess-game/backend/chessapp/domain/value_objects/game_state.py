@@ -1,7 +1,7 @@
-from chessapp.domain.chessboard.board import Board
-from chessapp.domain.kernel.value_object import ValueObject
-from chessapp.domain.value_objects.game_status import GameStatus
-from chessapp.domain.value_objects.side import Side
+from ...domain.chessboard.board import Board
+from ...domain.kernel.value_object import ValueObject
+from ...domain.value_objects.game_status import GameStatus
+from ...domain.value_objects.side import Side
 
 
 class GameState(ValueObject):

@@ -1,7 +1,7 @@
 from typing import Optional
-from chessapp.domain.chessboard.position import Position
-from chessapp.domain.pieces.piece import Piece
-from chessapp.domain.value_objects.side import Side
+from ...domain.chessboard.position import Position
+from ...domain.pieces.piece import Piece
+from ...domain.value_objects.side import Side
 
 class Square:
     def __init__(self, position: Position, piece: Optional[Piece]):

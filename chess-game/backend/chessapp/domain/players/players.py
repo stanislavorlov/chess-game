@@ -1,4 +1,4 @@
-from chessapp.domain.players.player_id import PlayerId
+from ...domain.players.player_id import PlayerId
 
 
 class Players:

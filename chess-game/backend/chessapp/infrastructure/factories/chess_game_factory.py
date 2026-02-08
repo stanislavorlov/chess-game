@@ -1,23 +1,23 @@
 import datetime
-from chessapp.domain.chessboard.position import Position
-from chessapp.domain.events.game_created import GameCreated
-from chessapp.domain.events.game_started import GameStarted
-from chessapp.domain.events.piece_captured import PieceCaptured
-from chessapp.domain.events.piece_moved import PieceMoved
-from chessapp.domain.game.chess_game import ChessGame
-from chessapp.domain.game.game_history import ChessGameHistory
-from chessapp.domain.game.history_entry import ChessGameHistoryEntry
-from chessapp.domain.pieces.piece_factory import PieceFactory
-from chessapp.domain.pieces.piece_type import PieceType
-from chessapp.domain.players.player_id import PlayerId
-from chessapp.domain.players.players import Players
-from chessapp.domain.value_objects.game_format import GameFormat
-from chessapp.domain.value_objects.game_id import ChessGameId
-from chessapp.domain.value_objects.game_information import GameInformation
-from chessapp.domain.value_objects.history_entry_id import HistoryEntryId
-from chessapp.domain.value_objects.piece_id import PieceId
-from chessapp.domain.value_objects.side import Side
-from chessapp.infrastructure.models import GameDocument, GameHistoryDocument
+from ...domain.chessboard.position import Position
+from ...domain.events.game_created import GameCreated
+from ...domain.events.game_started import GameStarted
+from ...domain.events.piece_captured import PieceCaptured
+from ...domain.events.piece_moved import PieceMoved
+from ...domain.game.chess_game import ChessGame
+from ...domain.game.game_history import ChessGameHistory
+from ...domain.game.history_entry import ChessGameHistoryEntry
+from ...domain.pieces.piece_factory import PieceFactory
+from ...domain.pieces.piece_type import PieceType
+from ...domain.players.player_id import PlayerId
+from ...domain.players.players import Players
+from ...domain.value_objects.game_format import GameFormat
+from ...domain.value_objects.game_id import ChessGameId
+from ...domain.value_objects.game_information import GameInformation
+from ...domain.value_objects.history_entry_id import HistoryEntryId
+from ...domain.value_objects.piece_id import PieceId
+from ...domain.value_objects.side import Side
+from ...infrastructure.models import GameDocument, GameHistoryDocument
 
 
 class ChessGameFactory:

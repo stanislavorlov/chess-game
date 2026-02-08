@@ -3,13 +3,13 @@ from typing import Dict, Any, Annotated
 from beanie import PydanticObjectId
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from chessapp.application.commands.create_game_command import CreateGameCommand
-from chessapp.application.queries.chess_game_query import ChessGameQuery
-from chessapp.domain.value_objects.game_format import GameFormat
-from chessapp.domain.value_objects.game_id import ChessGameId
-from chessapp.infrastructure.mediator.container import setup_mediator
-from chessapp.infrastructure.mediator.mediator import Mediator
-from chessapp.interface.api.models.create_board import CreateBoard
+from ....application.commands.create_game_command import CreateGameCommand
+from ....application.queries.chess_game_query import ChessGameQuery
+from ....domain.value_objects.game_format import GameFormat
+from ....domain.value_objects.game_id import ChessGameId
+from ....infrastructure.mediator.container import setup_mediator
+from ....infrastructure.mediator.mediator import Mediator
+from ....interface.api.models.create_board import CreateBoard
 
 router = APIRouter(prefix="/api/game")
 

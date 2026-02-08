@@ -1,12 +1,12 @@
 import datetime
-from chessapp.domain.events.game_created import GameCreated
-from chessapp.domain.events.game_started import GameStarted
-from chessapp.domain.events.piece_captured import PieceCaptured
-from chessapp.domain.events.piece_move_failed import PieceMoveFailed
-from chessapp.domain.events.piece_moved import PieceMoved
-from chessapp.domain.game.chess_game import ChessGame
-from chessapp.infrastructure.models import GameHistoryDocument
-from chessapp.infrastructure.models.game_history_document import PieceModel
+from ...domain.events.game_created import GameCreated
+from ...domain.events.game_started import GameStarted
+from ...domain.events.piece_captured import PieceCaptured
+from ...domain.events.piece_move_failed import PieceMoveFailed
+from ...domain.events.piece_moved import PieceMoved
+from ...domain.game.chess_game import ChessGame
+from ...infrastructure.models import GameHistoryDocument
+from ...infrastructure.models.game_history_document import PieceModel
 
 
 class GameHistoryDocumentFactory:

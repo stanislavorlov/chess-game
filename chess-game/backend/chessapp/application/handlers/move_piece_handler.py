@@ -2,10 +2,10 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from chessapp.application.commands.move_piece_command import MovePieceCommand
-from chessapp.application.handlers.base_command_handler import BaseCommandHandler
-from chessapp.application.services.movement_service import MovementService
-from chessapp.interface.api.websockets.managers import ConnectionManager
+from ...application.commands.move_piece_command import MovePieceCommand
+from ...application.handlers.base_command_handler import BaseCommandHandler
+from ...application.services.movement_service import MovementService
+from ...interface.api.websockets.managers import ConnectionManager
 
 
 class MovePieceHandler(BaseCommandHandler[MovePieceCommand, None]):

@@ -1,10 +1,10 @@
-from chessapp.domain.chessboard.position import Position
-from chessapp.domain.movements.movement import Movement
-from chessapp.domain.movements.movement_intent_factory import MovementIntentFactory
-from chessapp.domain.movements.movement_specification import MovementSpecification
-from chessapp.domain.pieces.piece import Piece
-from chessapp.domain.value_objects.game_id import ChessGameId
-from chessapp.infrastructure.repositories.chess_game_repository import ChessGameRepository
+from ...domain.chessboard.position import Position
+from ...domain.movements.movement import Movement
+from ...domain.movements.movement_intent_factory import MovementIntentFactory
+from ...domain.movements.movement_specification import MovementSpecification
+from ...domain.pieces.piece import Piece
+from ...domain.value_objects.game_id import ChessGameId
+from ...infrastructure.repositories.chess_game_repository import ChessGameRepository
 
 
 class MovementService:

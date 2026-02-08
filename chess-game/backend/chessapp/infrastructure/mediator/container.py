@@ -7,20 +7,20 @@ from functools import lru_cache
 # from diator.middlewares import MiddlewareChain
 # from diator.requests import RequestMap
 #from rodi import Container, ServiceLifeStyle
-from chessapp.application.commands.move_piece_command import MovePieceCommand
-from chessapp.application.handlers.game_created_handler import GameCreatedEventHandler
-from chessapp.application.handlers.game_query_handler import ChessGameQueryHandler
-from chessapp.application.handlers.game_started_handler import GameStartedEventHandler
-from chessapp.application.handlers.create_game_handler import CreateGameCommandHandler
-from chessapp.application.commands.create_game_command import CreateGameCommand
-from chessapp.application.handlers.move_piece_handler import MovePieceHandler
-from chessapp.application.queries.chess_game_query import ChessGameQuery
-from chessapp.application.services.movement_service import MovementService
-from chessapp.domain.events.game_created import GameCreated
-from chessapp.domain.events.game_started import GameStarted
-from chessapp.infrastructure.mediator.mediator import Mediator
-from chessapp.infrastructure.repositories.chess_game_repository import ChessGameRepository
-from chessapp.interface.api.websockets.managers import BaseConnectionManager, ConnectionManager
+from ...application.commands.move_piece_command import MovePieceCommand
+from ...application.handlers.game_created_handler import GameCreatedEventHandler
+from ...application.handlers.game_query_handler import ChessGameQueryHandler
+from ...application.handlers.game_started_handler import GameStartedEventHandler
+from ...application.handlers.create_game_handler import CreateGameCommandHandler
+from ...application.commands.create_game_command import CreateGameCommand
+from ...application.handlers.move_piece_handler import MovePieceHandler
+from ...application.queries.chess_game_query import ChessGameQuery
+from ...application.services.movement_service import MovementService
+from ...domain.events.game_created import GameCreated
+from ...domain.events.game_started import GameStarted
+from ...infrastructure.mediator.mediator import Mediator
+from ...infrastructure.repositories.chess_game_repository import ChessGameRepository
+from ...interface.api.websockets.managers import BaseConnectionManager, ConnectionManager
 from punq import (
     Container,
     Scope,

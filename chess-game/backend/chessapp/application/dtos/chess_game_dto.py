@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from chessapp.domain.kernel.base import BaseResponse
+from ...domain.kernel.base import BaseResponse
 
 
 @dataclass(frozen=True, kw_only=True)

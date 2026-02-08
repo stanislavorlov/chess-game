@@ -1,4 +1,4 @@
-from chessapp.domain.movements.delta.delta import Delta
+from ...domain.movements.delta.delta import Delta
 
 class File:
 

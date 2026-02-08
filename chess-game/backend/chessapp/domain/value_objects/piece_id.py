@@ -1,5 +1,5 @@
 import uuid
-from chessapp.domain.kernel.value_object import ValueObject
+from ...domain.kernel.value_object import ValueObject
 
 
 class PieceId(ValueObject):

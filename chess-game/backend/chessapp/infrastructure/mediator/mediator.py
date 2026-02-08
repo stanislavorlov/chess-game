@@ -7,10 +7,10 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Iterable
-from chessapp.application.handlers.base_command_handler import BaseCommandHandler, CT, RT as CR
-from chessapp.application.handlers.base_event_handler import BaseEventHandler, ET, RT as ER
-from chessapp.application.handlers.base_query_handler import BaseQueryHandler, QT, RT as QR
-from chessapp.infrastructure.mediator.exceptions import NoHandlerRegisteredException
+from ...application.handlers.base_command_handler import BaseCommandHandler, CT, RT as CR
+from ...application.handlers.base_event_handler import BaseEventHandler, ET, RT as ER
+from ...application.handlers.base_query_handler import BaseQueryHandler, QT, RT as QR
+from ...infrastructure.mediator.exceptions import NoHandlerRegisteredException
 
 
 @dataclass(eq=False, init=False)

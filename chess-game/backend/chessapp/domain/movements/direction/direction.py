@@ -1,4 +1,4 @@
-from chessapp.domain.movements.direction.direction_type import DirectionType
+from ....domain.movements.direction.direction_type import DirectionType
 
 class Direction:
 

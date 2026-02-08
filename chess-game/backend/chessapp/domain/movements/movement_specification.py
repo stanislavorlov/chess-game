@@ -1,5 +1,5 @@
-from chessapp.domain.movements.movement_intent import MovementIntent
-from chessapp.domain.rules.movements.piece_rule import PieceRule
+from ...domain.movements.movement_intent import MovementIntent
+from ...domain.rules.movements.piece_rule import PieceRule
 
 
 class MovementSpecification:

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TypeVar, Generic
-from chessapp.domain.kernel.base import BaseEvent
+from ...domain.kernel.base import BaseEvent
 
 ET = TypeVar('ET', bound=BaseEvent)
 RT = TypeVar('RT')

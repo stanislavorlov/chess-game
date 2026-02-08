@@ -1,5 +1,5 @@
 from typing import TypeVar
-from chessapp.domain.kernel.base import BaseEvent
+from ...domain.kernel.base import BaseEvent
 
 T = TypeVar('T', bound=BaseEvent)
 

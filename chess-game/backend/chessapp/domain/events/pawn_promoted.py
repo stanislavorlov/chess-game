@@ -1,4 +1,4 @@
-from chessapp.domain.kernel.base import BaseEvent
+from ...domain.kernel.base import BaseEvent
 
 
 class PawnPromoted(BaseEvent):

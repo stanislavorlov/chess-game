@@ -1,7 +1,7 @@
 from abc import abstractmethod
-from chessapp.domain.pieces.piece_type import PieceType
-from chessapp.domain.value_objects.piece_id import PieceId
-from chessapp.domain.value_objects.side import Side
+from ...domain.pieces.piece_type import PieceType
+from ...domain.value_objects.piece_id import PieceId
+from ...domain.value_objects.side import Side
 
 class Piece(object):
     def __init__(self, piece_id: PieceId, side: Side, type_: PieceType):

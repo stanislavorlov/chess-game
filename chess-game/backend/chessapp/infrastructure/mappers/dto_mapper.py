@@ -1,9 +1,9 @@
-from chessapp.application.dtos.chess_game_dto import ChessGameDto, GameStateDto, GameFormatDto, PlayersDto
-from chessapp.domain.chessboard.board import Board
-from chessapp.domain.chessboard.square import Square
-from chessapp.domain.events.piece_moved import PieceMoved
-from chessapp.domain.game.chess_game import ChessGame
-from chessapp.domain.game.game_history import ChessGameHistory
+from ...application.dtos.chess_game_dto import ChessGameDto, GameStateDto, GameFormatDto, PlayersDto
+from ...domain.chessboard.board import Board
+from ...domain.chessboard.square import Square
+from ...domain.events.piece_moved import PieceMoved
+from ...domain.game.chess_game import ChessGame
+from ...domain.game.game_history import ChessGameHistory
 
 
 class DtoMapper:

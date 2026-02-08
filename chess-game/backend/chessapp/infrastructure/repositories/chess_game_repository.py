@@ -1,10 +1,10 @@
 from beanie import PydanticObjectId
-from chessapp.domain.game.chess_game import ChessGame
-from chessapp.infrastructure.factories.chess_game_factory import ChessGameFactory
-from chessapp.infrastructure.factories.game_document_factory import GameDocumentFactory
-from chessapp.infrastructure.factories.history_document_factory import GameHistoryDocumentFactory
-from chessapp.infrastructure.models import GameHistoryDocument
-from chessapp.infrastructure.models.game_document import GameDocument
+from ...domain.game.chess_game import ChessGame
+from ...infrastructure.factories.chess_game_factory import ChessGameFactory
+from ...infrastructure.factories.game_document_factory import GameDocumentFactory
+from ...infrastructure.factories.history_document_factory import GameHistoryDocumentFactory
+from ...infrastructure.models import GameHistoryDocument
+from ...infrastructure.models.game_document import GameDocument
 
 
 class ChessGameRepository:

@@ -1,9 +1,9 @@
 import math
-from chessapp.domain.rules.movements.king_rule import KingRule
-from chessapp.domain.pieces.piece import Piece
-from chessapp.domain.pieces.piece_type import PieceType
-from chessapp.domain.value_objects.piece_id import PieceId
-from chessapp.domain.value_objects.side import Side
+from ...domain.rules.movements.king_rule import KingRule
+from ...domain.pieces.piece import Piece
+from ...domain.pieces.piece_type import PieceType
+from ...domain.value_objects.piece_id import PieceId
+from ...domain.value_objects.side import Side
 
 class King(Piece):
 

@@ -1,7 +1,7 @@
 import math
 from datetime import timedelta
 import pandas as pd
-from chessapp.domain.kernel.value_object import ValueObject
+from ...domain.kernel.value_object import ValueObject
 
 
 class TimeFormat(ValueObject):

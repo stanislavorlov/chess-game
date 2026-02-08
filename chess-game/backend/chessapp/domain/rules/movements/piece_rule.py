@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from chessapp.domain.movements.movement_intent import MovementIntent
+from ....domain.movements.movement_intent import MovementIntent
 
 class PieceRule(ABC):
 

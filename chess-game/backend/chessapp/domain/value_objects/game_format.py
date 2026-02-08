@@ -1,6 +1,6 @@
 from datetime import timedelta
-from chessapp.domain.kernel.value_object import ValueObject
-from chessapp.domain.value_objects.time_format import TimeFormat
+from ...domain.kernel.value_object import ValueObject
+from ...domain.value_objects.time_format import TimeFormat
 
 
 class GameFormat(ValueObject):

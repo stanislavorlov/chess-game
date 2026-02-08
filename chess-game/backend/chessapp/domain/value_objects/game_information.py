@@ -1,6 +1,6 @@
 from datetime import datetime
-from chessapp.domain.kernel.value_object import ValueObject
-from chessapp.domain.value_objects.game_format import GameFormat
+from ...domain.kernel.value_object import ValueObject
+from ...domain.value_objects.game_format import GameFormat
 
 
 class GameInformation(ValueObject):

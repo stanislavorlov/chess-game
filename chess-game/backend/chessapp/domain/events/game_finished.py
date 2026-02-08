@@ -1,6 +1,6 @@
 from datetime import datetime
-from chessapp.domain.kernel.base import BaseEvent
-from chessapp.domain.value_objects.game_id import ChessGameId
+from ...domain.kernel.base import BaseEvent
+from ...domain.value_objects.game_id import ChessGameId
 
 
 class GameFinished(BaseEvent):

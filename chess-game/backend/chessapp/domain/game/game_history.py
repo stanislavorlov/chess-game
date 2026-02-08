@@ -1,8 +1,8 @@
 from typing import List
-from chessapp.domain.game.history_entry import ChessGameHistoryEntry
-from chessapp.domain.kernel.base import BaseEvent
-from chessapp.domain.kernel.entity import Entity
-from chessapp.domain.value_objects.history_entry_id import HistoryEntryId
+from ...domain.game.history_entry import ChessGameHistoryEntry
+from ...domain.kernel.base import BaseEvent
+from ...domain.kernel.entity import Entity
+from ...domain.value_objects.history_entry_id import HistoryEntryId
 
 
 class ChessGameHistory(Entity):

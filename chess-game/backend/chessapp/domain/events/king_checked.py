@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from chessapp.domain.kernel.base import BaseEvent
+from ...domain.kernel.base import BaseEvent
 
 
 @dataclass(frozen=True, kw_only=True)

@@ -1,7 +1,7 @@
-from chessapp.domain.movements.movement_intent import MovementIntent
-from chessapp.domain.rules.movements.bishop_rule import BishopRule
-from chessapp.domain.rules.movements.piece_rule import PieceRule
-from chessapp.domain.rules.movements.rook_rule import RookRule
+from ....domain.movements.movement_intent import MovementIntent
+from ....domain.rules.movements.bishop_rule import BishopRule
+from ....domain.rules.movements.piece_rule import PieceRule
+from ....domain.rules.movements.rook_rule import RookRule
 
 class QueenRule(PieceRule):
 

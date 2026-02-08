@@ -1,9 +1,3 @@
-# ToDo: custom MediatR in punq
-
-# https://github.com/Resheba/CQRS-fastapi/blob/main/src/infrastructure/mediator.py
-
-# https://github.com/Resheba/CQRS-fastapi/blob/main/src/infrastructure/setup/container.py
-
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Iterable
@@ -28,7 +22,7 @@ class Mediator:
         self._query_map: defaultdict[QT, list[BaseQueryHandler]] = defaultdict(list)
         self._events_map: defaultdict[ET, list[BaseEventHandler]] = defaultdict(list)
 
-    def _reset(self) -> None:
+    def reset(self) -> None:
         self._commands_map: defaultdict[CT, list[BaseCommandHandler]] = defaultdict(list)
         self._query_map: defaultdict[QT, list[BaseQueryHandler]] = defaultdict(list)
         self._events_map: defaultdict[ET, list[BaseEventHandler]] = defaultdict(list)

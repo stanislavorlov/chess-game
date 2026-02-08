@@ -17,7 +17,7 @@ from ...infrastructure.mediator.mediator import Mediator
 from ...infrastructure.config.config import Settings
 from ...infrastructure.repositories.chess_game_repository import ChessGameRepository
 from ...infrastructure.services.redis_service import RedisService
-from ...infrastructure.services.kafka_service import KafkaProducerService
+from ...infrastructure.services.kafka_service import KafkaService
 from ...interface.api.websockets.managers import BaseConnectionManager, ConnectionManager
 
 @lru_cache(1)
@@ -25,12 +25,14 @@ def get_settings() -> Settings:
     return Settings()
 
 @lru_cache(1)
-def get_redis_service(settings: Annotated[Settings, Depends(get_settings)]) -> RedisService:
+def get_redis_service() -> RedisService:
+    settings = get_settings()
     return RedisService(settings)
 
 @lru_cache(1)
-def get_kafka_service(settings: Annotated[Settings, Depends(get_settings)]) -> KafkaProducerService:
-    return KafkaProducerService(settings)
+def get_kafka_service() -> KafkaService:
+    settings = get_settings()
+    return KafkaService(settings)
 
 @lru_cache(1)
 def get_connection_manager() -> ConnectionManager:
@@ -45,15 +47,15 @@ def get_logger() -> logging.Logger:
 
 def get_mediator(
     repo: Annotated[ChessGameRepository, Depends(get_repository)],
-    connection_manager: Annotated[ConnectionManager, Depends(get_connection_manager)],
+    redis_service: Annotated[RedisService, Depends(get_redis_service)],
     logger: Annotated[logging.Logger, Depends(get_logger)]
 ) -> Mediator:
     mediator = Mediator()
     # Reset mediator for registration to avoid duplicate handlers if re-called (though Depends caches by default)
-    mediator._reset()
+    mediator.reset()
 
     mediator.register_command(CreateGameCommand, [CreateGameCommandHandler(repo)])
-    mediator.register_command(MovePieceCommand, [MovePieceHandler(repo, connection_manager, logger)])
+    mediator.register_command(MovePieceCommand, [MovePieceHandler(repo, redis_service, logger)])
     mediator.register_query(ChessGameQuery, [ChessGameQueryHandler(repo)])
     mediator.register_event(GameCreated, [GameCreatedEventHandler(repo)])
     mediator.register_event(GameStarted, [GameStartedEventHandler(repo)])

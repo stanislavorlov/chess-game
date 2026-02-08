@@ -42,8 +42,6 @@ async def get_board(mediator: Annotated[Mediator, Depends(get_mediator)], game_i
     try:
         game_id = ChessGameId(PydanticObjectId(game_id))
 
-        print(mediator)
-
         query_result = await mediator.handle_query(ChessGameQuery(game_id=game_id))
 
         return GameResponse(status=200, data=next(iter(query_result)))

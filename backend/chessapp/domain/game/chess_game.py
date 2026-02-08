@@ -107,16 +107,16 @@ class ChessGame(AggregateRoot):
     def move_piece(self, piece: Piece, _from: Position, to: Position):
         if not self._state.is_started:
             self.raise_event(
-                PieceMoveFailed(piece=piece, from_=_from, to=to, reason='Game was not started'))
+                PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason='Game was not started'))
         elif self._state.is_finished:
             self.raise_event(
-                PieceMoveFailed(piece=piece, from_=_from, to=to, reason='Game has finished'))
+                PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason='Game has finished'))
         elif not self._state.turn == piece.get_side():
             self.raise_event(
-                PieceMoveFailed(piece=piece, from_=_from, to=to, reason="Piece doesn't belong to player"))
+                PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Piece doesn't belong to player"))
         elif self.is_check and piece.get_piece_type() != PieceType.King:
             self.raise_event(
-                PieceMoveFailed(piece=piece, from_=_from, to=to, reason="King is checked"))
+                PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="King is checked"))
         else:
             movement = Movement(piece, _from, to)
             movement_specification = MovementSpecification(piece.get_rule())
@@ -129,7 +129,7 @@ class ChessGame(AggregateRoot):
                 self.__switch_turn_from(self._state.turn)
             else:
                 self.raise_event(
-                    PieceMoveFailed(piece=piece, from_=_from, to=to, reason="Illegal move for this piece"))
+                    PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Illegal move for this piece"))
 
         self.calculate_move_effect()
 

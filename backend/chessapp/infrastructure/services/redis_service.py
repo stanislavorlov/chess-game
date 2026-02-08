@@ -16,6 +16,21 @@ class RedisService:
         r = await self.connect()
         await r.publish(channel, message)
 
+    async def subscribe(self, channel_pattern: str):
+        r = await self.connect()
+        pubsub = r.pubsub()
+        if '*' in channel_pattern:
+            await pubsub.psubscribe(channel_pattern)
+        else:
+            await pubsub.subscribe(channel_pattern)
+        
+        try:
+            async for message in pubsub.listen():
+                if message['type'] in ('message', 'pmessage'):
+                    yield message['data']
+        finally:
+            await pubsub.close()
+
     async def disconnect(self):
         if self._redis:
             await self._redis.close()

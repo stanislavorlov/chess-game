@@ -1,4 +1,5 @@
 import traceback
+import logging
 from typing import Dict, Any, Annotated
 from beanie import PydanticObjectId
 from fastapi import APIRouter, Depends
@@ -12,6 +13,7 @@ from ....infrastructure.mediator.mediator import Mediator
 from ....interface.api.models.create_board import CreateBoard
 
 router = APIRouter(prefix="/api/game")
+logger = logging.getLogger("chessapp")
 
 class GameResponse(BaseModel):
     status: int
@@ -28,17 +30,14 @@ async def create_board(mediator: Annotated[Mediator, Depends(get_mediator)],
 
         query_result = await mediator.handle_query(ChessGameQuery(game_id=game_id))
 
-        return {
-            "status": 200,
-            "data": GameResponse(status=200, data=next(query_result))
-        }
-    except Exception as e:
-        print(e)
-        print(traceback.format_exc())
+        logger.debug(f"ChessGameQuery result: {query_result}")
 
-        return {
-            "status": 400
-        }
+        return GameResponse(status=200, data=next(iter(query_result)))
+    except Exception as e:
+        logger.error(f"Error creating board: {e}")
+        logger.error(traceback.format_exc())
+
+        return GameResponse(status=400)
 
 @router.get("/board/{game_id}")
 async def get_board(mediator: Annotated[Mediator, Depends(get_mediator)], game_id: str):
@@ -51,9 +50,7 @@ async def get_board(mediator: Annotated[Mediator, Depends(get_mediator)], game_i
 
         return GameResponse(status=200, data=next(iter(query_result)))
     except Exception as e:
-        print(e)
-        print(traceback.format_exc())
+        logger.error(f"Error getting board: {e}")
+        logger.error(traceback.format_exc())
 
-        return {
-            "status": 400
-        }
+        return GameResponse(status=400)

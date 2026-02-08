@@ -1,4 +1,5 @@
 import json
+import logging
 import traceback
 from contextlib import asynccontextmanager
 from typing import Annotated
@@ -18,6 +19,16 @@ from ..infrastructure.mediator.container import get_mediator, get_connection_man
 from ..infrastructure.mediator.mediator import Mediator
 from ..interface.api.routes import game_api, move_api, piece_api
 from ..interface.api.websockets.managers import BaseConnectionManager, ConnectionManager
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger("chessapp")
+
+# Silence noisy third-party logs
+logging.getLogger("pymongo").setLevel(logging.WARNING)
+logging.getLogger("motor").setLevel(logging.WARNING)
 
 
 @asynccontextmanager

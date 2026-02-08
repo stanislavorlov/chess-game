@@ -26,13 +26,11 @@ async def create_board(mediator: Annotated[Mediator, Depends(get_mediator)],
     try:
         game_id = ChessGameId.generate_id()
         game_format_obj = GameFormat.parse_string(model.game_format, model.time, model.additional)
-        await mediator.handle_command(CreateGameCommand(game_id=game_id, game_format=game_format_obj, name=model.name))
+        command_result = await mediator.handle_command(CreateGameCommand(game_id=game_id, game_format=game_format_obj, name=model.name))
 
-        query_result = await mediator.handle_query(ChessGameQuery(game_id=game_id))
+        logger.debug(f"CreateGameCommand result: {command_result}")
 
-        logger.debug(f"ChessGameQuery result: {query_result}")
-
-        return GameResponse(status=200, data=next(iter(query_result)))
+        return GameResponse(status=200, data=next(iter(command_result)))
     except Exception as e:
         logger.error(f"Error creating board: {e}")
         logger.error(traceback.format_exc())

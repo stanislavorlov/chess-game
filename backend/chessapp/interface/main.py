@@ -17,6 +17,8 @@ from ..infrastructure import models
 from ..infrastructure.config.config import Settings
 from ..infrastructure.mediator.container import get_mediator, get_connection_manager
 from ..infrastructure.mediator.mediator import Mediator
+from ..infrastructure.services.redis_service import RedisService
+from ..infrastructure.services.kafka_service import KafkaProducerService
 from ..interface.api.routes import game_api, move_api, piece_api
 from ..interface.api.websockets.managers import BaseConnectionManager, ConnectionManager
 
@@ -34,15 +36,33 @@ logging.getLogger("motor").setLevel(logging.WARNING)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    client = AsyncIOMotorClient(Settings().MONGO_HOST)
+    settings = Settings()
+    client = AsyncIOMotorClient(settings.MONGO_HOST)
     await init_beanie(
-        database=client.get_database(Settings().MONGO_DB),
+        database=client.get_database(settings.MONGO_DB),
         document_models=models.__all__
     )
+
+    # Initialize Redis and Kafka
+    redis_service = RedisService(settings)
+    kafka_service = KafkaProducerService(settings)
+    
+    # We can't easily use Depends here inside lifespan, 
+    # so we'll just instantiate them or use a singleton pattern if we had one.
+    # Actually, the container providers use @lru_cache(1), so we can just call them.
+    # But Depends(get_settings) won't work here.
+    
+    app.state.redis = redis_service
+    app.state.kafka = kafka_service
+    
+    # Optional: connect/start them now if you want them warm
+    # await kafka_service.start() 
 
     yield
 
     # shutdown code goes here:
+    await kafka_service.stop()
+    await redis_service.disconnect()
     client.close()
 
 

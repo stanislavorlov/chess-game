@@ -14,8 +14,23 @@ from ...application.queries.chess_game_query import ChessGameQuery
 from ...domain.events.game_created import GameCreated
 from ...domain.events.game_started import GameStarted
 from ...infrastructure.mediator.mediator import Mediator
+from ...infrastructure.config.config import Settings
 from ...infrastructure.repositories.chess_game_repository import ChessGameRepository
+from ...infrastructure.services.redis_service import RedisService
+from ...infrastructure.services.kafka_service import KafkaProducerService
 from ...interface.api.websockets.managers import BaseConnectionManager, ConnectionManager
+
+@lru_cache(1)
+def get_settings() -> Settings:
+    return Settings()
+
+@lru_cache(1)
+def get_redis_service(settings: Annotated[Settings, Depends(get_settings)]) -> RedisService:
+    return RedisService(settings)
+
+@lru_cache(1)
+def get_kafka_service(settings: Annotated[Settings, Depends(get_settings)]) -> KafkaProducerService:
+    return KafkaProducerService(settings)
 
 @lru_cache(1)
 def get_connection_manager() -> ConnectionManager:

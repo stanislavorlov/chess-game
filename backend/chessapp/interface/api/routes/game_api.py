@@ -7,7 +7,7 @@ from ....application.commands.create_game_command import CreateGameCommand
 from ....application.queries.chess_game_query import ChessGameQuery
 from ....domain.value_objects.game_format import GameFormat
 from ....domain.value_objects.game_id import ChessGameId
-from ....infrastructure.mediator.container import setup_mediator
+from ....infrastructure.mediator.container import get_mediator
 from ....infrastructure.mediator.mediator import Mediator
 from ....interface.api.models.create_board import CreateBoard
 
@@ -19,7 +19,7 @@ class GameResponse(BaseModel):
 
 
 @router.post("/create_board/")
-async def create_board(mediator: Annotated[Mediator, Depends(setup_mediator)],
+async def create_board(mediator: Annotated[Mediator, Depends(get_mediator)],
                        model: CreateBoard):
     try:
         game_id = ChessGameId.generate_id()
@@ -41,7 +41,7 @@ async def create_board(mediator: Annotated[Mediator, Depends(setup_mediator)],
         }
 
 @router.get("/board/{game_id}")
-async def get_board(mediator: Annotated[Mediator, Depends(setup_mediator)], game_id: str):
+async def get_board(mediator: Annotated[Mediator, Depends(get_mediator)], game_id: str):
     try:
         game_id = ChessGameId(PydanticObjectId(game_id))
 

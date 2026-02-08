@@ -9,8 +9,9 @@ from ...interface.api.websockets.managers import ConnectionManager
 
 
 class MovePieceHandler(BaseCommandHandler[MovePieceCommand, None]):
-    movement_service: MovementService
-    socket_manager: ConnectionManager
+    def __init__(self, movement_service: MovementService, socket_manager: ConnectionManager):
+        self.movement_service = movement_service
+        self.socket_manager = socket_manager
 
     async def handle(self, event: MovePieceCommand) -> None:
         print('PieceMovedHandler got called')

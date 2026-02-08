@@ -9,7 +9,8 @@ from ...infrastructure.repositories.chess_game_repository import ChessGameReposi
 
 
 class CreateGameCommandHandler(BaseCommandHandler[CreateGameCommand, None]):
-    repository: ChessGameRepository
+    def __init__(self, repository: ChessGameRepository):
+        self.repository = repository
 
     async def handle(self, request: CreateGameCommand) -> None:
         game_info = GameInformation(request.game_format, datetime.datetime.now(), request.name)

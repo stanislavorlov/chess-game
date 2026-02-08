@@ -4,7 +4,8 @@ from ...infrastructure.repositories.chess_game_repository import ChessGameReposi
 
 
 class GameCreatedEventHandler(BaseEventHandler[GameCreated, None]):
-    repository: ChessGameRepository
+    def __init__(self, repository: ChessGameRepository):
+        self.repository = repository
 
     async def handle(self, event: GameCreated) -> None:
         print('GameCreatedHandler handle GameCreated')

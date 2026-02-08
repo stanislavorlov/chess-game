@@ -7,9 +7,9 @@ from ...infrastructure.mappers.dto_mapper import DtoMapper
 from ...infrastructure.repositories.chess_game_repository import ChessGameRepository
 
 
-@dataclass(frozen=True, kw_only=True)
 class ChessGameQueryHandler(BaseQueryHandler[ChessGameQuery, ChessGameDto]):
-    repository: ChessGameRepository
+    def __init__(self, repository: ChessGameRepository):
+        self.repository = repository
 
     async def handle(self, request: ChessGameQuery) -> ChessGameDto:
         game = await self.repository.find(request.game_id.value)

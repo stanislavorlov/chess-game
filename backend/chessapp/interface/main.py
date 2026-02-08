@@ -3,12 +3,9 @@ import traceback
 from contextlib import asynccontextmanager
 from typing import Annotated
 from beanie import PydanticObjectId, init_beanie
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from fastapi.params import Depends
 from motor.motor_asyncio import AsyncIOMotorClient
-from punq import Container
-#from rodi import Container
-from starlette.websockets import WebSocket, WebSocketState, WebSocketDisconnect
 from ..application.commands.move_piece_command import MovePieceCommand
 from ..domain.chessboard.position import Position
 from ..domain.pieces.piece_factory import PieceFactory
@@ -17,7 +14,7 @@ from ..domain.value_objects.piece_id import PieceId
 from ..domain.value_objects.side import Side
 from ..infrastructure import models
 from ..infrastructure.config.config import Settings
-from ..infrastructure.mediator.container import init_container, setup_mediator
+from ..infrastructure.mediator.container import get_mediator, get_connection_manager
 from ..infrastructure.mediator.mediator import Mediator
 from ..interface.api.routes import game_api, move_api, piece_api
 from ..interface.api.websockets.managers import BaseConnectionManager, ConnectionManager
@@ -31,8 +28,6 @@ async def lifespan(app: FastAPI):
         document_models=models.__all__
     )
 
-    container: Container = init_container()
-
     yield
 
     # shutdown code goes here:
@@ -40,7 +35,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan, debug=True)
-container: Container = None
 
 app.include_router(game_api.router)
 app.include_router(move_api.router)
@@ -50,8 +44,8 @@ app.include_router(piece_api.router)
 async def websocket_endpoint(
         game_id: str,
         websocket: WebSocket,
-        connection_manager: Annotated[ConnectionManager, Depends(ConnectionManager)],
-        mediator: Annotated[Mediator, Depends(setup_mediator)]
+        connection_manager: Annotated[ConnectionManager, Depends(get_connection_manager)],
+        mediator: Annotated[Mediator, Depends(get_mediator)]
 ):
 
     # ToDo: store connection in Redis instead of memory

@@ -1,13 +1,8 @@
+import logging
 from functools import lru_cache
 from typing import Annotated
 from fastapi import Depends
 
-from ...application.commands.move_piece_command import MovePieceCommand
-from ...application.handlers.game_created_handler import GameCreatedEventHandler
-from ...application.handlers.game_query_handler import ChessGameQueryHandler
-from ...application.handlers.game_started_handler import GameStartedEventHandler
-from ...application.handlers.create_game_handler import CreateGameCommandHandler
-from ...application.commands.create_game_command import CreateGameCommand
 from ...application.commands.move_piece_command import MovePieceCommand
 from ...application.handlers.game_created_handler import GameCreatedEventHandler
 from ...application.handlers.game_query_handler import ChessGameQueryHandler
@@ -29,16 +24,21 @@ def get_connection_manager() -> ConnectionManager:
 def get_repository() -> ChessGameRepository:
     return ChessGameRepository()
 
+@lru_cache(1)
+def get_logger() -> logging.Logger:
+    return logging.getLogger("chessapp")
+
 def get_mediator(
     repo: Annotated[ChessGameRepository, Depends(get_repository)],
-    connection_manager: Annotated[ConnectionManager, Depends(get_connection_manager)]
+    connection_manager: Annotated[ConnectionManager, Depends(get_connection_manager)],
+    logger: Annotated[logging.Logger, Depends(get_logger)]
 ) -> Mediator:
     mediator = Mediator()
     # Reset mediator for registration to avoid duplicate handlers if re-called (though Depends caches by default)
     mediator._reset()
 
     mediator.register_command(CreateGameCommand, [CreateGameCommandHandler(repo)])
-    mediator.register_command(MovePieceCommand, [MovePieceHandler(repo, connection_manager)])
+    mediator.register_command(MovePieceCommand, [MovePieceHandler(repo, connection_manager, logger)])
     mediator.register_query(ChessGameQuery, [ChessGameQueryHandler(repo)])
     mediator.register_event(GameCreated, [GameCreatedEventHandler(repo)])
     mediator.register_event(GameStarted, [GameStartedEventHandler(repo)])

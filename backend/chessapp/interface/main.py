@@ -23,6 +23,7 @@ from ..interface.api.websockets.managers import BaseConnectionManager, Connectio
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    force=True,
 )
 logger = logging.getLogger("chessapp")
 
@@ -93,6 +94,7 @@ async def websocket_endpoint(
             from_=Position.parse(serialized_data['from']),
             to=Position.parse(serialized_data['to']))
 
+        logger.info("Websocket message received, handling MovePieceCommand")
         await mediator.handle_command(piece_moved)
 
     #except WebSocketDisconnect:

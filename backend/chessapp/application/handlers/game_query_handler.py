@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 from ...application.dtos.chess_game_dto import ChessGameDto
 from ...application.handlers.base_query_handler import BaseQueryHandler
 from ...application.queries.chess_game_query import ChessGameQuery

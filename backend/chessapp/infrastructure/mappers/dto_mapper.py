@@ -18,8 +18,8 @@ class DtoMapper:
 
         format_result = GameFormatDto(
             value=game.information.format.to_string(),
-            remaining_time=game.information.format.time_remaining.main_time,
-            additional_time=game.information.format.time_remaining.additional_time,
+            remaining_time=game.information.format.time_remaining.main_time.total_seconds(),
+            additional_time=game.information.format.time_remaining.additional_time.total_seconds(),
         )
 
         players_result = PlayersDto(

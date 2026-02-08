@@ -12,8 +12,8 @@ class GameStateDto:
 @dataclass(frozen=True, kw_only=True)
 class GameFormatDto:
     value: str
-    remaining_time: timedelta
-    additional_time: timedelta
+    remaining_time: float
+    additional_time: float
 
 @dataclass(frozen=True, kw_only=True)
 class PlayersDto:

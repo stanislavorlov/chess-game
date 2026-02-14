@@ -15,7 +15,6 @@ from ...domain.value_objects.game_format import GameFormat
 from ...domain.value_objects.game_id import ChessGameId
 from ...domain.value_objects.game_information import GameInformation
 from ...domain.value_objects.history_entry_id import HistoryEntryId
-from ...domain.value_objects.piece_id import PieceId
 from ...domain.value_objects.side import Side
 from ...infrastructure.models import GameDocument, GameHistoryDocument
 
@@ -24,10 +23,14 @@ class ChessGameFactory:
 
     @staticmethod
     async def create(document: GameDocument) -> ChessGame:
+        if document is None:
+            return None
+
         game_id: ChessGameId = ChessGameId(document.id)
         players = Players(PlayerId(document.players.white_id), PlayerId(document.players.black_id))
         game_format = GameFormat.parse_string(document.format.value, document.format.time_remaining,
                                               document.format.additional_time)
+        
         game_info = GameInformation(game_format, datetime.datetime.now(), document.game_name)
 
         history_entries = list()
@@ -49,7 +52,6 @@ class ChessGameFactory:
                     history_event = PieceMoved(
                         game_id=game_id,
                         piece=PieceFactory.create(
-                            PieceId(str(history_document.piece.piece_id)),
                             Side(history_document.piece.side),
                             PieceType.value_of(history_document.piece.type),
                         ),
@@ -60,7 +62,6 @@ class ChessGameFactory:
                     history_event = PieceCaptured(
                         game_id=game_id,
                         piece=PieceFactory.create(
-                            PieceId(str(history_document.piece.piece_id)),
                             Side(history_document.piece.side),
                             PieceType.value_of(history_document.piece.type),
                         ),
@@ -68,10 +69,16 @@ class ChessGameFactory:
                         to=Position.parse(history_document.to_position),
                     )
 
-            history_entries.append(ChessGameHistoryEntry(
-                entry_id=HistoryEntryId(history_document.id),
-                sequence_number=history_document.sequence_number,
-                history_event=history_event
-            ))
+            if history_event:
+                history_entries.append(ChessGameHistoryEntry(
+                    entry_id=HistoryEntryId(history_document.id),
+                    sequence_number=history_document.sequence_number,
+                    history_event=history_event
+                ))
 
-        return ChessGame(game_id, game_info, players, ChessGameHistory(history_entries))
+        return ChessGame(
+            game_id=game_id, 
+            information=game_info, 
+            players=players, 
+            history=ChessGameHistory(history_entries)
+        )

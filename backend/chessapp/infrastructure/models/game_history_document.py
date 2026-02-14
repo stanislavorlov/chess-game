@@ -6,7 +6,6 @@ from pydantic import Field, BaseModel
 
 
 class PieceModel(BaseModel):
-    piece_id: uuid.UUID
     side: str
     type: str
 

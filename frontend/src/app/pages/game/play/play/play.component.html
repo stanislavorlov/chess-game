@@ -7,9 +7,10 @@
     <mat-card-content class="b-t-1">
         <div class="row">
             <div class="col-lg-7">
-                <div class="row">
-                    <div style="font-weight: bold;">Player 1</div>
+                <div class="row player-indicator" [class.active]="game.turn.value === 'W'" *ngIf="game">
+                    <div style="font-weight: bold;">Player 1 (White)</div>
                     <div style="margin-left: 10px;"><span id="timer1"></span></div>
+                    <div *ngIf="game.turn.value === 'W'" class="turn-badge">YOUR TURN</div>
                 </div>
                 <div class="row" *ngIf="game">
                     <div class="board-grid">
@@ -28,9 +29,10 @@
                         </ng-container>
                     </div>
                 </div>
-                <div class="row">
-                    <div style="font-weight: bold;">Player 2</div>
+                <div class="row player-indicator" [class.active]="game.turn.value === 'B'" *ngIf="game">
+                    <div style="font-weight: bold;">Player 2 (Black)</div>
                     <div style="margin-left: 10px;"><span id="timer2"></span></div>
+                    <div *ngIf="game.turn.value === 'B'" class="turn-badge">YOUR TURN</div>
                 </div>
             </div>
             <div class="col-lg-4">

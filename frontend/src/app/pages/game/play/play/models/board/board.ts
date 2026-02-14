@@ -128,4 +128,14 @@ export class Board {
         }
         return result;
     }
+
+    public revertMove(fromId: string, toId: string, capturedPiece?: Piece | null) {
+        const fromCell = this.getCell(fromId);
+        const toCell = this.getCell(toId);
+
+        if (fromCell && toCell) {
+            fromCell.piece = toCell.piece;
+            toCell.piece = capturedPiece || null;
+        }
+    }
 }

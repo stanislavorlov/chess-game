@@ -16,7 +16,8 @@ class MovePieceHandler(BaseCommandHandler[MovePieceCommand, None]):
         self.logger.info('MovePieceHandler: processing move for game %s', event.game_id.value)
 
         chess_game = await self.repository.find(event.game_id.value)
-        chess_game.move_piece(event.piece, event.from_, event.to)
+        # Move piece now only requires from and to positions
+        chess_game.move_piece(event.from_, event.to)
 
         await self.repository.save(chess_game)
 

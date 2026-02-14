@@ -1,16 +1,10 @@
 from ...domain.chessboard.position import Position
-from ...domain.pieces.piece import Piece
 
 class Movement:
 
-    def __init__(self, piece: Piece, _from: Position, _to: Position):
-        self._piece = piece
+    def __init__(self, _from: Position, _to: Position):
         self._from = _from
         self._to = _to
-
-    @property
-    def piece(self):
-        return self._piece
 
     @property
     def from_position(self):
@@ -19,3 +13,15 @@ class Movement:
     @property
     def to_position(self):
         return self._to
+
+    def to_string(self):
+        return f'{str(self._from)} - {str(self._to)}'
+
+    def __eq__(self, other):
+        if isinstance(other, Movement):
+            return (self._from == other._from and 
+                    self._to == other._to)
+        return False
+        
+    def __hash__(self):
+        return hash((self._from, self._to))

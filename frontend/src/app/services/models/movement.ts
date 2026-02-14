@@ -6,11 +6,14 @@ export class Movement {
     public from: string;
     public to: string;
 
-    constructor(game_id: string, piece: Piece, from: string, to: string) {
+    public capturedPiece: Piece | null = null;
+
+    constructor(game_id: string, piece: Piece, from: string, to: string, capturedPiece: Piece | null = null) {
         this.game_id = game_id;
         this.piece = piece;
         this.from = from;
         this.to = to;
+        this.capturedPiece = capturedPiece;
     }
 
     get square() {

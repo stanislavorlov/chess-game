@@ -19,7 +19,11 @@ class Side(ValueObject):
         return str(self)
 
     def __eq__(self, other: 'Side'):
-        return str(self) == str(other)
+        if not isinstance(other, Side): return False
+        return self._value == other._value
+    
+    def __hash__(self):
+        return hash(self._value)
     
     def __init__(self, value) -> None:
         super().__init__()

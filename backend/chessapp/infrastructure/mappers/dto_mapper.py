@@ -49,7 +49,6 @@ class DtoMapper:
                 output.append({
                     'sequence': item.sequence_number,
                     'piece': {
-                        'id': item.history_event.piece.get_piece_id().value,
                         'abbreviation': item.history_event.piece.get_abbreviation(),
                     },
                     'from': str(item.history_event.from_),
@@ -77,7 +76,6 @@ class DtoMapper:
     def map_square(square: Square):
         if square.piece:
             return {
-                'piece_id': square.piece.get_piece_id().value,
                 'abbreviation': square.piece.get_abbreviation()
             }
 

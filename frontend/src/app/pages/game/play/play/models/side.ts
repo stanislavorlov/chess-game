@@ -12,6 +12,10 @@ export class Side {
         return this._value;
     }
 
+    get name(): string {
+        return this._value === 'W' ? 'White' : 'Black';
+    }
+
     static parse(value: string) {
         if (value == this.white.value)
             return Side.white;

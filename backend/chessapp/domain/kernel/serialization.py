@@ -45,7 +45,6 @@ def domain_to_dict(obj: Any) -> Any:
     from ...domain.pieces.piece import Piece
     if isinstance(obj, Piece):
         return {
-            "piece_id": str(obj.get_piece_id().value),
             "side": obj.get_side().value(),
             "type": obj.get_piece_type(),
             "abbreviation": obj.get_abbreviation()

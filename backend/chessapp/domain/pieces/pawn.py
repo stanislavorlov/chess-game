@@ -1,17 +1,14 @@
 from ...domain.pieces.piece import Piece
 from ...domain.pieces.piece_type import PieceType
-from ...domain.rules.movements.pawn_rule import PawnRule
-from ...domain.value_objects.piece_id import PieceId
 from ...domain.value_objects.side import Side
-
 
 class Pawn(Piece):
 
     def get_points(self):
-        return 1
+        return 10
 
-    def __init__(self, piece_id: PieceId, side: Side):
-        super().__init__(piece_id, side, PieceType.Pawn)
+    def __init__(self, side: Side):
+        super().__init__(side, PieceType.Pawn)
         self._has_moved = False
 
     def move(self):
@@ -19,9 +16,3 @@ class Pawn(Piece):
 
     def has_moved(self):
         return self._has_moved
-
-    def get_rule(self):
-        return PawnRule(self._has_moved)
-
-    def promote(self):
-        pass

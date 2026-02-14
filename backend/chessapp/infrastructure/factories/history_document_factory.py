@@ -42,7 +42,6 @@ class GameHistoryDocumentFactory:
                     history_document.from_position = str(history_entry.history_event.from_)
                     history_document.to_position = str(history_entry.history_event.to)
                     history_document.piece = PieceModel(
-                            piece_id=history_entry.history_event.piece.get_piece_id().value,
                             side=history_entry.history_event.piece.get_side().value(),
                             type=history_entry.history_event.piece.get_piece_type(),
                         )
@@ -51,7 +50,6 @@ class GameHistoryDocumentFactory:
                     history_document.from_position = str(history_entry.history_event.from_)
                     history_document.to_position = str(history_entry.history_event.to)
                     history_document.piece = PieceModel(
-                        piece_id=history_entry.history_event.piece.get_piece_id().value,
                         side=history_entry.history_event.piece.get_side().value(),
                         type=history_entry.history_event.piece.get_piece_type(),
                     )

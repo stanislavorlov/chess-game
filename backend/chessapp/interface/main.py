@@ -23,12 +23,14 @@ from ..infrastructure.services.redis_service import RedisService
 from ..interface.api.routes import game_api, move_api, piece_api
 from ..interface.api.websockets.managers import ConnectionManager
 
+# ... existing imports ...
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     force=True,
 )
 logger = logging.getLogger("chessapp")
+print("ChessApp Logger Initialized") # Immediate console feedback
 
 # Silence noisy third-party logs
 logging.getLogger("pymongo").setLevel(logging.WARNING)
@@ -37,17 +39,20 @@ logging.getLogger("aiokafka").setLevel(logging.WARNING)
 
 
 async def consume_kafka_commands(app: FastAPI):
-    kafka_service: KafkaService = app.state.kafka
-    
-    # Manually get dependencies since we're outside a request context
-    repo = get_repository()
-    settings = Settings()
-    redis = RedisService(settings)
-    logger_ = get_logger()
-    mediator = get_mediator(repo, redis, logger_)
-
-    logger.info("Starting Kafka Command Consumer...")
+    print("DEBUG: Inside consume_kafka_commands")
     try:
+        kafka_service: KafkaService = app.state.kafka
+        
+        # Manually get dependencies since we're outside a request context
+        repo = get_repository()
+        settings = Settings()
+        redis = RedisService(settings)
+        logger_ = get_logger()
+        mediator = get_mediator(repo, redis, logger_)
+
+        logger.info("Starting Kafka Command Consumer...")
+        print("Starting Kafka Command Consumer...") # Dual feedback
+        
         async for command_data in kafka_service.consume_messages("chess-commands", group_id="chess-command-processors"):
             try:
                 piece_id = PieceId(command_data['piece']['_id'])
@@ -65,16 +70,20 @@ async def consume_kafka_commands(app: FastAPI):
                 await mediator.handle_command(command)
             except Exception as e:
                 logger.error(f"Error processing Kafka command: {e}")
+                print(f"Error processing Kafka command: {e}")
     except asyncio.CancelledError:
         logger.info("Kafka consumer task cancelled")
     except Exception as e:
         logger.error(f"Kafka consumer crashed: {e}")
+        print(f"Kafka consumer crashed: {e}")
 
 async def subscribe_redis_notifications(app: FastAPI):
+    print("DEBUG: Inside subscribe_redis_notifications")
     redis_service: RedisService = app.state.redis
     connection_manager = get_connection_manager()
 
     logger.info("Starting Redis Notification Subscriber...")
+    print("Starting Redis Notification Subscriber...")
     try:
         async for message in redis_service.subscribe("chess-notifications:*"):
             try:
@@ -86,30 +95,43 @@ async def subscribe_redis_notifications(app: FastAPI):
                     await connection_manager.send_all(str(game_id), message)
             except Exception as e:
                 logger.error(f"Error processing Redis notification: {e}")
+                print(f"Error processing Redis notification: {e}")
     except asyncio.CancelledError:
         logger.info("Redis subscriber task cancelled")
     except Exception as e:
         logger.error(f"Redis subscriber crashed: {e}")
+        print(f"Redis subscriber crashed: {e}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    print("DEBUG: Lifespan started")
     settings = Settings()
     client = AsyncIOMotorClient(settings.MONGO_HOST)
-    await init_beanie(
-        database=client.get_database(settings.MONGO_DB),
-        document_models=models.__all__
-    )
+    
+    print("DEBUG: Initializing Beanie...")
+    try:
+        await init_beanie(
+            database=client.get_database(settings.MONGO_DB),
+            document_models=models.__all__
+        )
+        print("DEBUG: Beanie initialized")
+    except Exception as e:
+        print(f"BEEANIE INIT FAILED: {e}")
+        raise
 
     app.state.redis = RedisService(settings)
     app.state.kafka = KafkaService(settings)
     
     # Start background tasks
+    print("DEBUG: Creating background tasks...")
     kafka_task = asyncio.create_task(consume_kafka_commands(app))
     redis_task = asyncio.create_task(subscribe_redis_notifications(app))
+    print("DEBUG: Tasks created")
 
     yield
 
     # Cancellation of background tasks
+    print("DEBUG: Lifespan stopping, cancelling tasks...")
     kafka_task.cancel()
     redis_task.cancel()
     
@@ -119,22 +141,27 @@ async def lifespan(app: FastAPI):
     await app.state.kafka.stop_all()
     await app.state.redis.disconnect()
     client.close()
+    print("DEBUG: Lifespan finished")
 
 
-app = FastAPI(lifespan=lifespan)
+def create_app() -> FastAPI:
+    print("DEBUG: create_app() factory called")
+    _app = FastAPI(lifespan=lifespan)
 
-app.include_router(game_api.router)
-app.include_router(move_api.router)
-app.include_router(piece_api.router)
+    _app.include_router(game_api.router)
+    _app.include_router(move_api.router)
+    _app.include_router(piece_api.router)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    _app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    return _app
 
+app = create_app()
 
 @app.websocket("/ws/{game_id}")
 async def websocket_endpoint(

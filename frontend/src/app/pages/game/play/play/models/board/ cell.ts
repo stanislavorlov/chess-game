@@ -6,12 +6,33 @@ export class Cell {
     private _rank: number;
     private _piece: Piece | null;
     private _color: string;
+    private _selected: boolean = false;
+    private _isHeader: boolean;
+    private _headerLabel: string;
 
-    constructor(file: string, rank: number, color: string, piece: Piece | null) {
+    constructor(file: string, rank: number, color: string, piece: Piece | null, isHeader: boolean = false, headerLabel: string = '') {
         this._file = file;
         this._rank = rank;
         this._color = color;
         this._piece = piece;
+        this._isHeader = isHeader;
+        this._headerLabel = headerLabel;
+    }
+
+    get isHeader() {
+        return this._isHeader;
+    }
+
+    get headerLabel() {
+        return this._headerLabel;
+    }
+
+    get selected() {
+        return this._selected;
+    }
+
+    set selected(value: boolean) {
+        this._selected = value;
     }
 
     get file() {

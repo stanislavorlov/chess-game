@@ -21,6 +21,7 @@ import { Cell } from './models/board/ cell';
 import { Movement } from 'src/app/services/models/movement';
 import { PieceFactory } from './models/pieces/piece_factory';
 import { Side } from './models/side';
+import { GameTimeOption } from './models/game-time-option';
 
 @Component({
   selector: 'app-play',
@@ -40,7 +41,6 @@ import { Side } from './models/side';
   styleUrl: './play.component.scss'
 })
 export class PlayComponent implements OnInit, OnDestroy {
-  private lastClickedElement: HTMLElement | null = null;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private selectedSquare: Cell | null = null;
@@ -49,11 +49,32 @@ export class PlayComponent implements OnInit, OnDestroy {
 
   public formats: TimeSelector[];
   public selectedFormat = '';
-  public selectedTime = '';
-  public additionalTime = '';
+  public selectedTimeOption: GameTimeOption | null = null;
   public game: ChessGame;
 
-  constructor(private renderer: Renderer2, private chessService: ChessService) {
+  public timeOptionsMap: { [key: string]: GameTimeOption[] } = {
+    'bullet': [
+      { type: '1min', label: '1 mins', time: '0h1m', additional: '' },
+      { type: '1|1min', label: '1|1 mins', time: '0h1m', additional: '0h1m' },
+      { type: '2|1min', label: '2|1 mins', time: '0h2m', additional: '0h1m' }
+    ],
+    'blitz': [
+      { type: '3min', label: '3 mins', time: '0h3m', additional: '' },
+      { type: '3|2min', label: '3|2 mins', time: '0h3m', additional: '0h2m' },
+      { type: '5min', label: '5 mins', time: '0h5m', additional: '' }
+    ],
+    'rapid': [
+      { type: '10min', label: '10 mins', time: '0h10m', additional: '' },
+      { type: '15|10min', label: '15|10 mins', time: '0h15m', additional: '0h10m' },
+      { type: '30min', label: '30 mins', time: '0h30m', additional: '' }
+    ]
+  };
+
+  get currentTimeOptions(): GameTimeOption[] {
+    return this.timeOptionsMap[this.selectedFormat] || [];
+  }
+
+  constructor(private chessService: ChessService) {
     this.formats = [
       { value: 'bullet', viewValue: 'Bullet' },
       { value: 'blitz', viewValue: 'Blitz' },
@@ -78,7 +99,7 @@ export class PlayComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const gameId = this.route.snapshot.paramMap.get('id');
-    
+
     if (!!gameId) {
       this.playService = new PlayService(gameId);
       this.chessService.getGame(gameId).subscribe((result: ApiResult<ChessGameDto>) => {
@@ -87,20 +108,20 @@ export class PlayComponent implements OnInit, OnDestroy {
           let data = result.data;
           this.game = new ChessGame(
             data.game_id,
-            data.name, 
+            data.name,
             new GameFormat(data.game_format.value, data.game_format.remaining_time, data.game_format.additional_time),
             new Board(data.board),
-          Side.parse(data.state.turn));
+            Side.parse(data.state.turn));
 
           let that = this;
 
-          data.history.forEach(function(value: HistoryEntryDto) {
+          data.history.forEach(function (value: HistoryEntryDto) {
             let piece = PieceFactory.getPiece(value.piece);
 
             that.game.history.push(new Movement(that.game.id, piece, value.from, value.to));
           });
 
-          this.gameTimer = setInterval(function() {
+          this.gameTimer = setInterval(function () {
             let whiteTimer = document.getElementById('timer1');
             let blackTimer = document.getElementById('timer2');
 
@@ -133,47 +154,28 @@ export class PlayComponent implements OnInit, OnDestroy {
 
   startGame(): void {
     const new_game = new CreateGame();
-    new_game.additional = this.additionalTime;
+    new_game.additional = this.selectedTimeOption?.additional || '';
     new_game.format = this.selectedFormat;
     new_game.name = this.game.name;
-    new_game.time = this.selectedTime;
+    new_game.time = this.selectedTimeOption?.time || '';
 
     this.chessService.startGame(new_game).subscribe((result: ApiResult<ChessGameDto>) => {
       if (result.status == 200) {
         let gameId = result.data.game_id;
 
-        this.router.navigate(['/play', gameId ])
+        this.router.navigate(['/play', gameId])
       }
     });
   }
 
-  selectTime(event: Event, time: string, additional: string): void {
-    let clickedElement = event.target as HTMLElement;
-
-    if (clickedElement.tagName == 'span') {
-      clickedElement = clickedElement.parentElement || clickedElement;
-    }
-
-    // Remove border from the last clicked element
-    if (this.lastClickedElement) {
-      this.renderer.setStyle(this.lastClickedElement, 'border', 'none');
-    }
-
-    // Add border to the clicked element
-    this.renderer.setStyle(clickedElement, 'border', '2px solid red');
-
-    // Update the last clicked element
-    this.lastClickedElement = clickedElement;
-
-    this.selectedTime = time;
-    this.additionalTime = additional;
+  selectTime(option: GameTimeOption): void {
+    this.selectedTimeOption = option;
   }
 
   clickBoard(square: Cell): void {
     console.log(square);
     if (!!this.selectedSquare) {
-      let fromElement = document.getElementById('cell-'+this.selectedSquare.id);
-      fromElement?.style.setProperty('border', 'none','');
+      this.selectedSquare.selected = false;
 
       if (!!this.selectedSquare.piece) {
         if (this.game.movePiece(this.selectedSquare, square)) {
@@ -186,9 +188,7 @@ export class PlayComponent implements OnInit, OnDestroy {
       this.selectedSquare = null;
 
     } else {
-      let htmlElement = document.getElementById('cell-'+square.id);
-      htmlElement?.style.setProperty('border','1px solid red','');
-      
+      square.selected = true;
       this.selectedSquare = square;
     }
   }

@@ -11,29 +11,22 @@
                     <div style="font-weight: bold;">Player 1</div>
                     <div style="margin-left: 10px;"><span id="timer1"></span></div>
                 </div>
-                <div class="row">
-                    <table class="chess-board" *ngIf="game">
-                        <tbody>
-                            <tr>
-                                <th></th>
-                                <th>a</th>
-                                <th>b</th>
-                                <th>c</th>
-                                <th>d</th>
-                                <th>e</th>
-                                <th>f</th>
-                                <th>g</th>
-                                <th>h</th>
-                            </tr>
-                            <tr *ngFor="let rank of game.board.ranks">
-                                <th>{{ rank }}</th>
-                                <td *ngFor="let item of game.board.files(rank)" data-id="cell-{{item.id}}"
-                                    (click)="clickBoard(item)" class="{{item.color == 'B' ? 'dark' : 'light' }}">
-                                    <img *ngIf="item.piece" src="./assets/images/pieces/{{item.piece.abbreviation}}.png" height="100%">
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="row" *ngIf="game">
+                    <div class="board-grid">
+                        <ng-container *ngFor="let item of game.board.flatBoard">
+                            <!-- Header (Rank or File) -->
+                            <div *ngIf="item.isHeader" class="header-cell">
+                                {{ item.headerLabel }}
+                            </div>
+
+                            <!-- Square -->
+                            <div *ngIf="!item.isHeader" (click)="clickBoard(item)" class="square"
+                                [class.dark]="item.color === 'B'" [class.light]="item.color === 'W'"
+                                [class.selected]="item.selected">
+                                <img *ngIf="item.piece" src="./assets/images/pieces/{{item.piece.abbreviation}}.png">
+                            </div>
+                        </ng-container>
+                    </div>
                 </div>
                 <div class="row">
                     <div style="font-weight: bold;">Player 2</div>
@@ -54,17 +47,12 @@
                         </mat-select>
                     </mat-form-field>
                     <div>
-                        @switch(selectedFormat)
-                        {
-                            @case('bullet') {
-                                <button mat-flat-button (click)="selectTime($event, '0h1m', '')" class="bg-success">1 mins</button> | <button mat-flat-button (click)="selectTime($event, '0h1m', '0h1m')" class="bg-success">1|1 mins</button> | <button mat-flat-button (click)="selectTime($event, '0h2m', '0h1m')" class="bg-success">2|1 mins</button>
-                            }
-                            @case('blitz') {
-                                <button mat-flat-button (click)="selectTime($event, '0h3m', '')" class="bg-success">3 mins</button> | <button mat-flat-button (click)="selectTime($event, '0h3m', '0h2m')" class="bg-success">3|2 mins</button> | <button mat-flat-button (click)="selectTime($event, '0h5m', '')" class="bg-success">5 mins</button>
-                            }
-                            @case('rapid') {
-                                <button mat-flat-button (click)="selectTime($event, '0h10m', '')" class="bg-success">10 mins</button> | <button mat-flat-button (click)="selectTime($event, '0h15m', '0h10m')" class="bg-success">15|10 mins</button> | <button mat-flat-button (click)="selectTime($event, '0h30m', '')" class="bg-success">30 mins</button>
-                            }
+                        @for(option of currentTimeOptions; track option.type) {
+                        <button mat-flat-button (click)="selectTime(option)"
+                            [class.selected]="selectedTimeOption === option" class="bg-success">
+                            {{ option.label }}
+                        </button>
+                        <span *ngIf="!$last"> | </span>
                         }
                     </div>
                     <div class="m-t-12">

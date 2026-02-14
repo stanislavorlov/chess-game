@@ -9,13 +9,13 @@ export class King extends Piece {
         return false;
     }
     
-    constructor(piece_id: string, side: Side) {
-        super(piece_id, side, PieceType.King);
+    constructor(side: Side) {
+        super(side, PieceType.King);
     }
 
     override validateMove(from: Cell, to: Cell): boolean {
         const [delta_file, delta_rank] = this.calculateMoveDeltas(from, to);
 
-        return Math.abs(delta_file - delta_rank) == 1;
+        return Math.abs(delta_file) <= 1 && Math.abs(delta_rank) <= 1;
     }
 }

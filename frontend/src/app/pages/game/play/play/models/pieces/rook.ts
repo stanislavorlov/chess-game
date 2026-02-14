@@ -9,8 +9,8 @@ export class Rook extends Piece {
         return false;
     }
 
-    constructor(piece_id: string, side: Side) {
-        super(piece_id, side, PieceType.Rook);
+    constructor(side: Side) {
+        super(side, PieceType.Rook);
     }
 
     override validateMove(from: Cell, to: Cell): boolean {

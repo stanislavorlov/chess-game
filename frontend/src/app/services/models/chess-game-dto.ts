@@ -31,7 +31,6 @@ export class PlayersDto {
 }
 export class PieceDto {
     abbreviation: string;
-    piece_id: string;
 
     public constructor(init?:Partial<PieceDto>) {
         Object.assign(this, init);

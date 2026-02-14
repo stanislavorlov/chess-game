@@ -3,18 +3,16 @@ import { Side } from "../side";
 import { PieceType } from "./piece_type";
 
 export abstract class Piece {
-    private _id: string;
     private _side: Side;
     private _type: PieceType;
 
-    constructor(piece_id: string, side: Side, type: PieceType) {
-        this._id = piece_id;
+    constructor(side: Side, type: PieceType) {
         this._side = side;
         this._type = type;
     }
 
     get id() {
-        return this._id;
+        return `${this._side.value}${this._type}`;
     }
 
     get side() {

@@ -8,8 +8,8 @@ export class Knight extends Piece {
         return true;
     }
     
-    constructor(piece_id: string, side: Side) {
-        super(piece_id, side, PieceType.Knight);
+    constructor(side: Side) {
+        super(side, PieceType.Knight);
     }
 
     override validateMove(from: Cell, to: Cell): boolean {

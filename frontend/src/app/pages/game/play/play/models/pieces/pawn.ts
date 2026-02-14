@@ -9,8 +9,8 @@ export class Pawn extends Piece {
         return false;
     }
 
-    constructor(piece_id: string, side: Side) {
-        super(piece_id, side, PieceType.Pawn);
+    constructor(side: Side) {
+        super(side, PieceType.Pawn);
     }
 
     override validateMove(from: Cell, to: Cell): boolean {

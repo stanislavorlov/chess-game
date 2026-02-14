@@ -9,8 +9,8 @@ export class Bishop extends Piece {
         return false;
     }
     
-    constructor(piece_id: string, side: Side) {
-        super(piece_id, side, PieceType.Bishop);
+    constructor(side: Side) {
+        super(side, PieceType.Bishop);
     }
 
     override validateMove(from: Cell, to: Cell): boolean {

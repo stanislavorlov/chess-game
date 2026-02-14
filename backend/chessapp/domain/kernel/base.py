@@ -18,8 +18,8 @@ class BaseEvent(ABC):
         ...
 
     def to_dict(self) -> dict:
-        from dataclasses import asdict
-        result = asdict(self)
+        from .serialization import domain_to_dict
+        result = domain_to_dict(self)
         result["event_type"] = self.event_type
         return result
 

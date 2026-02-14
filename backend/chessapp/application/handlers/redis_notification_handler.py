@@ -17,5 +17,5 @@ class RedisNotificationHandler(BaseEventHandler[BaseEvent, None]):
         else:
             channel = "chess-notifications:global"
 
-        message = json.dumps(event.to_dict(), default=str)
+        message = json.dumps(event.to_dict())
         await self.redis_service.publish(channel, message)

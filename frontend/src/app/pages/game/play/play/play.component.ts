@@ -7,7 +7,10 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { NgFor, NgIf } from '@angular/common';
+import { MoveFailureDialogComponent } from './move-failure-dialog/move-failure-dialog.component';
 import { ChessService } from 'src/app/services/chess.service';
 import { CreateGame } from './models/create-game';
 import { ChessGameDto, HistoryEntryDto } from 'src/app/services/models/chess-game-dto';
@@ -35,6 +38,8 @@ import { GameTimeOption } from './models/game-time-option';
     MatCardModule,
     MatInputModule,
     MatCheckboxModule,
+    MatSnackBarModule,
+    MatDialogModule,
     NgFor, NgIf
   ],
   templateUrl: './play.component.html',
@@ -74,7 +79,11 @@ export class PlayComponent implements OnInit, OnDestroy {
     return this.timeOptionsMap[this.selectedFormat] || [];
   }
 
-  constructor(private chessService: ChessService) {
+  constructor(
+    private chessService: ChessService,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
+  ) {
     this.formats = [
       { value: 'bullet', viewValue: 'Bullet' },
       { value: 'blitz', viewValue: 'Blitz' },
@@ -139,7 +148,25 @@ export class PlayComponent implements OnInit, OnDestroy {
       });
 
       this.playService.getMessages().subscribe(data => {
-        console.log('received message:', data);
+        try {
+          console.log('received message:', data);
+
+          if (data.event_type === 'piece-move-failed' && data.game_id === this.game.id) {
+            console.warn('Move failed on server:', data.reason);
+            this.game.rollbackMove();
+
+            this.dialog.open(MoveFailureDialogComponent, {
+              data: {
+                reason: data.reason || 'Illegal move',
+                from: data.from_,
+                to: data.to
+              },
+              width: '350px'
+            });
+          }
+        } catch (e) {
+          console.error('Error parsing WebSocket message', e);
+        }
       });
     } else {
       this.game = this.chessService.newGame();

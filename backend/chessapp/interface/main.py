@@ -22,6 +22,7 @@ from ..infrastructure.services.kafka_service import KafkaService
 from ..infrastructure.services.redis_service import RedisService
 from ..interface.api.routes import game_api, move_api, piece_api
 from ..interface.api.websockets.managers import ConnectionManager
+from ..domain.kernel.serialization import domain_to_dict
 
 # ... existing imports ...
 logging.basicConfig(
@@ -70,7 +71,20 @@ async def consume_kafka_commands(app: FastAPI):
                 await mediator.handle_command(command)
             except Exception as e:
                 logger.error(f"Error processing Kafka command: {e}")
-                print(f"Error processing Kafka command: {e}")
+                # Report failure back to client via Redis
+                try:
+                    game_id_str = command_data.get('game_id')
+                    if game_id_str:
+                        failure_event = {
+                            "event_type": "piece-move-failed",
+                            "game_id": game_id_str,
+                            "reason": f"Server error: {str(e)}",
+                            "from_": domain_to_dict(command_data.get('from')),
+                            "to": domain_to_dict(command_data.get('to'))
+                        }
+                        await redis.publish(f"chess-notifications:{game_id_str}", json.dumps(failure_event))
+                except Exception as redis_err:
+                    logger.error(f"Failed to publish error to Redis: {redis_err}")
     except asyncio.CancelledError:
         logger.info("Kafka consumer task cancelled")
     except Exception as e:
@@ -179,9 +193,20 @@ async def websocket_endpoint(
             message_data = json.loads(data)
             message_data['game_id'] = game_id # Ensure game_id is present
             
-            # Produce to Kafka for durable processing
-            await kafka_service.send_message("chess-commands", message_data)
-            logger.info("Command produced to Kafka successfully")
+            try:
+                # Produce to Kafka for durable processing
+                await kafka_service.send_message("chess-commands", message_data)
+                logger.info("Command produced to Kafka successfully")
+            except Exception as e:
+                logger.error(f"Failed to produce to Kafka: {e}")
+                # Immediate feedback if local production fails
+                await websocket.send_text(json.dumps({
+                    "event_type": "piece-move-failed",
+                    "game_id": game_id,
+                    "reason": "Connection error: Failed to queue move",
+                    "from_": domain_to_dict(message_data.get('from')),
+                    "to": domain_to_dict(message_data.get('to'))
+                }))
 
     except WebSocketDisconnect:
         await connection_manager.remove_connection(websocket, game_id)

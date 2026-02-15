@@ -2,6 +2,7 @@ from datetime import datetime
 from .game_history import ChessGameHistory
 from ..events.game_created import GameCreated
 from ..players.players import Players
+from ..value_objects.check_state import CheckState
 from ..value_objects.game_information import GameInformation
 from ..value_objects.game_state import GameState
 from ..value_objects.game_status import GameStatus
@@ -30,7 +31,7 @@ class ChessGame(AggregateRoot):
         self._players = players
         self._information = information
         # Default starting state
-        self._state = GameState(GameStatus.created(), Side.white(), Board())
+        self._state = GameState(GameStatus.created(), Side.white(), CheckState.default(), Board())
         self._history = history
         
         # Reconstitution: Replay history to reach current state
@@ -86,18 +87,22 @@ class ChessGame(AggregateRoot):
         self.emit(GameFinished(game_id=self.game_id, result=result, finished_date=datetime.now()))
 
     def apply_event(self, event):
-        if isinstance(event, PieceMoved):
-            self._state.board.piece_moved(event)
-            # Switch turn when piece is moved
-            self.__switch_turn_from(self._state.turn)
-        elif isinstance(event, PieceCaptured):
-            self._state.board.piece_captured(event)
-        elif isinstance(event, GameCreated):
-            self._state = GameState(GameStatus.created(), Side.white(), self._state.board)
-        elif isinstance(event, GameStarted):
-            self._state = GameState(GameStatus.started(), Side.white(), self._state.board)
-        elif isinstance(event, GameFinished):
-            self._state = GameState(GameStatus.finished(), self._state.turn, self._state.board)
+        match event:
+            case PieceMoved():
+                self._state.board.piece_moved(event)
+                # Reset check state when a piece is moved; if there's a new check, a following KingChecked event will set it.
+                self._state = GameState(self._state.status, self._state.turn, CheckState.default(), self._state.board)
+                self.__switch_turn_from(self._state.turn)
+            case PieceCaptured():
+                self._state.board.piece_captured(event)
+            case GameCreated():
+                self._state = GameState(GameStatus.created(), Side.white(), CheckState.default(), self._state.board)
+            case GameStarted():
+                self._state = GameState(GameStatus.started(), Side.white(), CheckState.default(), self._state.board)
+            case GameFinished():
+                self._state = GameState(GameStatus.finished(), self._state.turn, self._state.check_state, self._state.board)
+            case KingChecked() | KingCheckMated():
+                self._state = GameState(self._state.status, self._state.turn, CheckState(event.side, event.position), self._state.board)
 
     @property
     def black_timer(self):
@@ -170,4 +175,4 @@ class ChessGame(AggregateRoot):
 
     def __switch_turn_from(self, turn: Side):
         side = Side.black() if turn == Side.white() else Side.white()
-        self._state = GameState(self._state.status, side, self._state.board)
+        self._state = GameState(self._state.status, side, self._state.check_state, self._state.board)

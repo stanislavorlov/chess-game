@@ -7,6 +7,7 @@ export class Cell {
     private _piece: Piece | null;
     private _color: string;
     private _selected: boolean = false;
+    private _checked: boolean = false;
     private _isHeader: boolean;
     private _headerLabel: string;
 
@@ -33,6 +34,14 @@ export class Cell {
 
     set selected(value: boolean) {
         this._selected = value;
+    }
+
+    get checked() {
+        return this._checked;
+    }
+
+    set checked(value: boolean) {
+        this._checked = value;
     }
 
     get file() {

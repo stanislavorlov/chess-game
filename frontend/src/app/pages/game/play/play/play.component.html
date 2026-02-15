@@ -23,7 +23,7 @@
                             <!-- Square -->
                             <div *ngIf="!item.isHeader" (click)="clickBoard(item)" class="square"
                                 [class.dark]="item.color === 'B'" [class.light]="item.color === 'W'"
-                                [class.selected]="item.selected">
+                                [class.selected]="item.selected" [class.checked]="item.checked">
                                 <img *ngIf="item.piece" src="./assets/images/pieces/{{item.piece.abbreviation}}.png">
                             </div>
                         </ng-container>

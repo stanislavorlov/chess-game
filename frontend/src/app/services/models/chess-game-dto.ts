@@ -19,6 +19,8 @@ export class GameStateDto {
     turn: string;
     started: boolean;
     finished: boolean;
+    check_side: string | null;
+    check_position: string | null;
 }
 export class GameFormatDto {
     value: string;
@@ -32,7 +34,7 @@ export class PlayersDto {
 export class PieceDto {
     abbreviation: string;
 
-    public constructor(init?:Partial<PieceDto>) {
+    public constructor(init?: Partial<PieceDto>) {
         Object.assign(this, init);
     }
 }

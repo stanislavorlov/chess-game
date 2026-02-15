@@ -10,10 +10,15 @@ class DtoMapper:
 
     @staticmethod
     def map_game(game: ChessGame) -> ChessGameDto:
+        check_side = game.game_state.check_state.side_checked.value() if game.game_state.check_state.side_checked else None
+        check_pos = str(game.game_state.check_state.position_checked) if game.game_state.check_state.position_checked else None
+
         state_result = GameStateDto(
             turn=game.game_state.turn.value(),
             started=game.game_state.is_started,
-            finished=game.game_state.is_finished
+            finished=game.game_state.is_finished,
+            check_side=check_side,
+            check_position=check_pos
         )
 
         format_result = GameFormatDto(

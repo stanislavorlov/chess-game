@@ -16,6 +16,10 @@ class GameStatus(ValueObject):
     def finished(cls):
         return cls("FINISHED")
 
+    @classmethod
+    def aborted(cls):
+        return cls("ABORTED")
+
     def __str__(self):
         return self._value
 

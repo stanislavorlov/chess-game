@@ -12,6 +12,8 @@ export class ChessGame {
     private _whiteTimer: number;
     private _blackTimer: number;
     private _turn: Side;
+    private _checkSide: string | null = null;
+    private _checkPosition: string | null = null;
 
     public history: Movement[];
 
@@ -24,6 +26,22 @@ export class ChessGame {
         this._whiteTimer = format.remaining;
         this._blackTimer = format.remaining;
         this._turn = turn;
+    }
+
+    get checkSide() {
+        return this._checkSide;
+    }
+
+    set checkSide(value: string | null) {
+        this._checkSide = value;
+    }
+
+    get checkPosition() {
+        return this._checkPosition;
+    }
+
+    set checkPosition(value: string | null) {
+        this._checkPosition = value;
     }
 
     get id() {
@@ -117,10 +135,13 @@ export class GameInformation {
 
 export class GameState {
 
-
-    constructor(turn: string, started: boolean, finished: boolean) {
-
-    }
+    constructor(
+        public turn: string,
+        public started: boolean,
+        public finished: boolean,
+        public checkSide: string | null = null,
+        public checkPosition: string | null = null
+    ) { }
 }
 
 export class GameFormat {

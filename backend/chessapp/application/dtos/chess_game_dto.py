@@ -8,6 +8,8 @@ class GameStateDto:
     turn: str
     started: bool
     finished: bool
+    check_side: str
+    check_position: str
 
 @dataclass(frozen=True, kw_only=True)
 class GameFormatDto:

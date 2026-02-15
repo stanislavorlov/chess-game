@@ -225,15 +225,19 @@ class Board(ValueObject):
         return score
 
     def is_check(self, side: Side) -> bool:
+        king_pos = self.get_king_position(side)
+        if king_pos is None: return False
+        
+        opponent_side = Side.black() if side == Side.white() else Side.white()
+        return self.is_attacked(king_pos, opponent_side)
+
+    def get_king_position(self, side: Side) -> Optional[Position]:
         king_bb = self._bitboards[(side, PieceType.King)]
-        if king_bb == 0: return False
+        if king_bb == 0: return None
         
         # Get index of the set bit
         king_idx = (king_bb & -king_bb).bit_length() - 1
-        king_pos = _bit_index_to_position(king_idx)
-        opponent_side = Side.black() if side == Side.white() else Side.white()
-        
-        return self.is_attacked(king_pos, opponent_side)
+        return _bit_index_to_position(king_idx)
 
     def is_attacked(self, position: Position, attacking_side: Side) -> bool:
         idx = _to_bit_index(position)

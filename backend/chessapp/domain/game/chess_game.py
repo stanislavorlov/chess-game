@@ -170,11 +170,14 @@ class ChessGame(AggregateRoot):
                     PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=reason))
 
     def calculate_move_effect(self):
+        side = self._state.turn
+        king_pos = self._state.board.get_king_position(side)
+
         if self.is_checkmate:
-            self.raise_event(KingCheckMated(game_id=self.game_id))
-            self.raise_event(GameFinished(game_id=self.game_id))
+            self.raise_event(KingCheckMated(game_id=self.game_id, side=side, position=king_pos))
+            self.raise_event(GameFinished(game_id=self.game_id, result='', finished_date=datetime.now()))
         elif self.is_check:
-            self.raise_event(KingChecked(game_id=self.game_id))
+            self.raise_event(KingChecked(game_id=self.game_id, side=side, position=king_pos))
 
     def __switch_turn_from(self, turn: Side):
         side = Side.black() if turn == Side.white() else Side.white()

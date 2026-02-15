@@ -10,5 +10,7 @@ class GameStartedEventHandler(BaseEventHandler[GameStarted, None]):
     async def handle(self, event: GameStarted) -> None:
         print('GameStartedEventHandler handle GameStartedEvent')
 
-        game = self.repo.find(event.game_id.value)
+        game = await self.repo.find(event.game_id.value)
+        if game:
+            await self.repo.save(game)
         print(game)

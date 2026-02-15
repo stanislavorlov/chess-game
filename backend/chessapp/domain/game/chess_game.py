@@ -1,5 +1,6 @@
 from datetime import datetime
 from .game_history import ChessGameHistory
+from ..events.game_created import GameCreated
 from ..players.players import Players
 from ..value_objects.game_information import GameInformation
 from ..value_objects.game_state import GameState
@@ -47,9 +48,10 @@ class ChessGame(AggregateRoot):
             history=ChessGameHistory.empty()
         )
 
-        event = GameStarted(game_id=game_id, started_date=datetime.now())
+        event = GameCreated(game_id=game_id)
         instance.raise_event(event)
         instance.apply_event(event)
+        instance._history.record(event)
         return instance
 
     @property
@@ -76,7 +78,10 @@ class ChessGame(AggregateRoot):
         return self._state.board
 
     def start(self):
-        self._state = GameState(GameStatus.started(), self._state.turn, self._state.board)
+        event = GameStarted(game_id=self.game_id, started_date=datetime.now())
+        self.raise_event(event)
+        self.apply_event(event)
+        self._history.record(event)
 
     def finish(self):
         self._state = GameState(GameStatus.finished(), self._state.turn, self._state.board)
@@ -88,6 +93,8 @@ class ChessGame(AggregateRoot):
             self.__switch_turn_from(self._state.turn)
         elif isinstance(event, PieceCaptured):
             self._state.board.piece_captured(event)
+        elif isinstance(event, GameCreated):
+            self._state = GameState(GameStatus.created(), Side.white(), self._state.board)
         elif isinstance(event, GameStarted):
             self._state = GameState(GameStatus.started(), Side.white(), self._state.board)
         elif isinstance(event, GameFinished):

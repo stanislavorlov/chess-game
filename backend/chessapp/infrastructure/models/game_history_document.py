@@ -1,13 +1,8 @@
-import uuid
 from datetime import datetime
 from typing import Optional
 from beanie import Document, TimeSeriesConfig, Granularity, PydanticObjectId
-from pydantic import Field, BaseModel
+from pydantic import Field
 
-
-class PieceModel(BaseModel):
-    side: str
-    type: str
 
 class GameHistoryDocument(Document):
     id: Optional[PydanticObjectId] = Field(None, alias='_id')
@@ -16,9 +11,7 @@ class GameHistoryDocument(Document):
     history_time: datetime = Field(default_factory=datetime.now)
     action_date: datetime
     action_type: str
-    piece: Optional[PieceModel] = None
-    from_position: str
-    to_position: str
+    payload: Optional[dict] = None
 
     class Config:
         pass

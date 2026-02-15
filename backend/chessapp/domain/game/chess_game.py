@@ -39,6 +39,11 @@ class ChessGame(AggregateRoot):
                 if entry.history_event:
                     self.apply_event(entry.history_event)
 
+    def emit(self, event):
+        self.apply_event(event)
+        self.raise_event(event)
+        self._history.record(event)
+
     @staticmethod
     def create(game_id: ChessGameId, players: Players, information: GameInformation):
         instance = ChessGame(
@@ -48,10 +53,7 @@ class ChessGame(AggregateRoot):
             history=ChessGameHistory.empty()
         )
 
-        event = GameCreated(game_id=game_id)
-        instance.raise_event(event)
-        instance.apply_event(event)
-        instance._history.record(event)
+        instance.emit(GameCreated(game_id=game_id))
         return instance
 
     @property
@@ -78,13 +80,10 @@ class ChessGame(AggregateRoot):
         return self._state.board
 
     def start(self):
-        event = GameStarted(game_id=self.game_id, started_date=datetime.now())
-        self.raise_event(event)
-        self.apply_event(event)
-        self._history.record(event)
+        self.emit(GameStarted(game_id=self.game_id, started_date=datetime.now()))
 
-    def finish(self):
-        self._state = GameState(GameStatus.finished(), self._state.turn, self._state.board)
+    def finish(self, result: str = ''):
+        self.emit(GameFinished(game_id=self.game_id, result=result, finished_date=datetime.now()))
 
     def apply_event(self, event):
         if isinstance(event, PieceMoved):
@@ -112,9 +111,9 @@ class ChessGame(AggregateRoot):
         self._information.format.time_remaining.tick(self._state.turn)
 
         if self._information.format.time_remaining.white_time <= 0:
-            self.finish()
+            self.finish('Time out - Black wins')
         if self._information.format.time_remaining.black_time <= 0:
-            self.finish()
+            self.finish('Time out - White wins')
 
     @property
     def is_check(self):
@@ -130,61 +129,44 @@ class ChessGame(AggregateRoot):
         piece = square.piece
 
         if piece is None:
-             # This should ideally not happen if client-side validation works
              return
 
         if not self._state.is_started:
-            self.raise_event(
-                PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason='Game was not started'))
+            self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason='Game was not started'))
         elif self._state.is_finished:
-            self.raise_event(
-                PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason='Game has finished'))
+            self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason='Game has finished'))
         elif not self._state.turn == piece.get_side():
-            self.raise_event(
-                PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Wait for your turn"))
+            self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Wait for your turn"))
         elif self.is_check and piece.get_piece_type() != PieceType.King:
-            self.raise_event(
-                PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="King is checked"))
+            self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="King is checked"))
         else:
             movement = Movement(_from, to)
-            
-            # The bitboard engine handles turn validation, pinned pieces, and check evasions
             legal_moves = self._state.board.get_legal_moves(self._state.turn)
-            
-            print(f'Attempting move: {movement.to_string()}')
             
             if movement in legal_moves:
                 # Check for capture
                 target_square = self._state.board[to]
                 if target_square.piece is not None:
-                    capture_event = PieceCaptured(game_id=self.game_id, from_=_from, to=to, piece=target_square.piece)
-                    self.raise_event(capture_event)
-                    self.apply_event(capture_event)
-                    self._history.record(capture_event)
+                    self.emit(PieceCaptured(game_id=self.game_id, from_=_from, to=to, piece=target_square.piece))
 
-                move_event = PieceMoved(game_id=self.game_id, from_=_from, to=to, piece=piece)
-                self.raise_event(move_event)
-                self.apply_event(move_event)
-                self._history.record(move_event)
-
+                self.emit(PieceMoved(game_id=self.game_id, from_=_from, to=to, piece=piece))
                 self.calculate_move_effect()
             else:
                 reason = "Illegal move"
                 if piece.get_side() != self._state.turn:
                     reason = "Wait for your turn"
                 
-                self.raise_event(
-                    PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=reason))
+                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=reason))
 
     def calculate_move_effect(self):
         side = self._state.turn
         king_pos = self._state.board.get_king_position(side)
 
         if self.is_checkmate:
-            self.raise_event(KingCheckMated(game_id=self.game_id, side=side, position=king_pos))
-            self.raise_event(GameFinished(game_id=self.game_id, result='', finished_date=datetime.now()))
+            self.emit(KingCheckMated(game_id=self.game_id, side=side, position=king_pos))
+            self.finish('Checkmate')
         elif self.is_check:
-            self.raise_event(KingChecked(game_id=self.game_id, side=side, position=king_pos))
+            self.emit(KingChecked(game_id=self.game_id, side=side, position=king_pos))
 
     def __switch_turn_from(self, turn: Side):
         side = Side.black() if turn == Side.white() else Side.white()

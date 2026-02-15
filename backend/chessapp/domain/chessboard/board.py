@@ -1,5 +1,4 @@
 from typing import List, Optional
-
 from ..pieces.piece import Piece
 from ..pieces.piece_type import PieceType
 from ...domain.chessboard.file import File

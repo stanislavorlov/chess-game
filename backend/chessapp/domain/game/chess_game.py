@@ -1,6 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
-
+from .game_history import ChessGameHistory
 from ..players.players import Players
 from ..value_objects.game_information import GameInformation
 from ..value_objects.game_state import GameState
@@ -12,15 +11,13 @@ from ...domain.events.game_started import GameStarted
 from ...domain.events.king_checked import KingChecked
 from ...domain.events.king_checkmated import KingCheckMated
 from ...domain.events.piece_captured import PieceCaptured
-from ...domain.events.piece_moved import PieceMoved
 from ...domain.events.piece_move_failed import PieceMoveFailed
+from ...domain.events.piece_moved import PieceMoved
 from ...domain.kernel.aggregate_root import AggregateRoot
 from ...domain.movements.movement import Movement
-from ...domain.pieces.piece import Piece
 from ...domain.pieces.piece_type import PieceType
 from ...domain.value_objects.game_id import ChessGameId
 from ...domain.value_objects.side import Side
-from .game_history import ChessGameHistory
 
 
 class ChessGame(AggregateRoot):

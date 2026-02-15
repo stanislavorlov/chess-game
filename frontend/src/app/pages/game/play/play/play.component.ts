@@ -122,6 +122,8 @@ export class PlayComponent implements OnInit, OnDestroy {
             new Board(data.board),
             Side.parse(data.state.turn));
 
+          this.game.setCheck(data.state.check_side, data.state.check_position);
+
           let that = this;
 
           data.history.forEach(function (value: HistoryEntryDto) {
@@ -163,6 +165,11 @@ export class PlayComponent implements OnInit, OnDestroy {
               },
               width: '350px'
             });
+          } else if (data.event_type === 'piece-moved' || data.event_type === 'piece-captured') {
+            // Reset check state on any move; if a new check occurs, a king-checked event will follow
+            this.game.clearCheck();
+          } else if (data.event_type === 'king-checked' || data.event_type === 'king-checkmated') {
+            this.game.setCheck(data.side, data.position);
           }
         } catch (e) {
           console.error('Error parsing WebSocket message', e);
@@ -200,7 +207,6 @@ export class PlayComponent implements OnInit, OnDestroy {
   }
 
   clickBoard(square: Cell): void {
-    console.log(square);
     if (!!this.selectedSquare) {
       this.selectedSquare.selected = false;
 
@@ -215,8 +221,29 @@ export class PlayComponent implements OnInit, OnDestroy {
       this.selectedSquare = null;
 
     } else {
+      // Don't allow selecting a square if its piece doesn't follow turn 
+      // and if the king is checked and not desired king's square is selected
+      if (!square.piece) return;
+
+      const isCorrectTurn = square.piece.side.value === this.game.turn.value;
+      if (!isCorrectTurn) return;
+
+      const isSideInCheck = this.game.checkSide === this.game.turn.value;
+      if (isSideInCheck) {
+        const isKingSelected = square.id === this.game.checkPosition?.toLowerCase();
+        if (!isKingSelected) return;
+      }
+
       square.selected = true;
       this.selectedSquare = square;
     }
+  }
+
+  updateBoardCheckState(): void {
+    if (!this.game) return;
+
+    this.game.board.flatBoard.forEach(cell => {
+      cell.checked = !cell.isHeader && !!this.game.checkPosition && cell.id === this.game.checkPosition.toLowerCase();
+    });
   }
 }

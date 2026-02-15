@@ -28,20 +28,30 @@ export class ChessGame {
         this._turn = turn;
     }
 
+    public setCheck(side: string | null, position: string | null) {
+        this._checkSide = side;
+        this._checkPosition = position;
+
+        this._board.flatBoard.forEach(cell => {
+            cell.checked = !cell.isHeader && !!this._checkPosition && cell.id === this._checkPosition.toLowerCase();
+        });
+    }
+
+    public clearCheck() {
+        this._checkSide = null;
+        this._checkPosition = null;
+
+        this._board.flatBoard.forEach(cell => {
+            cell.checked = false;
+        });
+    }
+
     get checkSide() {
         return this._checkSide;
     }
 
-    set checkSide(value: string | null) {
-        this._checkSide = value;
-    }
-
     get checkPosition() {
         return this._checkPosition;
-    }
-
-    set checkPosition(value: string | null) {
-        this._checkPosition = value;
     }
 
     get id() {

@@ -29,14 +29,20 @@ export abstract class Piece {
 
     abstract get can_move_over(): boolean;
 
-    abstract validateMove(from: Cell, to: Cell) : boolean;
+    /**
+     * Validates if the move is geometrically possible as a "push" (to an empty square).
+     */
+    abstract validatePush(from: Cell, to: Cell): boolean;
+
+    /**
+     * Validates if the move is geometrically possible as a "capture" (to an occupied square).
+     */
+    abstract validateCapture(from: Cell, to: Cell): boolean;
 
     calculateMoveDeltas(from: Cell, to: Cell) {
-        let delta_file = Math.abs((to.file.charCodeAt(0) - 'a'.charCodeAt(0)) - (from.file.charCodeAt(0) - 'a'.charCodeAt(0)));
-        let delta_rank = Math.abs(from.rank - to.rank);
+        let delta_file = (to.file.charCodeAt(0) - 'a'.charCodeAt(0)) - (from.file.charCodeAt(0) - 'a'.charCodeAt(0));
+        let delta_rank = to.rank - from.rank;
 
         return [delta_file, delta_rank];
-
-        return [];
     }
 }

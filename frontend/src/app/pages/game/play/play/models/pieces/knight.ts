@@ -7,20 +7,24 @@ export class Knight extends Piece {
     override get can_move_over(): boolean {
         return true;
     }
-    
+
     constructor(side: Side) {
         super(side, PieceType.Knight);
     }
 
-    override validateMove(from: Cell, to: Cell): boolean {
+    override validatePush(from: Cell, to: Cell): boolean {
+        return this.commonValidate(from, to);
+    }
+
+    override validateCapture(from: Cell, to: Cell): boolean {
+        return this.commonValidate(from, to);
+    }
+
+    private commonValidate(from: Cell, to: Cell): boolean {
         const [delta_file, delta_rank] = this.calculateMoveDeltas(from, to);
-        let tuple = [Math.abs(delta_file), Math.abs(delta_rank)];
+        const absFile = Math.abs(delta_file);
+        const absRank = Math.abs(delta_rank);
 
-        const allowedPoints: [number, number][] = [
-            [1, 2],
-            [2, 1],
-          ];
-
-        return allowedPoints.some(allowed => allowed[0] === tuple[0] && allowed[1] === tuple[1]);
+        return (absFile === 1 && absRank === 2) || (absFile === 2 && absRank === 1);
     }
 }

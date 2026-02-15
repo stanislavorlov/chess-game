@@ -74,7 +74,7 @@ export class Board {
                 const rowSetup = setup.find(s => s.rank === rank);
                 if (rowSetup) {
                     const PieceClass = rowSetup.pieces[i];
-                    piece = new PieceClass('', rowSetup.side);
+                    piece = new PieceClass(rowSetup.side);
                 }
 
                 const cell = new Cell(file, rank, color, piece);
@@ -96,27 +96,53 @@ export class Board {
         let cell = this.getCell(from.id);
         let piece = cell?.piece;
 
-        if (!!piece && piece.validateMove(from, to)) {
-            if (piece.can_move_over) {
-                return true;
-            }
+        if (!piece) return false;
 
-            if (piece.type == PieceType.Pawn) {
-                let step = from.rank > to.rank ? -1 : 1;
-                for (let i of this.range(from.rank + step, to.rank, step)) {
-                    let intermediateCell = this.getCell(`${from.file}${i}`);
-                    if (intermediateCell?.piece != null) {
-                        return false;
-                    }
-                }
-            } else if (piece.type == PieceType.Rook) {
-                // ToDo: Implement rook path validation
+        // Path should be validated first for non-knights
+        if (!piece.can_move_over) {
+            if (!this.isPathClear(from, to)) {
+                return false;
             }
-            // ... other piece validations
-            return true;
         }
 
-        return false;
+        // Context-dependent logic: Push vs Capture
+        if (to.piece === null) {
+            // "Push" move
+            return piece.validatePush(from, to);
+        } else {
+            // "Capture" move
+            // Cannot capture own piece
+            if (to.piece.side === piece.side) return false;
+            return piece.validateCapture(from, to);
+        }
+    }
+
+    private isPathClear(from: Cell, to: Cell): boolean {
+        const fileDiff = to.file.charCodeAt(0) - from.file.charCodeAt(0);
+        const rankDiff = to.rank - from.rank;
+
+        if (fileDiff === 0 && rankDiff === 0) return true;
+
+        const fileStep = fileDiff === 0 ? 0 : (fileDiff > 0 ? 1 : -1);
+        const rankStep = rankDiff === 0 ? 0 : (rankDiff > 0 ? 1 : -1);
+
+        let currentFile = from.file.charCodeAt(0) + fileStep;
+        let currentRank = from.rank + rankStep;
+
+        const targetFile = to.file.charCodeAt(0);
+        const targetRank = to.rank;
+
+        while (currentFile !== targetFile || currentRank !== targetRank) {
+            const squareId = `${String.fromCharCode(currentFile)}${currentRank}`.toLowerCase();
+            const intermediateCell = this.getCell(squareId);
+            if (intermediateCell?.piece) {
+                return false;
+            }
+            currentFile += fileStep;
+            currentRank += rankStep;
+        }
+
+        return true;
     }
 
     range(start: number, stop: number, step: number = 1): number[] {

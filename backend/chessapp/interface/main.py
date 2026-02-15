@@ -19,7 +19,6 @@ from ..infrastructure.services.kafka_service import KafkaService
 from ..infrastructure.services.redis_service import RedisService
 from ..interface.api.routes import game_api, move_api, piece_api
 from ..interface.api.websockets.managers import ConnectionManager
-from ..domain.kernel.serialization import domain_to_dict
 
 logging.basicConfig(
     level=logging.DEBUG,

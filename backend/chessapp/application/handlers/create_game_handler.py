@@ -19,7 +19,7 @@ class CreateGameCommandHandler(BaseCommandHandler[CreateGameCommand, ChessGameDt
     async def handle(self, request: CreateGameCommand) -> ChessGameDto:
         game_info = GameInformation(request.game_format, datetime.datetime.now(), request.name)
 
-        chess_game = ChessGame.create(request.game_id, game_info, Players(PlayerId(''), PlayerId('')))
+        chess_game = ChessGame.create(request.game_id, Players(PlayerId(''), PlayerId('')), game_info)
 
         created_game = await self.repository.create(chess_game)
 

@@ -18,7 +18,7 @@ from ..infrastructure.mediator.container import get_mediator, get_connection_man
     get_kafka_service
 from ..infrastructure.services.kafka_service import KafkaService
 from ..infrastructure.services.redis_service import RedisService
-from ..interface.api.routes import game_api, move_api, piece_api
+from ..interface.api.routes import game_api
 from ..interface.api.websockets.managers import ConnectionManager
 
 logging.basicConfig(
@@ -96,7 +96,7 @@ async def subscribe_redis_notifications(app: FastAPI):
         logger.error(f"Redis subscriber crashed: {e}")
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     settings = Settings()
     client = AsyncIOMotorClient(settings.MONGO_HOST)
     
@@ -108,12 +108,12 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         raise
 
-    app.state.redis = RedisService(settings)
-    app.state.kafka = KafkaService(settings)
+    _app.state.redis = RedisService(settings)
+    _app.state.kafka = KafkaService(settings)
     
     # Start background tasks
-    kafka_task = asyncio.create_task(consume_kafka_commands(app))
-    redis_task = asyncio.create_task(subscribe_redis_notifications(app))
+    kafka_task = asyncio.create_task(consume_kafka_commands(_app))
+    redis_task = asyncio.create_task(subscribe_redis_notifications(_app))
 
     yield
 
@@ -124,8 +124,8 @@ async def lifespan(app: FastAPI):
     # Wait for tasks to clean up
     await asyncio.gather(kafka_task, redis_task, return_exceptions=True)
     
-    await app.state.kafka.stop_all()
-    await app.state.redis.disconnect()
+    await _app.state.kafka.stop_all()
+    await _app.state.redis.disconnect()
     client.close()
 
 
@@ -133,8 +133,6 @@ def create_app() -> FastAPI:
     _app = FastAPI(lifespan=lifespan)
 
     _app.include_router(game_api.router)
-    _app.include_router(move_api.router)
-    _app.include_router(piece_api.router)
 
     _app.add_middleware(
         CORSMiddleware,

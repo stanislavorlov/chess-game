@@ -10,6 +10,7 @@ from fastapi.params import Depends
 from motor.motor_asyncio import AsyncIOMotorClient
 from ..application.commands.move_piece_command import MovePieceCommand
 from ..domain.chessboard.position import Position
+from ..domain.events.piece_move_failed import PieceMoveFailed
 from ..domain.value_objects.game_id import ChessGameId
 from ..infrastructure import models
 from ..infrastructure.config.config import Settings
@@ -170,7 +171,7 @@ async def websocket_endpoint(
                 logger.error(f"Failed to produce to Kafka: {e}")
                 # Immediate feedback if local production fails
                 await websocket.send_text(json.dumps({
-                    "event_type": "piece-move-failed",
+                    "event_type": PieceMoveFailed.event_type,
                     "game_id": game_id,
                     "reason": "Connection error: Failed to queue move",
                     "from_": message_data.get('from'),

@@ -25,6 +25,7 @@ import { Movement } from 'src/app/services/models/movement';
 import { PieceFactory } from './models/pieces/piece_factory';
 import { Side } from './models/side';
 import { GameTimeOption } from './models/game-time-option';
+import { GameEventFactory, PieceMoveFailedEvent, PieceMovedEvent, PieceCapturedEvent, KingCheckedEvent, KingCheckmatedEvent } from './models/events/game-event';
 
 @Component({
   selector: 'app-play',
@@ -152,24 +153,26 @@ export class PlayComponent implements OnInit, OnDestroy {
       this.playService.getMessages().subscribe(data => {
         try {
           console.log('received message:', data);
+          const event = GameEventFactory.fromRaw(data);
+          if (!event) return;
 
-          if (data.event_type === 'piece-move-failed' && data.game_id === this.game.id) {
-            console.warn('Move failed on server:', data.reason);
+          if (event instanceof PieceMoveFailedEvent && event.game_id === this.game.id) {
+            console.warn('Move failed on server:', event.reason);
             this.game.rollbackMove();
 
             this.dialog.open(MoveFailureDialogComponent, {
               data: {
-                reason: data.reason || 'Illegal move',
-                from: data.from_,
-                to: data.to
+                reason: event.reason || 'Illegal move',
+                from: event.from,
+                to: event.to
               },
               width: '350px'
             });
-          } else if (data.event_type === 'piece-moved' || data.event_type === 'piece-captured') {
+          } else if (event instanceof PieceMovedEvent || event instanceof PieceCapturedEvent) {
             // Reset check state on any move; if a new check occurs, a king-checked event will follow
             this.game.clearCheck();
-          } else if (data.event_type === 'king-checked' || data.event_type === 'king-checkmated') {
-            this.game.setCheck(data.side, data.position);
+          } else if (event instanceof KingCheckedEvent || event instanceof KingCheckmatedEvent) {
+            this.game.setCheck(event.side, event.position);
           }
         } catch (e) {
           console.error('Error parsing WebSocket message', e);

@@ -1,6 +1,5 @@
 import { Piece } from "src/app/pages/game/play/play/models/pieces/piece";
 import { PieceFactory } from "src/app/pages/game/play/play/models/pieces/piece_factory";
-import { PieceType } from "src/app/pages/game/play/play/models/pieces/piece_type";
 import { Cell } from "./ cell";
 import { SquareDto } from "src/app/services/models/chess-game-dto";
 import { Rook } from "../pieces/rook";

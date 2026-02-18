@@ -22,29 +22,10 @@
 3. Run the development server:
    `npm start`
 
-## Docker (Work in Progress)
-To kill existing processes on port 8000:
-`sudo lsof -t -i tcp:8000 | xargs kill -9`
+## Docker
+1. Go to the `backend/docker-compose` folder
+- To start the application with infrastructure:
+`docker compose -f backend/docker-compose/docker-compose.yml up -d`
 
-Best practices for FastAPI with MongoDB
-https://www.mongodb.com/developer/products/mongodb/8-fastapi-mongodb-best-practices/
-
-Clean Architecture using FastAPI
-https://github.com/0xTheProDev/fastapi-clean-example/tree/main
-
-
-Chess-engine
-Chess-application
-
-Best practices for FastAPI with MongoDB
-https://www.mongodb.com/developer/products/mongodb/8-fastapi-mongodb-best-practices/
-https://github.com/mongodb-labs/full-stack-fastapi-mongodb?tab=readme-ov-file
-
-Clean Architecture using FastAPI
-https://github.com/0xTheProDev/fastapi-clean-example/tree/main
-
-Full Stack Fast API on React and MongoDD
-https://github.com/mongodb-labs/full-stack-fastapi-mongodb/tree/main
-
-Fast API on WebSocket and Kafka
-https://github.com/AlexanderLukash/fastapi-websocket-chat-kafka/
+- To start the infrastructure only:
+`docker compose -f backend/docker-compose/docker-compose.infra.yml up -d`

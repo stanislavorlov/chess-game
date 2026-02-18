@@ -14,17 +14,28 @@
                 </div>
                 <div class="row" *ngIf="game">
                     <div class="board-grid">
-                        <ng-container *ngFor="let item of game.board.flatBoard">
-                            <!-- Header (Rank or File) -->
-                            <div *ngIf="item.isHeader" class="header-cell">
-                                {{ item.headerLabel }}
-                            </div>
+                        <!-- Empty corner -->
+                        <div class="header-cell corner"></div>
 
-                            <!-- Square -->
-                            <div *ngIf="!item.isHeader" (click)="clickBoard(item)" class="square"
+                        <!-- Top File Headers (a-h) -->
+                        <div *ngFor="let file of game.board.files" class="header-cell file-header"
+                            [style.grid-column]="getGridColumn(file)" [style.grid-row]="1">
+                            {{ file }}
+                        </div>
+
+                        <!-- Left Rank Headers (1-8) -->
+                        <div *ngFor="let rank of game.board.ranks" class="header-cell rank-header"
+                            [style.grid-row]="getGridRow(rank)" [style.grid-column]="1">
+                            {{ rank }}
+                        </div>
+
+                        <!-- Squares and Pieces -->
+                        <ng-container *ngFor="let item of game.board.cells">
+                            <div (click)="clickBoard(item)" class="square"
                                 [class.dark]="item.color === 'B'" [class.light]="item.color === 'W'"
-                                [class.selected]="item.selected" [class.checked]="item.checked">
-                                <img *ngIf="item.piece" src="./assets/images/pieces/{{item.piece.abbreviation}}.png">
+                                [class.selected]="item.selected" [class.checked]="item.checked"
+                                [style.grid-row]="getGridRow(item.rank)" [style.grid-column]="getGridColumn(item.file)">
+                                <img *ngIf="getPiece(item)" src="./assets/images/pieces/{{getPiece(item)?.abbreviation}}.png">
                             </div>
                         </ng-container>
                     </div>

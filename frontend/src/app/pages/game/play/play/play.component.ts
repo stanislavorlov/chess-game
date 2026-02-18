@@ -209,11 +209,27 @@ export class PlayComponent implements OnInit, OnDestroy {
     this.selectedTimeOption = option;
   }
 
+  getPiece(cell: Cell) {
+    return this.game.board.getPiece(cell);
+  }
+
+  getGridRow(rank: number): number {
+    // 1-8 rank -> 1-8 row (grid is 1-indexed, row 1 is rank 8)
+    return 9 - rank;
+  }
+
+  getGridColumn(file: string): number {
+    // a-h -> 2-9 column
+    return file.charCodeAt(0) - 'a'.charCodeAt(0) + 2;
+  }
+
   clickBoard(square: Cell): void {
+    if (!this.gameInitialized()) return;
+
     if (!!this.selectedSquare) {
       this.selectedSquare.selected = false;
 
-      if (!!this.selectedSquare.piece) {
+      if (!!this.getPiece(this.selectedSquare)) {
         if (this.game.movePiece(this.selectedSquare, square)) {
           let historyEntry = this.game.history.at(-1);
 
@@ -226,9 +242,10 @@ export class PlayComponent implements OnInit, OnDestroy {
     } else {
       // Don't allow selecting a square if its piece doesn't follow turn 
       // and if the king is checked and not desired king's square is selected
-      if (!square.piece) return;
+      const piece = this.getPiece(square);
+      if (!piece) return;
 
-      const isCorrectTurn = square.piece.side.value === this.game.turn.value;
+      const isCorrectTurn = piece.side.value === this.game.turn.value;
       if (!isCorrectTurn) return;
 
       const isSideInCheck = this.game.checkSide === this.game.turn.value;
@@ -245,7 +262,7 @@ export class PlayComponent implements OnInit, OnDestroy {
   updateBoardCheckState(): void {
     if (!this.game) return;
 
-    this.game.board.flatBoard.forEach(cell => {
+    this.game.board.cells.forEach(cell => {
       cell.checked = !cell.isHeader && !!this.game.checkPosition && cell.id === this.game.checkPosition.toLowerCase();
     });
   }

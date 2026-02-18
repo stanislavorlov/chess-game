@@ -32,7 +32,7 @@ export class ChessGame {
         this._checkSide = side;
         this._checkPosition = position;
 
-        this._board.flatBoard.forEach(cell => {
+        this._board.cells.forEach(cell => {
             cell.checked = !cell.isHeader && !!this._checkPosition && cell.id === this._checkPosition.toLowerCase();
         });
     }
@@ -41,7 +41,7 @@ export class ChessGame {
         this._checkSide = null;
         this._checkPosition = null;
 
-        this._board.flatBoard.forEach(cell => {
+        this._board.cells.forEach(cell => {
             cell.checked = false;
         });
     }
@@ -87,15 +87,17 @@ export class ChessGame {
     }
 
     public movePiece(from_: Cell, to: Cell) {
-        const isTurnFollowed = from_.piece?.side?.value == this._turn.value;
+        const piece = this._board.getPiece(from_);
+        const isTurnFollowed = piece?.side?.value == this._turn.value;
         const isValidMove = this._board.isValidMove(from_, to);
-        if (isValidMove && isTurnFollowed) {
-            const capturedPiece = to.piece;
-            to.piece = from_.piece;
-            from_.piece = null;
 
-            if (!!to.piece) {
-                const entry = new Movement(this.id, to.piece, from_.id, to.id, capturedPiece);
+        if (isValidMove && isTurnFollowed) {
+            const capturedPiece = this._board.getPiece(to);
+
+            this._board.movePiece(from_, to);
+
+            if (piece) {
+                const entry = new Movement(this.id, piece, from_.id, to.id, capturedPiece);
                 this.history.push(entry);
             }
 

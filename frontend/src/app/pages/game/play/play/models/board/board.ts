@@ -11,10 +11,9 @@ import { Queen } from "../pieces/queen";
 import { King } from "../pieces/king";
 
 export class Board {
-    private _flatBoard: Cell[] = [];
-    private _cellsMap: Map<string, Cell> = new Map();
     private _files: string[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
     private _ranks: number[] = [8, 7, 6, 5, 4, 3, 2, 1];
+    private _pieceMap: Map<Cell, Piece | null> = new Map();
 
     constructor(squares: SquareDto[]) {
         // First, create a map of all squares for easy access
@@ -24,38 +23,12 @@ export class Board {
             if (!!square.piece) {
                 piece = PieceFactory.getPiece(square.piece);
             }
-            const cell = new Cell(file, Number(rank), square.color, piece);
-            this._cellsMap.set(cell.id, cell);
-        });
-
-        this.buildFlatBoard();
-    }
-
-    private buildFlatBoard() {
-        this._flatBoard = [];
-
-        // Top row: empty corner + file headers (a-h)
-        this._flatBoard.push(new Cell('', 0, '', null, true, ''));
-        this._files.forEach(f => {
-            this._flatBoard.push(new Cell(f, 0, '', null, true, f));
-        });
-
-        // Rows 8 to 1: Rank header + cells
-        this._ranks.forEach(rank => {
-            this._flatBoard.push(new Cell('', rank, '', null, true, rank.toString()));
-            this._files.forEach(file => {
-                const squareId = `${file}${rank}`.toLowerCase();
-                const cell = this._cellsMap.get(squareId);
-                if (cell) {
-                    this._flatBoard.push(cell);
-                }
-            });
+            const cell = new Cell(file, Number(rank), square.color, false, '');
+            this._pieceMap.set(cell, piece);
         });
     }
 
     public initialize() {
-        this._cellsMap.clear();
-
         const setup = [
             { rank: 1, pieces: [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook], side: Side.white },
             { rank: 2, pieces: Array(8).fill(Pawn), side: Side.white },
@@ -67,7 +40,6 @@ export class Board {
             for (let i = 0; i < 8; i++) {
                 const file = this._files[i];
                 const color = (rank + i) % 2 === 0 ? 'B' : 'W';
-                const squareId = `${file}${rank}`.toLowerCase();
 
                 let piece: Piece | null = null;
                 const rowSetup = setup.find(s => s.rank === rank);
@@ -76,24 +48,47 @@ export class Board {
                     piece = new PieceClass(rowSetup.side);
                 }
 
-                const cell = new Cell(file, rank, color, piece);
-                this._cellsMap.set(squareId, cell);
+                const cell = new Cell(file, rank, color, false, '');
+                this._pieceMap.set(cell, piece);
             }
         }
-        this.buildFlatBoard();
     }
 
-    get flatBoard() {
-        return this._flatBoard;
+    get cells() {
+        return Array.from(this._pieceMap.keys());
+    }
+
+    get files() {
+        return this._files;
+    }
+
+    get ranks() {
+        return this._ranks;
+    }
+
+    public getPiece(cell: Cell): Piece | null {
+        return this._pieceMap.get(cell) || null;
+    }
+
+    public movePiece(from: Cell, to: Cell) {
+        const piece = this._pieceMap.get(from);
+        if (piece) {
+            this._pieceMap.set(to, piece);
+            this._pieceMap.set(from, null);
+        }
     }
 
     public getCell(id: string): Cell | undefined {
-        return this._cellsMap.get(id.toLowerCase());
+        for (let cell of this._pieceMap.keys()) {
+            if (cell.id === id.toLowerCase()) {
+                return cell;
+            }
+        }
+        return undefined;
     }
 
     isValidMove(from: Cell, to: Cell): boolean {
-        let cell = this.getCell(from.id);
-        let piece = cell?.piece;
+        let piece = this._pieceMap.get(from);
 
         if (!piece) return false;
 
@@ -105,13 +100,14 @@ export class Board {
         }
 
         // Context-dependent logic: Push vs Capture
-        if (to.piece === null) {
+        let targetPiece = this._pieceMap.get(to);
+        if (targetPiece === null || targetPiece === undefined) {
             // "Push" move
             return piece.validatePush(from, to);
         } else {
             // "Capture" move
             // Cannot capture own piece
-            if (to.piece.side === piece.side) return false;
+            if (targetPiece.side === piece.side) return false;
             return piece.validateCapture(from, to);
         }
     }
@@ -134,7 +130,7 @@ export class Board {
         while (currentFile !== targetFile || currentRank !== targetRank) {
             const squareId = `${String.fromCharCode(currentFile)}${currentRank}`.toLowerCase();
             const intermediateCell = this.getCell(squareId);
-            if (intermediateCell?.piece) {
+            if (!!intermediateCell && this._pieceMap.get(intermediateCell) !== null && this._pieceMap.get(intermediateCell) !== undefined) {
                 return false;
             }
             currentFile += fileStep;
@@ -159,8 +155,8 @@ export class Board {
         const toCell = this.getCell(toId);
 
         if (fromCell && toCell) {
-            fromCell.piece = toCell.piece;
-            toCell.piece = capturedPiece || null;
+            this._pieceMap.set(fromCell, this._pieceMap.get(toCell) || null);
+            this._pieceMap.set(toCell, capturedPiece || null);
         }
     }
 }

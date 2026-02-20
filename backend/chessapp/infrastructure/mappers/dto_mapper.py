@@ -1,3 +1,4 @@
+import re
 from ...application.dtos.chess_game_dto import ChessGameDto, GameStateDto, GameFormatDto, PlayersDto
 from ...domain.chessboard.board import Board
 from ...domain.events.king_castled import KingCastled
@@ -12,65 +13,106 @@ class DtoMapper:
 
     @staticmethod
     def map_game(game: ChessGame) -> ChessGameDto:
-        check_side = game.game_state.check_state.side_checked.value() if game.game_state.check_state.side_checked else None
-        check_pos = str(game.game_state.check_state.position_checked) if game.game_state.check_state.position_checked else None
-
-        state_result = GameStateDto(
-            turn=game.game_state.turn.value(),
-            started=game.game_state.is_started,
-            finished=game.game_state.is_finished,
-            check_side=check_side,
-            check_position=check_pos
-        )
-
-        format_result = GameFormatDto(
-            value=game.information.format.to_string(),
-            remaining_time=game.information.format.time_remaining.main_time.total_seconds(),
-            additional_time=game.information.format.time_remaining.additional_time.total_seconds(),
-        )
-
-        players_result = PlayersDto(
-            white_id=str(game.players.white),
-            black_id=str(game.players.black)
-        )
-
         return ChessGameDto(
             game_id=str(game.game_id),
             date=game.information.date,
             name=game.information.name,
             status=str(game.game_state.status),
-            state=state_result,
-            game_format=format_result,
-            players=players_result,
+            state=DtoMapper._map_component(game.game_state),
+            game_format=DtoMapper._map_component(game.information.format),
+            players=DtoMapper._map_component(game.players),
             board=DtoMapper.map_board(game.get_board()),
             history=DtoMapper.map_history(game.history),
         )
 
     @staticmethod
+    def _map_component(component: any) -> any:
+        component_name = DtoMapper._to_snake_case(component.__class__.__name__)
+        mapper_name = f"_map_{component_name}"
+        mapper = getattr(DtoMapper, mapper_name, None)
+        
+        if mapper and callable(mapper):
+            return mapper(component)
+        
+        return component
+
+    @staticmethod
+    def _to_snake_case(name: str) -> str:
+        name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+
+    @staticmethod
+    def _map_game_state(state: any) -> GameStateDto:
+        check_side = state.check_state.side_checked.value() if state.check_state.side_checked else None
+        check_pos = str(state.check_state.position_checked) if state.check_state.position_checked else None
+
+        return GameStateDto(
+            turn=state.turn.value(),
+            started=state.is_started,
+            finished=state.is_finished,
+            check_side=check_side,
+            check_position=check_pos
+        )
+
+    @staticmethod
+    def _map_game_format(game_format: any) -> GameFormatDto:
+        return GameFormatDto(
+            value=game_format.to_string(),
+            remaining_time=game_format.time_remaining.main_time.total_seconds(),
+            additional_time=game_format.time_remaining.additional_time.total_seconds(),
+        )
+
+    @staticmethod
+    def _map_players(players: any) -> PlayersDto:
+        return PlayersDto(
+            white_id=str(players.white),
+            black_id=str(players.black)
+        )
+
+    @staticmethod
     def map_history(history: ChessGameHistory) -> list:
         output = []
+        allowed_events = [PieceMoved.__name__, KingCastled.__name__]
 
         for item in history:
+            event = item.history_event
+            class_name = item.action_type
+            
+            if class_name not in allowed_events:
+                continue
 
-            match item.action_type:
-                case PieceMoved.__name__:
-                    output.append({
+            event_name = DtoMapper._to_snake_case(class_name)
+            mapper_name = f"_map_{event_name}"
+            mapper = getattr(DtoMapper, mapper_name, None)
+            
+            if mapper and callable(mapper):
+                event_data = mapper(event)
+                if isinstance(event_data, dict):
+                    event_data.update({
                         'sequence': item.sequence_number,
-                        'piece': DtoMapper.map_piece(item.history_event.piece),
-                        'from': str(item.history_event.from_),
-                        'to': str(item.history_event.to),
-                        'type': 'move'
+                        'action_type': item.action_type
                     })
-                case KingCastled.__name__:
-                    output.append({
-                        'sequence': item.sequence_number,
-                        'piece': DtoMapper.map_piece(King(item.history_event.side)),
-                        'from': 'O',
-                        'to': 'O' if item.history_event.is_kingside else 'O-O',
-                        'type': 'castling'
-                    })
+                output.append(event_data)
 
         return output
+
+    @staticmethod
+    def _map_piece_moved(event: PieceMoved) -> dict:
+        return {
+            'piece': DtoMapper.map_piece(event.piece),
+            'from': str(event.from_),
+            'to': str(event.to),
+            'type': 'move'
+        }
+
+    @staticmethod
+    def _map_king_castled(event: KingCastled) -> dict:
+        return {
+            'piece': DtoMapper.map_piece(King(event.side)),
+            'from': 'O',
+            'to': 'O' if event.is_kingside else 'O-O',
+            'type': 'castling'
+        }
 
     @staticmethod
     def map_board(board: Board) -> list:

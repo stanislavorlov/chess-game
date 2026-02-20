@@ -18,6 +18,7 @@ from ..infrastructure.mediator.container import get_mediator, get_connection_man
     get_kafka_service
 from ..infrastructure.services.kafka_service import KafkaService
 from ..infrastructure.services.redis_service import RedisService
+from ..infrastructure import constants
 from ..interface.api.routes import game_api
 from ..interface.api.websockets.managers import ConnectionManager
 
@@ -34,9 +35,9 @@ logging.getLogger("motor").setLevel(logging.WARNING)
 logging.getLogger("aiokafka").setLevel(logging.WARNING)
 
 
-async def consume_kafka_commands(app: FastAPI):
+async def consume_kafka_commands(_app: FastAPI):
     try:
-        kafka_service: KafkaService = app.state.kafka
+        kafka_service: KafkaService = _app.state.kafka
         
         # Manually get dependencies since we're outside a request context
         repo = get_repository()
@@ -45,7 +46,10 @@ async def consume_kafka_commands(app: FastAPI):
         logger_ = get_logger()
         mediator = get_mediator(repo, redis, logger_)
 
-        async for command_data in kafka_service.consume_messages("chess-commands", group_id="chess-command-processors"):
+        async for command_data in kafka_service.consume_messages(
+            constants.KAFKA_CHESS_COMMANDS_TOPIC, 
+            group_id=constants.KAFKA_CHESS_COMMANDS_GROUP_ID
+        ):
             try:
                 # Command data now only needs game_id, from, to
                 command = MovePieceCommand(
@@ -61,14 +65,14 @@ async def consume_kafka_commands(app: FastAPI):
                 try:
                     game_id_str = command_data.get('game_id')
                     if game_id_str:
-                        failure_event = {
-                            "event_type": "piece-move-failed",
-                            "game_id": game_id_str,
-                            "reason": f"Server error: {str(e)}",
-                            "from_": command_data.get('from'),
-                            "to": command_data.get('to')
-                        }
-                        await redis.publish(f"chess-notifications:{game_id_str}", json.dumps(failure_event))
+                        failure_event = PieceMoveFailed(
+                            game_id=ChessGameId(PydanticObjectId(game_id_str)),
+                            piece=None,
+                            from_=Position.parse(command_data['from']),
+                            to=Position.parse(command_data['to']),
+                            reason=str(e)
+                        )
+                        await redis.publish(f"{constants.REDIS_CHESS_NOTIFICATIONS_CHANNEL_PREFIX}{game_id_str}", json.dumps(failure_event.to_dict()))
                 except Exception as redis_err:
                     logger.error(f"Failed to publish error to Redis: {redis_err}")
     except asyncio.CancelledError:
@@ -76,12 +80,12 @@ async def consume_kafka_commands(app: FastAPI):
     except Exception as e:
         logger.error(f"Kafka consumer crashed: {e}")
 
-async def subscribe_redis_notifications(app: FastAPI):
-    redis_service: RedisService = app.state.redis
+async def subscribe_redis_notifications(_app: FastAPI):
+    redis_service: RedisService = _app.state.redis
     connection_manager = get_connection_manager()
 
     try:
-        async for message in redis_service.subscribe("chess-notifications:*"):
+        async for message in redis_service.subscribe(constants.REDIS_CHESS_NOTIFICATIONS_PATTERN):
             try:
                 # message is a JSON string
                 data = json.loads(message)
@@ -163,18 +167,19 @@ async def websocket_endpoint(
             
             try:
                 # Produce to Kafka for durable processing
-                await kafka_service.send_message("chess-commands", message_data)
+                await kafka_service.send_message(constants.KAFKA_CHESS_COMMANDS_TOPIC, message_data)
                 logger.info("Command produced to Kafka successfully")
             except Exception as e:
                 logger.error(f"Failed to produce to Kafka: {e}")
                 # Immediate feedback if local production fails
-                await websocket.send_text(json.dumps({
-                    "event_type": PieceMoveFailed.event_type,
-                    "game_id": game_id,
-                    "reason": "Connection error: Failed to queue move",
-                    "from_": message_data.get('from'),
-                    "to": message_data.get('to')
-                }))
+
+                await websocket.send_text(json.dumps(PieceMoveFailed(
+                    game_id=ChessGameId(PydanticObjectId(game_id)),
+                    piece=None,
+                    from_=Position.parse(message_data['from']),
+                    to=Position.parse(message_data['to']),
+                    reason="Connection error: Failed to queue move"
+                ).to_dict()))
 
     except WebSocketDisconnect:
         await connection_manager.remove_connection(websocket, game_id)

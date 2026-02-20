@@ -1,6 +1,7 @@
 import json
 from ...application.handlers.base_event_handler import BaseEventHandler
 from ...domain.kernel.base import BaseEvent
+from ...infrastructure import constants
 from ...infrastructure.services.redis_service import RedisService
 
 
@@ -13,9 +14,9 @@ class RedisNotificationHandler(BaseEventHandler[BaseEvent, None]):
         game_id = getattr(event, 'game_id', None)
         
         if game_id:
-            channel = f"chess-notifications:{game_id}"
+            channel = f"{constants.REDIS_CHESS_NOTIFICATIONS_CHANNEL_PREFIX}{game_id}"
         else:
-            channel = "chess-notifications:global"
+            channel = constants.REDIS_CHESS_NOTIFICATIONS_GLOBAL
 
         message = json.dumps(event.to_dict())
         await self.redis_service.publish(channel, message)

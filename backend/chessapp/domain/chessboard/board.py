@@ -1,7 +1,6 @@
 from typing import List, Optional
-
+from . import bitboard_utils as utils
 from ..events.king_castled import KingCastled
-from ..pieces.piece import Piece
 from ..pieces.piece_type import PieceType
 from ...domain.chessboard.file import File
 from ...domain.chessboard.position import Position
@@ -21,25 +20,13 @@ from ...domain.pieces.pawn import Pawn
 from ...domain.pieces.queen import Queen
 from ...domain.pieces.rook import Rook
 from ...domain.value_objects.side import Side
-from .bitboard_utils import BitboardUtils, set_bit, clear_bit, get_rook_attacks, get_bishop_attacks, get_queen_attacks, \
-    count_bits
-
-
-def _to_bit_index(position: Position) -> int:
-    return (position.rank.value - 1) * 8 + position.file.to_index()
-
-
-def _bit_index_to_position(index: int) -> Position:
-    file_idx = index % 8
-    rank_idx = (index // 8) + 1
-    return Position(File.from_index(file_idx), Rank.from_index(rank_idx))
 
 
 class Board(ValueObject):
 
     def __init__(self):
         super().__init__()
-        self._bitboard_utils = BitboardUtils()
+        self._bitboard_utils = utils.BitboardUtils()
         self._board: dict[Position, Square] = {}
         # 12 bitboards for each piece type and color
         self._bitboards: dict[tuple[Side, PieceType], int] = {}
@@ -57,23 +44,6 @@ class Board(ValueObject):
             for piece_type in PieceType:
                 self._bitboards[(side, piece_type)] = 0
 
-    def _set_piece_bit(self, position: Position, piece: Piece):
-        bit_index = _to_bit_index(position)
-        side = piece.get_side()
-        piece_type = piece.get_piece_type()
-
-        self._bitboards[(side, piece_type)] = set_bit(self._bitboards[(side, piece_type)], bit_index)
-        self._occupancy[side] = set_bit(self._occupancy[side], bit_index)
-        self._occupancy[None] = set_bit(self._occupancy[None], bit_index)
-
-    def _clear_piece_bit(self, position: Position, piece: Piece):
-        bit_index = _to_bit_index(position)
-        side = piece.get_side()
-        piece_type = piece.get_piece_type()
-
-        self._bitboards[(side, piece_type)] = clear_bit(self._bitboards[(side, piece_type)], bit_index)
-        self._occupancy[side] = clear_bit(self._occupancy[side], bit_index)
-        self._occupancy[None] = clear_bit(self._occupancy[None], bit_index)
 
     def piece_moved(self, piece_moved: PieceMoved):
         piece = piece_moved.piece
@@ -89,8 +59,8 @@ class Board(ValueObject):
         self._board[to] = Square(to, piece)
 
         # Update bitboards
-        self._clear_piece_bit(from_, piece)
-        self._set_piece_bit(to, piece)
+        utils.clear_piece_bit(utils.to_bit_index(from_), piece.get_side(), piece.get_piece_type(), self._bitboards, self._occupancy)
+        utils.set_piece_bit(utils.to_bit_index(to), piece.get_side(), piece.get_piece_type(), self._bitboards, self._occupancy)
 
         if is_castling:
             rank = from_.rank
@@ -111,8 +81,8 @@ class Board(ValueObject):
                 self._board[rook_to] = Square(rook_to, rook)
 
                 # Update bitboards
-                self._clear_piece_bit(rook_from, rook)
-                self._set_bit_index(rook_to, rook)
+                utils.clear_piece_bit(utils.to_bit_index(rook_from), rook.get_side(), rook.get_piece_type(), self._bitboards, self._occupancy)
+                utils.set_piece_bit(utils.to_bit_index(rook_to), rook.get_side(), rook.get_piece_type(), self._bitboards, self._occupancy)
 
     def king_castled(self, king_castled: KingCastled):
         rook = self._board[king_castled.rook_from].piece
@@ -126,14 +96,11 @@ class Board(ValueObject):
         self._board[king_from] = Square(king_from, None)
         self._board[king_to] = Square(king_to, king)
 
-    def _set_bit_index(self, position: Position, piece: Piece):
-        # Helper to avoid code duplication if needed, but piece_moved used it
-        self._set_piece_bit(position, piece)
 
     def piece_captured(self, piece_captured: PieceCaptured):
         # The PieceMoved event following this will update the square piece on 'to' position.
         # But we must clear the bit of the captured piece first.
-        self._clear_piece_bit(piece_captured.to, piece_captured.piece)
+        utils.clear_piece_bit(utils.to_bit_index(piece_captured.to), piece_captured.piece.get_side(), piece_captured.piece.get_piece_type(), self._bitboards, self._occupancy)
         pass
 
     def pawn_promoted(self, pawn_promoted: PawnPromoted):
@@ -150,142 +117,51 @@ class Board(ValueObject):
         
         for side in [Side.white(), Side.black()]:
             # Pawns
-            list_of_moves.extend(self._get_pawn_moves(side))
+            list_of_moves.extend(utils.get_pawn_moves(
+                side, 
+                self._bitboards[(side, PieceType.Pawn)], 
+                self._occupancy[None], 
+                self._occupancy[Side.black() if side == Side.white() else Side.white()],
+                self._bitboard_utils
+            ))
             # Knights
-            list_of_moves.extend(self._get_knight_moves(side))
+            list_of_moves.extend(utils.get_knight_moves(
+                self._bitboards[(side, PieceType.Knight)], 
+                self._occupancy[side], 
+                self._bitboard_utils
+            ))
             # Kings
-            list_of_moves.extend(self._get_king_moves(side))
+            list_of_moves.extend(utils.get_king_moves(
+                self._bitboards[(side, PieceType.King)], 
+                self._occupancy[side], 
+                self._bitboard_utils
+            ))
+            
             # Castling moves
-            list_of_moves.extend(self._get_castling_moves(side))
+            king_pos = self.get_king_position(side)
+            king = self._board[king_pos].piece if king_pos else None
+            rank = Rank.r1() if side == Side.white() else Rank.r8()
+            rook_h = self._board[Position(File.h(), rank)].piece
+            rook_a = self._board[Position(File.a(), rank)].piece
+
+            list_of_moves.extend(utils.get_castling_moves(
+                side=side,
+                king_pos=king_pos,
+                king_moved=king.is_moved if king else True,
+                is_check=self.is_check(side),
+                rook_h_unmoved=bool(rook_h and rook_h.get_piece_type() == PieceType.Rook and not rook_h.is_moved),
+                rook_a_unmoved=bool(rook_a and rook_a.get_piece_type() == PieceType.Rook and not rook_a.is_moved),
+                is_square_occupied_fn=lambda pos: self._board[pos].piece is not None,
+                is_square_attacked_fn=lambda pos, opp: self.is_attacked(pos, opp)
+            ))
+
             # Sliders
-            list_of_moves.extend(self._get_sliding_moves(side, PieceType.Rook))
-            list_of_moves.extend(self._get_sliding_moves(side, PieceType.Bishop))
-            list_of_moves.extend(self._get_sliding_moves(side, PieceType.Queen))
+            list_of_moves.extend(utils.get_sliding_moves(side, PieceType.Rook, self._bitboards[(side, PieceType.Rook)], self._occupancy[None], self._occupancy[side]))
+            list_of_moves.extend(utils.get_sliding_moves(side, PieceType.Bishop, self._bitboards[(side, PieceType.Bishop)], self._occupancy[None], self._occupancy[side]))
+            list_of_moves.extend(utils.get_sliding_moves(side, PieceType.Queen, self._bitboards[(side, PieceType.Queen)], self._occupancy[None], self._occupancy[side]))
 
         return list_of_moves
 
-    def _get_pawn_moves(self, side: Side) -> List[Movement]:
-        moves = []
-        pawns = self._bitboards[(side, PieceType.Pawn)]
-        empty_squares = ~self._occupancy[None]
-        opponent_occupancy = self._occupancy[Side.black() if side == Side.white() else Side.white()]
-        
-        if side == Side.white():
-            # Standard push (1 square forward)
-            single_push = (pawns << 8) & empty_squares
-            # Initial double push (2 squares forward from rank 2)
-            # Both the intermediate (rank 3) and target (rank 4) squares must be empty
-            double_push = ((pawns & self._bitboard_utils.RANK_2) << 8 & empty_squares) << 8 & empty_squares
-            
-            # Captures
-            capture_left = (pawns << 7) & opponent_occupancy & ~self._bitboard_utils.FILE_H
-            capture_right = (pawns << 9) & opponent_occupancy & ~self._bitboard_utils.FILE_A
-        else:
-            # Standard push (1 square forward)
-            single_push = (pawns >> 8) & empty_squares
-            # Initial double push (2 squares forward from rank 7)
-            # Both the intermediate (rank 6) and target (rank 5) squares must be empty
-            double_push = ((pawns & self._bitboard_utils.RANK_7) >> 8 & empty_squares) >> 8 & empty_squares
-            
-            # Captures
-            capture_left = (pawns >> 9) & opponent_occupancy & ~self._bitboard_utils.FILE_H
-            capture_right = (pawns >> 7) & opponent_occupancy & ~self._bitboard_utils.FILE_A
- 
-        # Convert bitmasks back to Movement objects
-        moves.extend(self._bits_to_movements(single_push, from_delta=-(8 if side == Side.white() else -8)))
-        moves.extend(self._bits_to_movements(double_push, from_delta=-(16 if side == Side.white() else -16)))
-        moves.extend(self._bits_to_movements(capture_left, from_delta=-(7 if side == Side.white() else -9)))
-        moves.extend(self._bits_to_movements(capture_right, from_delta=-(9 if side == Side.white() else -7)))
-
-        return moves
-
-    def _get_knight_moves(self, side: Side) -> List[Movement]:
-        moves = []
-        pieces = self._bitboards[(side, PieceType.Knight)]
-        own_occupancy = self._occupancy[side]
-        for i in range(64):
-            if (pieces >> i) & 1:
-                attacks = self._bitboard_utils.KNIGHT_MOVES[i]
-                valid_moves = attacks & ~own_occupancy
-                moves.extend(self._bits_to_movements(valid_moves, from_idx=i))
-        return moves
-
-    def _get_king_moves(self, side: Side) -> List[Movement]:
-        moves = []
-        pieces = self._bitboards[(side, PieceType.King)]
-        own_occupancy = self._occupancy[side]
-        for i in range(64):
-            if (pieces >> i) & 1:
-                attacks = self._bitboard_utils.KING_MOVES[i]
-                valid_moves = attacks & ~own_occupancy
-                moves.extend(self._bits_to_movements(valid_moves, from_idx=i))
-        return moves
-
-    def _get_castling_moves(self, side: Side) -> List[Movement]:
-        moves = []
-        king_pos = self.get_king_position(side)
-        if not king_pos:
-            return moves
-
-        king = self._board[king_pos].piece
-        if not king or king.is_moved or self.is_check(side):
-            return moves
-
-        rank = Rank.r1() if side == Side.white() else Rank.r8()
-        opponent_side = Side.black() if side == Side.white() else Side.white()
-
-        # Kingside
-        rook_pos = Position(File.h(), rank)
-        rook = self._board[rook_pos].piece
-        if rook and rook.get_piece_type() == PieceType.Rook and not rook.is_moved:
-            f_pos = Position(File.f(), rank)
-            g_pos = Position(File.g(), rank)
-            if not self._board[f_pos].piece and not self._board[g_pos].piece:
-                if not self.is_attacked(f_pos, opponent_side):
-                    moves.append(Movement(king_pos, g_pos))
-
-        # Queenside
-        rook_pos = Position(File.a(), rank)
-        rook = self._board[rook_pos].piece
-        if rook and rook.get_piece_type() == PieceType.Rook and not rook.is_moved:
-            d_pos = Position(File.d(), rank)
-            c_pos = Position(File.c(), rank)
-            b_pos = Position(File.b(), rank)
-            if not self._board[d_pos].piece and not self._board[c_pos].piece and not self._board[b_pos].piece:
-                if not self.is_attacked(d_pos, opponent_side):
-                    moves.append(Movement(king_pos, c_pos))
-
-        return moves
-
-    def _get_sliding_moves(self, side: Side, p_type: PieceType) -> List[Movement]:
-        moves = []
-        pieces = self._bitboards[(side, p_type)]
-        full_occupancy = self._occupancy[None]
-        own_occupancy = self._occupancy[side]
-        
-        for i in range(64):
-            if (pieces >> i) & 1:
-                if p_type == PieceType.Rook:
-                    attacks = get_rook_attacks(i, full_occupancy)
-                elif p_type == PieceType.Bishop:
-                    attacks = get_bishop_attacks(i, full_occupancy)
-                elif p_type == PieceType.Queen:
-                    attacks = get_queen_attacks(i, full_occupancy)
-                else: continue
-                
-                valid_moves = attacks & ~own_occupancy
-                moves.extend(self._bits_to_movements(valid_moves, from_idx=i))
-        return moves
-
-    def _bits_to_movements(self, bitboard: int, from_idx: int = None, from_delta: int = None) -> List[Movement]:
-        movements = []
-        for i in range(64):
-            if (bitboard >> i) & 1:
-                to_pos = _bit_index_to_position(i)
-                idx = from_idx if from_idx is not None else (i + from_delta)
-                from_pos = _bit_index_to_position(idx)
-                movements.append(Movement(from_pos, to_pos))
-        return movements
 
     def evaluate_board(self) -> float:
         """Basic evaluation based on material weight."""
@@ -300,7 +176,7 @@ class Board(ValueObject):
         }
         
         for (side, p_type), bb in self._bitboards.items():
-            count = count_bits(bb)
+            count = utils.count_bits(bb)
             val = count * weights[p_type]
             score += val if side == Side.white() else -val
             
@@ -314,38 +190,21 @@ class Board(ValueObject):
         return self.is_attacked(king_pos, opponent_side)
 
     def get_king_position(self, side: Side) -> Optional[Position]:
-        king_bb = self._bitboards[(side, PieceType.King)]
+        king_bb = self._bitboards.get((side, PieceType.King), 0)
         if king_bb == 0: return None
         
-        # Get index of the set bit
-        king_idx = (king_bb & -king_bb).bit_length() - 1
-        return _bit_index_to_position(king_idx)
+        # Get index of the set bit using utility
+        king_idx = utils.get_lsb_index(king_bb)
+        return utils.bit_index_to_position(king_idx)
 
     def is_attacked(self, position: Position, attacking_side: Side) -> bool:
-        idx = _to_bit_index(position)
-        full_occ = self._occupancy[None]
-        
-        # Attacked by Pawns
-        pawns = self._bitboards[(attacking_side, PieceType.Pawn)]
-        if attacking_side == Side.white():
-            if self._bitboard_utils.BLACK_PAWN_ATTACKS[idx] & pawns: return True
-        else:
-            if self._bitboard_utils.WHITE_PAWN_ATTACKS[idx] & pawns: return True
-
-        # Attacked by Knights
-        if self._bitboard_utils.KNIGHT_MOVES[idx] & self._bitboards[(attacking_side, PieceType.Knight)]: 
-            return True
-        # Attacked by King
-        if self._bitboard_utils.KING_MOVES[idx] & self._bitboards[(attacking_side, PieceType.King)]:
-            return True
-        # Attacked by Sliders
-        rooks_queens = self._bitboards[(attacking_side, PieceType.Rook)] | self._bitboards[(attacking_side, PieceType.Queen)]
-        if get_rook_attacks(idx, full_occ) & rooks_queens: return True
-        
-        bishops_queens = self._bitboards[(attacking_side, PieceType.Bishop)] | self._bitboards[(attacking_side, PieceType.Queen)]
-        if get_bishop_attacks(idx, full_occ) & bishops_queens : return True
-        
-        return False
+        return utils.is_square_attacked(
+            square_index=utils.to_bit_index(position),
+            attacking_side=attacking_side,
+            bitboards=self._bitboards,
+            occupancy_combined=self._occupancy[None],
+            utils=self._bitboard_utils
+        )
 
     def clone(self):
         new_board = Board.__new__(Board)
@@ -403,7 +262,7 @@ class Board(ValueObject):
                 
                 board[position] = Square(position, piece)
                 if piece:
-                  self._set_piece_bit(position, piece)
+                  utils.set_piece_bit(utils.to_bit_index(position), piece.get_side(), piece.get_piece_type(), self._bitboards, self._occupancy)
 
     def __iter__(self):
         return iter(self._board)

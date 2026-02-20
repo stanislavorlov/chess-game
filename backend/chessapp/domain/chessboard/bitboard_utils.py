@@ -1,4 +1,10 @@
 from typing import List
+from ...domain.chessboard.file import File
+from ...domain.chessboard.position import Position
+from ...domain.chessboard.rank import Rank
+from ...domain.movements.movement import Movement
+from ...domain.pieces.piece_type import PieceType
+from ...domain.value_objects.side import Side
 
 
 def safe_shift(val: int, shift: int) -> int:
@@ -141,3 +147,188 @@ class BitboardUtils:
                 if not (self.FILE_H & (1 << i)): black_attacks |= (1 << (i - 7))
                 if not (self.FILE_A & (1 << i)): black_attacks |= (1 << (i - 9))
             self.BLACK_PAWN_ATTACKS[i] = black_attacks
+
+
+def to_bit_index(position: Position) -> int:
+    return (position.rank.value - 1) * 8 + position.file.to_index()
+
+
+def bit_index_to_position(index: int) -> Position:
+    file_idx = index % 8
+    rank_idx = (index // 8) + 1
+    return Position(File.from_index(file_idx), Rank.from_index(rank_idx))
+
+
+def bits_to_movements(bitboard: int, from_idx: int = None, from_delta: int = None) -> List[Movement]:
+    movements = []
+    for i in range(64):
+        if (bitboard >> i) & 1:
+            to_pos = bit_index_to_position(i)
+            idx = from_idx if from_idx is not None else (i + from_delta)
+            from_pos = bit_index_to_position(idx)
+            movements.append(Movement(from_pos, to_pos))
+    return movements
+
+
+def get_sliding_moves(side: Side, p_type: PieceType, pieces: int, full_occupancy: int, own_occupancy: int) -> List[Movement]:
+    moves = []
+    for i in range(64):
+        if (pieces >> i) & 1:
+            if p_type == PieceType.Rook:
+                attacks = get_rook_attacks(i, full_occupancy)
+            elif p_type == PieceType.Bishop:
+                attacks = get_bishop_attacks(i, full_occupancy)
+            elif p_type == PieceType.Queen:
+                attacks = get_queen_attacks(i, full_occupancy)
+            else:
+                continue
+
+            valid_moves = attacks & ~own_occupancy
+            moves.extend(bits_to_movements(valid_moves, from_idx=i))
+    return moves
+
+
+def set_piece_bit(bit_index: int, side: Side, piece_type: PieceType, bitboards: dict, occupancy: dict):
+    bitboards[(side, piece_type)] = set_bit(bitboards[(side, piece_type)], bit_index)
+    occupancy[side] = set_bit(occupancy[side], bit_index)
+    occupancy[None] = set_bit(occupancy[None], bit_index)
+
+
+def clear_piece_bit(bit_index: int, side: Side, piece_type: PieceType, bitboards: dict, occupancy: dict):
+    bitboards[(side, piece_type)] = clear_bit(bitboards[(side, piece_type)], bit_index)
+    occupancy[side] = clear_bit(occupancy[side], bit_index)
+    occupancy[None] = clear_bit(occupancy[None], bit_index)
+
+
+def get_pawn_moves(side: Side, pawns: int, occupancy_combined: int, occupancy_opponent: int, utils: BitboardUtils) -> List[Movement]:
+    moves = []
+    empty_squares = ~occupancy_combined
+    
+    if side == Side.white():
+        # Standard push (1 square forward)
+        single_push = (pawns << 8) & empty_squares
+        # Initial double push (2 squares forward from rank 2)
+        double_push = ((pawns & utils.RANK_2) << 8 & empty_squares) << 8 & empty_squares
+        
+        # Captures
+        capture_left = (pawns << 7) & occupancy_opponent & ~utils.FILE_H
+        capture_right = (pawns << 9) & occupancy_opponent & ~utils.FILE_A
+    else:
+        # Standard push (1 square forward)
+        single_push = (pawns >> 8) & empty_squares
+        # Initial double push (2 squares forward from rank 7)
+        double_push = ((pawns & utils.RANK_7) >> 8 & empty_squares) >> 8 & empty_squares
+        
+        # Captures
+        capture_left = (pawns >> 9) & occupancy_opponent & ~utils.FILE_H
+        capture_right = (pawns >> 7) & occupancy_opponent & ~utils.FILE_A
+
+    # Convert bitmasks back to Movement objects
+    moves.extend(bits_to_movements(single_push, from_delta=-(8 if side == Side.white() else -8)))
+    moves.extend(bits_to_movements(double_push, from_delta=-(16 if side == Side.white() else -16)))
+    moves.extend(bits_to_movements(capture_left, from_delta=-(7 if side == Side.white() else -9)))
+    moves.extend(bits_to_movements(capture_right, from_delta=-(9 if side == Side.white() else -7)))
+
+    return moves
+
+
+def get_knight_moves(pieces: int, own_occupancy: int, utils: BitboardUtils) -> List[Movement]:
+    moves = []
+    for i in range(64):
+        if (pieces >> i) & 1:
+            attacks = utils.KNIGHT_MOVES[i]
+            valid_moves = attacks & ~own_occupancy
+            moves.extend(bits_to_movements(valid_moves, from_idx=i))
+    return moves
+
+
+def get_king_moves(pieces: int, own_occupancy: int, utils: BitboardUtils) -> List[Movement]:
+    moves = []
+    for i in range(64):
+        if (pieces >> i) & 1:
+            attacks = utils.KING_MOVES[i]
+            valid_moves = attacks & ~own_occupancy
+            moves.extend(bits_to_movements(valid_moves, from_idx=i))
+    return moves
+
+
+def get_castling_moves(
+    side: Side, 
+    king_pos: Position, 
+    king_moved: bool, 
+    is_check: bool,
+    rook_h_unmoved: bool,
+    rook_a_unmoved: bool,
+    is_square_occupied_fn, # callback(pos) -> bool
+    is_square_attacked_fn, # callback(pos, opponent_side) -> bool
+) -> List[Movement]:
+    moves = []
+    if not king_pos or king_moved or is_check:
+        return moves
+
+    rank = Rank.r1() if side == Side.white() else Rank.r8()
+    opponent_side = Side.black() if side == Side.white() else Side.white()
+
+    # Kingside
+    if rook_h_unmoved:
+        f_pos = Position(File.f(), rank)
+        g_pos = Position(File.g(), rank)
+        if not is_square_occupied_fn(f_pos) and not is_square_occupied_fn(g_pos):
+            if not is_square_attacked_fn(f_pos, opponent_side):
+                moves.append(Movement(king_pos, g_pos))
+
+    # Queenside
+    if rook_a_unmoved:
+        d_pos = Position(File.d(), rank)
+        c_pos = Position(File.c(), rank)
+        b_pos = Position(File.b(), rank)
+        if not is_square_occupied_fn(d_pos) and not is_square_occupied_fn(c_pos) and not is_square_occupied_fn(b_pos):
+            if not is_square_attacked_fn(d_pos, opponent_side):
+                moves.append(Movement(king_pos, c_pos))
+
+    return moves
+
+
+def get_lsb_index(bitboard: int) -> int:
+    if bitboard == 0:
+        return -1
+    return (bitboard & -bitboard).bit_length() - 1
+
+
+def is_square_attacked(
+    square_index: int,
+    attacking_side: Side,
+    bitboards: dict,
+    occupancy_combined: int,
+    utils: BitboardUtils
+) -> bool:
+    # Attacked by Pawns
+    pawns = bitboards.get((attacking_side, PieceType.Pawn), 0)
+    if attacking_side == Side.white():
+        if utils.BLACK_PAWN_ATTACKS[square_index] & pawns: return True
+    else:
+        if utils.WHITE_PAWN_ATTACKS[square_index] & pawns: return True
+
+    # Attacked by Knights
+    knights = bitboards.get((attacking_side, PieceType.Knight), 0)
+    if utils.KNIGHT_MOVES[square_index] & knights: 
+        return True
+        
+    # Attacked by King
+    king = bitboards.get((attacking_side, PieceType.King), 0)
+    if utils.KING_MOVES[square_index] & king:
+        return True
+        
+    # Attacked by Sliders
+    rooks = bitboards.get((attacking_side, PieceType.Rook), 0)
+    queens = bitboards.get((attacking_side, PieceType.Queen), 0)
+    rooks_queens = rooks | queens
+    if get_rook_attacks(square_index, occupancy_combined) & rooks_queens: 
+        return True
+    
+    bishops = bitboards.get((attacking_side, PieceType.Bishop), 0)
+    bishops_queens = bishops | queens
+    if get_bishop_attacks(square_index, occupancy_combined) & bishops_queens : 
+        return True
+    
+    return False

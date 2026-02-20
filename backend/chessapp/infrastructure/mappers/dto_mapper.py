@@ -1,8 +1,10 @@
 from ...application.dtos.chess_game_dto import ChessGameDto, GameStateDto, GameFormatDto, PlayersDto
 from ...domain.chessboard.board import Board
+from ...domain.events.king_castled import KingCastled
 from ...domain.events.piece_moved import PieceMoved
 from ...domain.game.chess_game import ChessGame
 from ...domain.game.game_history import ChessGameHistory
+from ...domain.pieces.king import King
 from ...domain.pieces.piece import Piece
 
 
@@ -50,13 +52,23 @@ class DtoMapper:
 
         for item in history:
 
-            if item.action_type in [PieceMoved.__name__]:
-                output.append({
-                    'sequence': item.sequence_number,
-                    'piece': DtoMapper.map_piece(item.history_event.piece),
-                    'from': str(item.history_event.from_),
-                    'to': str(item.history_event.to),
-                })
+            match item.action_type:
+                case PieceMoved.__name__:
+                    output.append({
+                        'sequence': item.sequence_number,
+                        'piece': DtoMapper.map_piece(item.history_event.piece),
+                        'from': str(item.history_event.from_),
+                        'to': str(item.history_event.to),
+                        'type': 'move'
+                    })
+                case KingCastled.__name__:
+                    output.append({
+                        'sequence': item.sequence_number,
+                        'piece': DtoMapper.map_piece(King(item.history_event.side)),
+                        'from': 'O',
+                        'to': 'O' if item.history_event.is_kingside else 'O-O',
+                        'type': 'castling'
+                    })
 
         return output
 

@@ -2,6 +2,7 @@ import { Board } from "src/app/pages/game/play/play/models/board/board";
 import { Movement } from "src/app/services/models/movement";
 import { Cell } from "../board/ cell";
 import { Side } from "../side";
+import { KingCastledEvent } from "../events/game-event";
 
 export class ChessGame {
 
@@ -90,6 +91,7 @@ export class ChessGame {
         const piece = this._board.getPiece(from_);
         const isTurnFollowed = piece?.side?.value == this._turn.value;
         const isValidMove = this._board.isValidMove(from_, to);
+        const isCastleMove = this._board.isCastlingMove(from_, to);
 
         if (isValidMove && isTurnFollowed) {
             const capturedPiece = this._board.getPiece(to);
@@ -103,11 +105,53 @@ export class ChessGame {
 
             this.switchTurn();
             return true;
+        } else if (isCastleMove && isTurnFollowed) {
+            const fileDiff = to.file.charCodeAt(0) - from_.file.charCodeAt(0);
+            let leftCastle = fileDiff < 0;
+
+            const rookFrom = leftCastle ? this._board.getCell(`a${from_.rank}`) : this._board.getCell(`h${from_.rank}`);
+            const rookTo = leftCastle ? this._board.getCell(`d${from_.rank}`) : this._board.getCell(`f${from_.rank}`);
+
+            if (rookFrom && rookTo) {
+                this._board.movePiece(from_, to);
+                this._board.movePiece(rookFrom, rookTo);
+
+                // Record king's move on castling, rook's move is implicit in the move entry
+                if (piece) {
+                    const entry = new Movement(this.id, piece, from_.id, to.id);
+                    this.history.push(entry);
+                }
+
+                this.switchTurn();
+                return true;
+            }
         } else {
-            console.log(`Invalid move. Valid move: ${isValidMove}, turn followed: ${isTurnFollowed}`);
+            console.log(`Invalid move. Valid move: ${isValidMove}, castle move: ${isCastleMove}, turn followed: ${isTurnFollowed}`);
         }
 
         return false;
+    }
+
+    public castleKing(event: KingCastledEvent) {
+        console.log(`Castling king for ${event.side} from ${event.king_from} to ${event.king_to}, rook from ${event.rook_from} to ${event.rook_to}, kingside: ${event.is_kingside}`);
+        const kingFrom = this._board.getCell(event.king_from);
+        const kingTo = this._board.getCell(event.king_to);
+        const rookFrom = this._board.getCell(event.rook_from);
+        const rookTo = this._board.getCell(event.rook_to);
+
+        if (kingFrom && kingTo && rookFrom && rookTo) {
+            this._board.movePiece(kingFrom, kingTo);
+            this._board.movePiece(rookFrom, rookTo);
+
+            // Record king's move on castling, rook's move is implicit in the move entry
+            const piece = this._board.getPiece(kingTo);
+            if (piece) {
+                const entry = new Movement(this.id, piece, kingFrom.id, kingTo.id);
+                this.history.push(entry);
+            }
+
+            this.switchTurn();
+        }
     }
 
     public rollbackMove() {

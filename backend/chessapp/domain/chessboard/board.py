@@ -1,4 +1,6 @@
 from typing import List, Optional
+
+from ..events.king_castled import KingCastled
 from ..pieces.piece import Piece
 from ..pieces.piece_type import PieceType
 from ...domain.chessboard.file import File
@@ -78,6 +80,10 @@ class Board(ValueObject):
         from_ = piece_moved.from_
         to = piece_moved.to
 
+        is_castling = piece.get_piece_type() == PieceType.King and abs(to.file.to_index() - from_.file.to_index()) == 2
+
+        piece.mark_moved()
+
         # Update dictionary-based board
         self._board[from_] = Square(from_, None)
         self._board[to] = Square(to, piece)
@@ -85,6 +91,44 @@ class Board(ValueObject):
         # Update bitboards
         self._clear_piece_bit(from_, piece)
         self._set_piece_bit(to, piece)
+
+        if is_castling:
+            rank = from_.rank
+            is_kingside = to.file.to_index() > from_.file.to_index()
+            rook_from_file = File.h() if is_kingside else File.a()
+            rook_to_file = File.f() if is_kingside else File.d()
+
+            rook_from = Position(rook_from_file, rank)
+            rook_to = Position(rook_to_file, rank)
+
+            rook_sq = self._board[rook_from]
+            rook = rook_sq.piece
+
+            if rook:
+                rook.mark_moved()
+                # Update dictionary-based board
+                self._board[rook_from] = Square(rook_from, None)
+                self._board[rook_to] = Square(rook_to, rook)
+
+                # Update bitboards
+                self._clear_piece_bit(rook_from, rook)
+                self._set_bit_index(rook_to, rook)
+
+    def king_castled(self, king_castled: KingCastled):
+        rook = self._board[king_castled.rook_from].piece
+        king = self._board[king_castled.king_from].piece
+        rook_from, rook_to = king_castled.rook_from, king_castled.rook_to
+        king_from, king_to = king_castled.king_from, king_castled.king_to
+
+        self._board[rook_from] = Square(rook_from, None)
+        self._board[rook_to] = Square(rook_to, rook)
+
+        self._board[king_from] = Square(king_from, None)
+        self._board[king_to] = Square(king_to, king)
+
+    def _set_bit_index(self, position: Position, piece: Piece):
+        # Helper to avoid code duplication if needed, but piece_moved used it
+        self._set_piece_bit(position, piece)
 
     def piece_captured(self, piece_captured: PieceCaptured):
         # The PieceMoved event following this will update the square piece on 'to' position.
@@ -111,6 +155,8 @@ class Board(ValueObject):
             list_of_moves.extend(self._get_knight_moves(side))
             # Kings
             list_of_moves.extend(self._get_king_moves(side))
+            # Castling moves
+            list_of_moves.extend(self._get_castling_moves(side))
             # Sliders
             list_of_moves.extend(self._get_sliding_moves(side, PieceType.Rook))
             list_of_moves.extend(self._get_sliding_moves(side, PieceType.Bishop))
@@ -173,6 +219,42 @@ class Board(ValueObject):
                 attacks = self._bitboard_utils.KING_MOVES[i]
                 valid_moves = attacks & ~own_occupancy
                 moves.extend(self._bits_to_movements(valid_moves, from_idx=i))
+        return moves
+
+    def _get_castling_moves(self, side: Side) -> List[Movement]:
+        moves = []
+        king_pos = self.get_king_position(side)
+        if not king_pos:
+            return moves
+
+        king = self._board[king_pos].piece
+        if not king or king.is_moved or self.is_check(side):
+            return moves
+
+        rank = Rank.r1() if side == Side.white() else Rank.r8()
+        opponent_side = Side.black() if side == Side.white() else Side.white()
+
+        # Kingside
+        rook_pos = Position(File.h(), rank)
+        rook = self._board[rook_pos].piece
+        if rook and rook.get_piece_type() == PieceType.Rook and not rook.is_moved:
+            f_pos = Position(File.f(), rank)
+            g_pos = Position(File.g(), rank)
+            if not self._board[f_pos].piece and not self._board[g_pos].piece:
+                if not self.is_attacked(f_pos, opponent_side):
+                    moves.append(Movement(king_pos, g_pos))
+
+        # Queenside
+        rook_pos = Position(File.a(), rank)
+        rook = self._board[rook_pos].piece
+        if rook and rook.get_piece_type() == PieceType.Rook and not rook.is_moved:
+            d_pos = Position(File.d(), rank)
+            c_pos = Position(File.c(), rank)
+            b_pos = Position(File.b(), rank)
+            if not self._board[d_pos].piece and not self._board[c_pos].piece and not self._board[b_pos].piece:
+                if not self.is_attacked(d_pos, opponent_side):
+                    moves.append(Movement(king_pos, c_pos))
+
         return moves
 
     def _get_sliding_moves(self, side: Side, p_type: PieceType) -> List[Movement]:

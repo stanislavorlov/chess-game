@@ -32,6 +32,12 @@ export class KingCheckmatedEvent extends GameEvent {
     }
 }
 
+export class KingCastledEvent extends GameEvent {
+    constructor(game_id: string, public readonly side: string, public readonly king_from: string, public readonly king_to: string, public readonly rook_from: string, public readonly rook_to: string, public readonly is_kingside: boolean) {
+        super(game_id, 'king-castled');
+    }
+}
+
 export class GameEventFactory {
     static fromRaw(data: any): GameEvent | null {
         switch (data.event_type) {
@@ -45,6 +51,8 @@ export class GameEventFactory {
                 return new KingCheckedEvent(data.game_id, data.side, data.position);
             case 'king-checkmated':
                 return new KingCheckmatedEvent(data.game_id, data.side, data.position);
+            case 'king-castled':
+                return new KingCastledEvent(data.game_id, data.side, data.king_from, data.king_to, data.rook_from, data.rook_to, data.is_kingside);
             default:
                 return null;
         }

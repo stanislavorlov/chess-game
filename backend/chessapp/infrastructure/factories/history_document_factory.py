@@ -7,7 +7,7 @@ from ...domain.events.game_started import GameStarted
 from ...domain.events.game_finished import GameFinished
 from ...domain.events.king_checked import KingChecked
 from ...domain.events.king_checkmated import KingCheckMated
-from ...domain.events.king_castled import KingCastledEvent
+from ...domain.events.king_castled import KingCastled
 from ...domain.events.piece_captured import PieceCaptured
 from ...domain.events.piece_move_failed import PieceMoveFailed
 from ...domain.events.piece_moved import PieceMoved
@@ -73,11 +73,11 @@ class GameHistoryDocumentFactory:
                 else:
                     event = KingCheckMated(game_id=game_id, side=side, position=pos)
             
-            case KingCastledEvent.__name__:
+            case KingCastled.__name__:
                 required_keys = ['side', 'king_from', 'king_to', 'rook_from', 'rook_to', 'is_kingside']
                 if not all(k in payload for k in required_keys): return None
 
-                event = KingCastledEvent(
+                event = KingCastled(
                     game_id=game_id,
                     side=Side(payload['side']),
                     king_from=Position.parse(payload['king_from']),

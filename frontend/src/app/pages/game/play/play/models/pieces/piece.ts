@@ -5,14 +5,20 @@ import { PieceType } from "./piece_type";
 export abstract class Piece {
     private _side: Side;
     private _type: PieceType;
+    private _moved: boolean;
 
     constructor(side: Side, type: PieceType) {
         this._side = side;
         this._type = type;
+        this._moved = false;
     }
 
     get id() {
         return `${this._side.value}${this._type}`;
+    }
+
+    get moved() {
+        return this._moved;
     }
 
     get side() {
@@ -44,5 +50,9 @@ export abstract class Piece {
         let delta_rank = to.rank - from.rank;
 
         return [delta_file, delta_rank];
+    }
+
+    markMoved() {
+        this._moved = true;
     }
 }

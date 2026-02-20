@@ -1,7 +1,10 @@
 from datetime import datetime
 from .game_history import ChessGameHistory
+from ..chessboard.file import File
 from ..events.game_created import GameCreated
+from ..events.king_castled import KingCastled
 from ..players.players import Players
+from ..value_objects import side
 from ..value_objects.check_state import CheckState
 from ..value_objects.game_information import GameInformation
 from ..value_objects.game_state import GameState
@@ -101,6 +104,9 @@ class ChessGame(AggregateRoot):
                 self._state = GameState(GameStatus.started(), Side.white(), CheckState.default(), self._state.board)
             case GameFinished():
                 self._state = GameState(GameStatus.finished(), self._state.turn, self._state.check_state, self._state.board)
+            case KingCastled():
+                self._state = GameState(self._state.status, self._state.turn, CheckState.default(), self._state.board)
+                self._state.board.king_castled(event)
             case KingChecked() | KingCheckMated():
                 self._state = GameState(self._state.status, self._state.turn, CheckState(event.side, event.position), self._state.board)
 
@@ -147,14 +153,38 @@ class ChessGame(AggregateRoot):
         else:
             movement = Movement(_from, to)
             legal_moves = self._state.board.get_legal_moves(self._state.turn)
-            
+
             if movement in legal_moves:
                 # Check for capture
                 target_square = self._state.board[to]
                 if target_square.piece is not None:
                     self.emit(PieceCaptured(game_id=self.game_id, from_=_from, to=to, piece=target_square.piece))
 
-                self.emit(PieceMoved(game_id=self.game_id, from_=_from, to=to, piece=piece))
+                # Castling side effect: Emit PieceMoved for the Rook
+                if piece.get_piece_type() == PieceType.King and abs(to.file.to_index() - _from.file.to_index()) == 2:
+                    is_kingside = to.file.to_index() > _from.file.to_index()
+                    rank = _from.rank
+                    rook_from_file = File.h() if is_kingside else File.a()
+                    rook_to_file = File.f() if is_kingside else File.d()
+
+                    rook_from = Position(rook_from_file, rank)
+                    rook_to = Position(rook_to_file, rank)
+                    #rook = self._state.board[rook_from].piece
+                    #if rook:
+                    #    self.emit(PieceMoved(game_id=self.game_id, from_=rook_from, to=rook_to, piece=rook))
+
+                    self.emit(KingCastled(
+                        game_id=self.game_id,
+                        side=piece.get_side(),
+                        king_to=to,
+                        king_from=_from,
+                        rook_to=rook_to,
+                        rook_from=rook_from,
+                        is_kingside=is_kingside,
+                    ))
+                else:
+                    self.emit(PieceMoved(game_id=self.game_id, from_=_from, to=to, piece=piece))
+
                 self.calculate_move_effect()
             else:
                 reason = "Illegal move"
@@ -164,14 +194,14 @@ class ChessGame(AggregateRoot):
                 self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=reason))
 
     def calculate_move_effect(self):
-        side = self._state.turn
-        king_pos = self._state.board.get_king_position(side)
+        side_ = self._state.turn
+        king_pos = self._state.board.get_king_position(side_)
 
         if self.is_checkmate:
-            self.emit(KingCheckMated(game_id=self.game_id, side=side, position=king_pos))
+            self.emit(KingCheckMated(game_id=self.game_id, side=side_, position=king_pos))
             self.finish('Checkmate')
         elif self.is_check:
-            self.emit(KingChecked(game_id=self.game_id, side=side, position=king_pos))
+            self.emit(KingChecked(game_id=self.game_id, side=side_, position=king_pos))
 
     def __switch_turn_from(self, turn: Side):
         side = Side.black() if turn == Side.white() else Side.white()

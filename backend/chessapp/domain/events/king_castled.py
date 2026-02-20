@@ -5,7 +5,7 @@ from ...domain.value_objects.side import Side
 from ...domain.chessboard.position import Position
 
 @dataclass(frozen=True, kw_only=True)
-class KingCastledEvent(BaseEvent):
+class KingCastled(BaseEvent):
     game_id: ChessGameId
     side: Side
     king_from: Position

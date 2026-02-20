@@ -33,6 +33,7 @@ export class PlayersDto {
 }
 export class PieceDto {
     abbreviation: string;
+    moved: boolean;
 
     public constructor(init?: Partial<PieceDto>) {
         Object.assign(this, init);

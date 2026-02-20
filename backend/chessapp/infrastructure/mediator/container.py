@@ -19,7 +19,7 @@ from ...domain.events.game_created import GameCreated
 from ...domain.events.game_started import GameStarted
 from ...domain.events.game_finished import GameFinished
 from ...domain.events.game_start_failed import GameStartFailed
-from ...domain.events.king_castled import KingCastledEvent
+from ...domain.events.king_castled import KingCastled
 from ...domain.events.king_checked import KingChecked
 from ...domain.events.king_checkmated import KingCheckMated
 from ...domain.events.pawn_promoted import PawnPromoted
@@ -78,7 +78,7 @@ def get_mediator(
     # Register all events for Redis notification
     all_events = [
         GameCreated, GameStarted, GameFinished, GameStartFailed,
-        KingCastledEvent, KingChecked, KingCheckMated, PawnPromoted,
+        KingCastled, KingChecked, KingCheckMated, PawnPromoted,
         PieceCaptured, PieceMoveFailed, PieceMoved
     ]
     for event_cls in all_events:

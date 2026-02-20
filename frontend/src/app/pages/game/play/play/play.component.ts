@@ -25,7 +25,7 @@ import { Movement } from 'src/app/services/models/movement';
 import { PieceFactory } from './models/pieces/piece_factory';
 import { Side } from './models/side';
 import { GameTimeOption } from './models/game-time-option';
-import { GameEventFactory, PieceMoveFailedEvent, PieceMovedEvent, PieceCapturedEvent, KingCheckedEvent, KingCheckmatedEvent } from './models/events/game-event';
+import { GameEventFactory, PieceMoveFailedEvent, PieceMovedEvent, PieceCapturedEvent, KingCheckedEvent, KingCheckmatedEvent, KingCastledEvent } from './models/events/game-event';
 
 @Component({
   selector: 'app-play',
@@ -168,6 +168,8 @@ export class PlayComponent implements OnInit, OnDestroy {
               },
               width: '350px'
             });
+          } else if (event instanceof KingCastledEvent) {
+            this.game.castleKing(event);
           } else if (event instanceof PieceMovedEvent || event instanceof PieceCapturedEvent) {
             // Reset check state on any move; if a new check occurs, a king-checked event will follow
             this.game.clearCheck();

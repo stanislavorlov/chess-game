@@ -9,6 +9,7 @@ import { Knight } from "../pieces/knight";
 import { Bishop } from "../pieces/bishop";
 import { Queen } from "../pieces/queen";
 import { King } from "../pieces/king";
+import { PieceType } from "../pieces/piece_type";
 
 export class Board {
     private _files: string[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -22,6 +23,9 @@ export class Board {
             let piece: Piece | null = null;
             if (!!square.piece) {
                 piece = PieceFactory.getPiece(square.piece);
+                if (square.piece.moved) {
+                    piece.markMoved();
+                }
             }
             const cell = new Cell(file, Number(rank), square.color, false, '');
             this._pieceMap.set(cell, piece);
@@ -75,6 +79,7 @@ export class Board {
         if (piece) {
             this._pieceMap.set(to, piece);
             this._pieceMap.set(from, null);
+            piece.markMoved();
         }
     }
 
@@ -110,6 +115,63 @@ export class Board {
             if (targetPiece.side === piece.side) return false;
             return piece.validateCapture(from, to);
         }
+    }
+
+    isCastlingMove(from: Cell, to: Cell): boolean {
+        const king = this._pieceMap.get(from);
+
+        // 1. Guard: Must be a King that hasn't moved
+        if (!king || king.type !== PieceType.King || king.moved) {
+            return false;
+        }
+
+        // 2. Guard: Must be a strictly horizontal move
+        if (from.rank !== to.rank) {
+            return false;
+        }
+
+        // 3. Guard: Must be exactly a 2-square move
+        const fileDiff = to.file.charCodeAt(0) - from.file.charCodeAt(0);
+        if (Math.abs(fileDiff) !== 2) {
+            return false;
+        }
+
+        // 4. Identify the expected Rook
+        const isKingside = fileDiff > 0;
+        const rookFile = isKingside ? 'h' : 'a';
+        const rookCell = this.getCell(`${rookFile}${from.rank}`);
+        
+        // Guard: Cell must exist
+        if (!rookCell) return false; 
+
+        const rook = this._pieceMap.get(rookCell);
+
+        // 5. Guard: Must be a Rook that hasn't moved
+        if (!rook || rook.type !== PieceType.Rook || rook.moved) {
+            return false;
+        }
+
+        // 6. Check if the path is clear
+        const step = isKingside ? 1 : -1;
+        const startFileCode = from.file.charCodeAt(0);
+        const endFileCode = rookCell.file.charCodeAt(0);
+
+        for (let i = startFileCode + step; i !== endFileCode; i += step) {
+            const intermediateCellId = `${String.fromCharCode(i)}${from.rank}`;
+            const intermediateCell = this.getCell(intermediateCellId);
+            
+            // Guard: If there is a piece in the way, fail immediately
+            if (intermediateCell && this._pieceMap.get(intermediateCell)) {
+                return false; 
+            }
+        }
+
+        // missing three critical moves:
+        // 7. Guard: King cannot be in check
+        // 8. Guard: King cannot pass through a square that is under attack
+        // 9. Guard: King cannot end up in check
+
+        return true; 
     }
 
     private isPathClear(from: Cell, to: Cell): boolean {

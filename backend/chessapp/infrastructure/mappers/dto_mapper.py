@@ -1,9 +1,9 @@
 from ...application.dtos.chess_game_dto import ChessGameDto, GameStateDto, GameFormatDto, PlayersDto
 from ...domain.chessboard.board import Board
-from ...domain.chessboard.square import Square
 from ...domain.events.piece_moved import PieceMoved
 from ...domain.game.chess_game import ChessGame
 from ...domain.game.game_history import ChessGameHistory
+from ...domain.pieces.piece import Piece
 
 
 class DtoMapper:
@@ -53,9 +53,7 @@ class DtoMapper:
             if item.action_type in [PieceMoved.__name__]:
                 output.append({
                     'sequence': item.sequence_number,
-                    'piece': {
-                        'abbreviation': item.history_event.piece.get_abbreviation(),
-                    },
+                    'piece': DtoMapper.map_piece(item.history_event.piece),
                     'from': str(item.history_event.from_),
                     'to': str(item.history_event.to),
                 })
@@ -70,7 +68,7 @@ class DtoMapper:
             square = board[position]
             output.append({
                 'square': str(square.position),
-                'piece': DtoMapper.map_square(square),
+                'piece': DtoMapper.map_piece(square.piece),
                 'color': str(square.color),
                 'rank': square.position.rank.value
             })
@@ -78,10 +76,11 @@ class DtoMapper:
         return output
 
     @staticmethod
-    def map_square(square: Square):
-        if square.piece:
+    def map_piece(piece: Piece):
+        if piece:
             return {
-                'abbreviation': square.piece.get_abbreviation()
+                'abbreviation': piece.get_abbreviation(),
+                'moved': piece.is_moved
             }
 
         return None

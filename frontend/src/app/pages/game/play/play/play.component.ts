@@ -163,7 +163,7 @@ export class PlayComponent implements OnInit, OnDestroy {
             this.dialog.open(MoveFailureDialogComponent, {
               data: {
                 reason: event.reason || 'Illegal move',
-                from: event.from,
+                from_: event.from_,
                 to: event.to
               },
               width: '350px'

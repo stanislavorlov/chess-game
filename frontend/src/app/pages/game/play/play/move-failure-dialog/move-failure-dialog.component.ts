@@ -4,28 +4,28 @@ import { MatButtonModule } from '@angular/material/button';
 import { NgIf } from '@angular/common';
 
 export interface MoveFailureData {
-    reason: string;
-    from?: string;
-    to?: string;
+  reason: string;
+  from_?: string;
+  to?: string;
 }
 
 @Component({
-    selector: 'app-move-failure-dialog',
-    standalone: true,
-    imports: [MatDialogModule, MatButtonModule, NgIf],
-    template: `
+  selector: 'app-move-failure-dialog',
+  standalone: true,
+  imports: [MatDialogModule, MatButtonModule, NgIf],
+  template: `
     <h2 mat-dialog-title class="error-title">Move Rejected</h2>
     <mat-dialog-content>
       <p>{{ data.reason }}</p>
-      <div *ngIf="data.from && data.to" class="move-details">
-        Attempted move: <strong>{{ data.from }} → {{ data.to }}</strong>
+      <div *ngIf="data.from_ && data.to" class="move-details">
+        Attempted move: <strong>{{ data.from_ }} → {{ data.to }}</strong>
       </div>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-flat-button color="warn" mat-dialog-close>Understood</button>
     </mat-dialog-actions>
   `,
-    styles: [`
+  styles: [`
     .error-title {
       color: #f44336;
       font-weight: bold;
@@ -40,8 +40,8 @@ export interface MoveFailureData {
   `]
 })
 export class MoveFailureDialogComponent {
-    constructor(
-        @Inject(MAT_DIALOG_DATA) public data: MoveFailureData,
-        public dialogRef: MatDialogRef<MoveFailureDialogComponent>
-    ) { }
+  constructor(
+    @Inject(MAT_DIALOG_DATA) public data: MoveFailureData,
+    public dialogRef: MatDialogRef<MoveFailureDialogComponent>
+  ) { }
 }

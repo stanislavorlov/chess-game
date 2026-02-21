@@ -62,7 +62,7 @@ async def consume_kafka_commands(_app: FastAPI):
                     from_=Position.parse(command_data['from']),
                     to=Position.parse(command_data['to']),
                     piece=PieceFactory.create(Side(piece_dict['_side']['_value']), PieceType.value_of(piece_dict['_type'])),
-                    captured=PieceFactory.create(Side(captured_dict['_side']['_value']), PieceType.value_of(captured_dict['_type'])),
+                    captured=PieceFactory.create(Side(captured_dict['_side']['_value']), PieceType.value_of(captured_dict['_type'])) if captured_dict else None,
                 )
                 logger.info(f"Consuming command from Kafka: {command}")
                 await mediator.handle_command(command)

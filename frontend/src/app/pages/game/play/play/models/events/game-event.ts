@@ -3,19 +3,19 @@ export abstract class GameEvent {
 }
 
 export class PieceMovedEvent extends GameEvent {
-    constructor(game_id: string, public readonly from: string, public readonly to: string) {
+    constructor(game_id: string, public readonly side: string, public readonly from_: string, public readonly to: string) {
         super(game_id, 'piece-moved');
     }
 }
 
 export class PieceCapturedEvent extends GameEvent {
-    constructor(game_id: string, public readonly from: string, public readonly to: string, public readonly captured: string) {
+    constructor(game_id: string, public readonly side: string, public readonly from_: string, public readonly to: string, public readonly captured: string) {
         super(game_id, 'piece-captured');
     }
 }
 
 export class PieceMoveFailedEvent extends GameEvent {
-    constructor(game_id: string, public readonly reason: string, public readonly from: string, public readonly to: string) {
+    constructor(game_id: string, public readonly reason: string, public readonly from_: string, public readonly to: string) {
         super(game_id, 'piece-move-failed');
     }
 }

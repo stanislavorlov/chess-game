@@ -176,7 +176,7 @@ export class PlayComponent implements OnInit, OnDestroy {
           } else if (event instanceof DomainEvents.KingCheckedEvent || event instanceof DomainEvents.KingCheckmatedEvent) {
             this.game.setCheck(event.side, event.position);
           } else if (event instanceof DomainEvents.SyncedStateEvent) {
-            console.log('Game state synced from server:', event);
+            this.game.syncState(event.turn);
           }
         } catch (e) {
           console.error('Error parsing WebSocket message', e);

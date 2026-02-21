@@ -216,8 +216,8 @@ export class PlayComponent implements OnInit, OnDestroy {
   }
 
   getGridRow(rank: number): number {
-    // 1-8 rank -> 1-8 row (grid is 1-indexed, row 1 is rank 8)
-    return 9 - rank;
+    // 1-8 rank -> 2-9 row (grid is 1-indexed, row 1 is for file headers)
+    return 10 - rank;
   }
 
   getGridColumn(file: string): number {

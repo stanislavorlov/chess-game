@@ -1,9 +1,11 @@
 from datetime import datetime
 from .game_history import ChessGameHistory
 from ..chessboard.file import File
-from ..events.game_created import GameCreated
-from ..events.king_castled import KingCastled
-from ..events.pawn_promoted import PawnPromoted
+from ..events import (
+    GameCreated, GameFinished, GameStarted, KingCastled,
+    KingChecked, KingCheckMated, PawnPromoted, PieceCaptured,
+    PieceMoveFailed, PieceMoved
+)
 from ..pieces.piece import Piece
 from ..players.players import Players
 from ..value_objects.check_state import CheckState
@@ -12,13 +14,6 @@ from ..value_objects.game_state import GameState
 from ..value_objects.game_status import GameStatus
 from ...domain.chessboard.board import Board
 from ...domain.chessboard.position import Position
-from ...domain.events.game_finished import GameFinished
-from ...domain.events.game_started import GameStarted
-from ...domain.events.king_checked import KingChecked
-from ...domain.events.king_checkmated import KingCheckMated
-from ...domain.events.piece_captured import PieceCaptured
-from ...domain.events.piece_move_failed import PieceMoveFailed
-from ...domain.events.piece_moved import PieceMoved
 from ...domain.kernel.aggregate_root import AggregateRoot
 from ...domain.movements.movement import Movement
 from ...domain.pieces.piece_type import PieceType

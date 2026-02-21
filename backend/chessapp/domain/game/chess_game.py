@@ -107,6 +107,11 @@ class ChessGame(AggregateRoot):
             case KingCastled():
                 self._state = GameState(self._state.status, self._state.turn, CheckState.default(), self._state.board)
                 self._state.board.king_castled(event)
+                self.__switch_turn_from(self._state.turn)
+            case PawnPromoted():
+                self._state.board.pawn_promoted(event)
+                self._state = GameState(self._state.status, self._state.turn, CheckState.default(), self._state.board)
+                self.__switch_turn_from(self._state.turn)
             case KingChecked() | KingCheckMated():
                 self._state = GameState(self._state.status, self._state.turn, CheckState(event.side, event.position), self._state.board)
 

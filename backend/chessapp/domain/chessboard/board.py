@@ -100,6 +100,11 @@ class Board(ValueObject):
         rook = self._board[king_castled.rook_from].piece
         king = self._board[king_castled.king_from].piece
         
+        if king:
+            king.mark_moved()
+        if rook:
+            rook.mark_moved()
+            
         # Atomically update both positions for both pieces
         self._remove_piece(king_castled.king_from)
         self._set_piece(king_castled.king_to, king)

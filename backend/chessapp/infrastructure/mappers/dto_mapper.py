@@ -45,13 +45,18 @@ class DtoMapper:
     def _map_game_state(state: any) -> GameStateDto:
         check_side = state.check_state.side_checked.value() if state.check_state.side_checked else None
         check_pos = str(state.check_state.position_checked) if state.check_state.position_checked else None
+        
+        legal_moves = []
+        if state.is_started and not state.is_finished:
+            legal_moves = [m.to_dict() for m in state.board.get_legal_moves(state.turn)]
 
         return GameStateDto(
             turn=state.turn.value(),
             started=state.is_started,
             finished=state.is_finished,
             check_side=check_side,
-            check_position=check_pos
+            check_position=check_pos,
+            legal_moves=legal_moves
         )
 
     @staticmethod

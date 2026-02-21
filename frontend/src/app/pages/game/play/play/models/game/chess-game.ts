@@ -15,6 +15,7 @@ export class ChessGame {
     private _turn: Side;
     private _checkSide: string | null = null;
     private _checkPosition: string | null = null;
+    private _selectableSquares: Set<string> = new Set();
 
     public history: Movement[];
 
@@ -170,8 +171,15 @@ export class ChessGame {
         }
     }
 
-    public syncState(turn: Side) {
+    public syncState(turn: Side, legal_moves?: any[]) {
         this._turn = turn;
+        if (legal_moves) {
+            this._selectableSquares = new Set(legal_moves.map(m => m.from));
+        }
+    }
+
+    public isSelectable(square: Cell): boolean {
+        return this._selectableSquares.has(square.id);
     }
 
     private switchTurn() {

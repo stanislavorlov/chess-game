@@ -1,3 +1,4 @@
+import dataclasses
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from ...domain.kernel.base import BaseResponse
@@ -10,6 +11,7 @@ class GameStateDto:
     finished: bool
     check_side: str
     check_position: str
+    legal_moves: list = dataclasses.field(default_factory=list)
 
 @dataclass(frozen=True, kw_only=True)
 class GameFormatDto:

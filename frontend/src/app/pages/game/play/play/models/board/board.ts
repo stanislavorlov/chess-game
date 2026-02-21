@@ -92,29 +92,97 @@ export class Board {
         return undefined;
     }
 
-    isValidMove(from: Cell, to: Cell): boolean {
-        let piece = this._pieceMap.get(from);
+    public isUnderAttack(targetCell: Cell, attackerSide: Side): boolean {
+        for (const [cell, piece] of this._pieceMap.entries()) {
+            if (piece && piece.side.value === attackerSide.value) {
+                if (this.isValidMove(cell, targetCell)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
+    public isCheck(side: Side): boolean {
+        const kingCell = this.findKing(side);
+        if (!kingCell) return false;
+
+        const opponentSide = side.value === Side.white.value ? Side.black : Side.white;
+        return this.isUnderAttack(kingCell, opponentSide);
+    }
+
+    private findKing(side: Side): Cell | null {
+        for (const [cell, piece] of this._pieceMap.entries()) {
+            if (piece && piece.type === PieceType.King && piece.side.value === side.value) {
+                return cell;
+            }
+        }
+        return null;
+    }
+
+    public getLegalMoves(from: Cell): Cell[] {
+        const piece = this.getPiece(from);
+        if (!piece) return [];
+
+        const legalMoves: Cell[] = [];
+        const side = piece.side;
+
+        // Iterate over all possible destination cells
+        for (const to of this._pieceMap.keys()) {
+            if (from === to) continue;
+
+            // 1. Basic geometric and path validity
+            const isBasicValid = this.isValidMove(from, to) || this.isCastlingMove(from, to);
+            if (!isBasicValid) continue;
+
+            // 2. Simulation: Make move and check if King is safe
+            const targetPiece = this.getPiece(to);
+            const originalPieceMoved = piece.moved;
+
+            this.movePiece(from, to);
+            const kingSafe = !this.isCheck(side);
+            this.revertMove(from.id, to.id, targetPiece);
+
+            // Restore moved state
+            if (!originalPieceMoved) {
+                piece.resetMoved();
+            }
+
+            if (kingSafe) {
+                legalMoves.push(to);
+            }
+        }
+
+        return legalMoves;
+    }
+
+    isValidMove(from: Cell, to: Cell): boolean {
+        const piece = this._pieceMap.get(from);
         if (!piece) return false;
 
-        // Path should be validated first for non-knights
+        const targetPiece = this._pieceMap.get(to);
+        let isGeometricValid = false;
+
+        if (targetPiece === null || targetPiece === undefined) {
+            // "Push" move
+            isGeometricValid = piece.validatePush(from, to);
+        } else {
+            // "Capture" move
+            // Cannot capture own piece
+            if (targetPiece.side.value === piece.side.value) return false;
+            isGeometricValid = piece.validateCapture(from, to);
+        }
+
+        if (!isGeometricValid) return false;
+
+        // Path check only for non-knights
         if (!piece.can_move_over) {
             if (!this.isPathClear(from, to)) {
                 return false;
             }
         }
 
-        // Context-dependent logic: Push vs Capture
-        let targetPiece = this._pieceMap.get(to);
-        if (targetPiece === null || targetPiece === undefined) {
-            // "Push" move
-            return piece.validatePush(from, to);
-        } else {
-            // "Capture" move
-            // Cannot capture own piece
-            if (targetPiece.side === piece.side) return false;
-            return piece.validateCapture(from, to);
-        }
+        return true;
     }
 
     isCastlingMove(from: Cell, to: Cell): boolean {
@@ -140,9 +208,9 @@ export class Board {
         const isKingside = fileDiff > 0;
         const rookFile = isKingside ? 'h' : 'a';
         const rookCell = this.getCell(`${rookFile}${from.rank}`);
-        
+
         // Guard: Cell must exist
-        if (!rookCell) return false; 
+        if (!rookCell) return false;
 
         const rook = this._pieceMap.get(rookCell);
 
@@ -159,10 +227,10 @@ export class Board {
         for (let i = startFileCode + step; i !== endFileCode; i += step) {
             const intermediateCellId = `${String.fromCharCode(i)}${from.rank}`;
             const intermediateCell = this.getCell(intermediateCellId);
-            
+
             // Guard: If there is a piece in the way, fail immediately
             if (intermediateCell && this._pieceMap.get(intermediateCell)) {
-                return false; 
+                return false;
             }
         }
 
@@ -171,7 +239,7 @@ export class Board {
         // 8. Guard: King cannot pass through a square that is under attack
         // 9. Guard: King cannot end up in check
 
-        return true; 
+        return true;
     }
 
     private isPathClear(from: Cell, to: Cell): boolean {

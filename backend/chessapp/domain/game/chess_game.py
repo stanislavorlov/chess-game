@@ -82,6 +82,9 @@ class ChessGame(AggregateRoot):
 
     def start(self):
         self.emit(GameStarted(game_id=self.game_id, started_date=datetime.now()))
+        # Emit initial state for White
+        legal_moves = self._state.board.get_legal_moves(self._state.turn)
+        self.raise_event(SyncedState(game_id=self.game_id, turn=self._state.turn, legal_moves=legal_moves))
 
     def finish(self, result: str = ''):
         self.emit(GameFinished(game_id=self.game_id, result=result, finished_date=datetime.now()))
@@ -111,6 +114,10 @@ class ChessGame(AggregateRoot):
                 self.__switch_turn_from(self._state.turn)
             case KingChecked() | KingCheckMated():
                 self._state = GameState(self._state.status, self._state.turn, CheckState(event.side, event.position), self._state.board)
+            case SyncedState():
+                # Reconstitution: Sync turn if provided
+                side = event.turn
+                self._state = GameState(self._state.status, side, self._state.check_state, self._state.board)
 
     @property
     def black_timer(self):
@@ -151,8 +158,6 @@ class ChessGame(AggregateRoot):
                 self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.game_finished()))
             elif not self._state.turn == piece.get_side():
                 self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.not_your_turn()))
-            elif self.is_check and piece.get_piece_type() != PieceType.King:
-                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.king_in_check()))
             elif piece != moved:
                 self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.state_mismatch()))
             else:
@@ -199,7 +204,8 @@ class ChessGame(AggregateRoot):
                     
                     self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=reason))
         finally:
-            self.raise_event(SyncedState(game_id=self.game_id, turn=self._state.turn))
+            legal_moves = self._state.board.get_legal_moves(self._state.turn)
+            self.raise_event(SyncedState(game_id=self.game_id, turn=self._state.turn, legal_moves=legal_moves))
 
     def calculate_move_effect(self):
         side_ = self._state.turn

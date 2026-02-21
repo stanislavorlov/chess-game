@@ -123,6 +123,7 @@ export class PlayComponent implements OnInit, OnDestroy {
             new Board(data.board),
             Side.parse(data.state.turn));
 
+          this.game.syncState(Side.parse(data.state.turn), data.state.legal_moves);
           this.game.setCheck(data.state.check_side, data.state.check_position);
 
           let that = this;
@@ -176,7 +177,7 @@ export class PlayComponent implements OnInit, OnDestroy {
           } else if (event instanceof DomainEvents.KingCheckedEvent || event instanceof DomainEvents.KingCheckmatedEvent) {
             this.game.setCheck(event.side, event.position);
           } else if (event instanceof DomainEvents.SyncedStateEvent) {
-            this.game.syncState(event.turn);
+            this.game.syncState(event.turn, event.legal_moves);
           }
         } catch (e) {
           console.error('Error parsing WebSocket message', e);
@@ -244,19 +245,10 @@ export class PlayComponent implements OnInit, OnDestroy {
       this.selectedSquare = null;
 
     } else {
-      // Don't allow selecting a square if its piece doesn't follow turn 
-      // and if the king is checked and not desired king's square is selected
       const piece = this.getPiece(square);
       if (!piece) return;
 
-      const isCorrectTurn = piece.side.value === this.game.turn.value;
-      if (!isCorrectTurn) return;
-
-      const isSideInCheck = this.game.checkSide === this.game.turn.value;
-      if (isSideInCheck) {
-        const isKingSelected = square.id === this.game.checkPosition?.toLowerCase();
-        if (!isKingSelected) return;
-      }
+      if (!this.game.isSelectable(square)) return;
 
       square.selected = true;
       this.selectedSquare = square;

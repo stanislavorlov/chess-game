@@ -23,5 +23,11 @@ class Movement:
                     self._to == other._to)
         return False
         
+    def to_dict(self):
+        return {
+            "from": str(self._from),
+            "to": str(self._to)
+        }
+
     def __hash__(self):
         return hash((self._from, self._to))

@@ -55,4 +55,8 @@ export abstract class Piece {
     markMoved() {
         this._moved = true;
     }
+
+    resetMoved() {
+        this._moved = false;
+    }
 }

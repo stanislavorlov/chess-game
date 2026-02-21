@@ -42,7 +42,7 @@ export class KingCastledEvent extends GameEvent {
 }
 
 export class SyncedStateEvent extends GameEvent {
-    constructor(game_id: string, public readonly turn: Side) {
+    constructor(game_id: string, public readonly turn: Side, public readonly legal_moves: any[]) {
         super(game_id, 'synced-state');
     }
 }
@@ -63,7 +63,7 @@ export class GameEventFactory {
             case 'king-castled':
                 return new KingCastledEvent(data.game_id, data.side, data.king_from, data.king_to, data.rook_from, data.rook_to, data.is_kingside);
             case 'synced-state':
-                return new SyncedStateEvent(data.game_id, Side.parse(data.turn));
+                return new SyncedStateEvent(data.game_id, Side.parse(data.turn), data.legal_moves || []);
             default:
                 return null;
         }

@@ -21,6 +21,7 @@ export class GameStateDto {
     finished: boolean;
     check_side: string | null;
     check_position: string | null;
+    legal_moves: any[];
 }
 export class GameFormatDto {
     value: string;

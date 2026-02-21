@@ -1,6 +1,7 @@
 from typing import List, Optional
 from . import bitboard_utils as utils
 from ..events.king_castled import KingCastled
+from ..pieces.piece import Piece
 from ..pieces.piece_type import PieceType
 from ...domain.chessboard.file import File
 from ...domain.chessboard.position import Position
@@ -44,7 +45,6 @@ class Board(ValueObject):
             for piece_type in PieceType:
                 self._bitboards[(side, piece_type)] = 0
 
-
     def piece_moved(self, piece_moved: PieceMoved):
         piece = piece_moved.piece
         from_ = piece_moved.from_
@@ -54,13 +54,9 @@ class Board(ValueObject):
 
         piece.mark_moved()
 
-        # Update dictionary-based board
-        self._board[from_] = Square(from_, None)
-        self._board[to] = Square(to, piece)
-
-        # Update bitboards
-        utils.clear_piece_bit(utils.to_bit_index(from_), piece.get_side(), piece.get_piece_type(), self._bitboards, self._occupancy)
-        utils.set_piece_bit(utils.to_bit_index(to), piece.get_side(), piece.get_piece_type(), self._bitboards, self._occupancy)
+        # Atomic move operation
+        self._remove_piece(from_)
+        self._set_piece(to, piece)
 
         if is_castling:
             rank = from_.rank
@@ -76,34 +72,62 @@ class Board(ValueObject):
 
             if rook:
                 rook.mark_moved()
-                # Update dictionary-based board
-                self._board[rook_from] = Square(rook_from, None)
-                self._board[rook_to] = Square(rook_to, rook)
+                self._remove_piece(rook_from)
+                self._set_piece(rook_to, rook)
 
-                # Update bitboards
-                utils.clear_piece_bit(utils.to_bit_index(rook_from), rook.get_side(), rook.get_piece_type(), self._bitboards, self._occupancy)
-                utils.set_piece_bit(utils.to_bit_index(rook_to), rook.get_side(), rook.get_piece_type(), self._bitboards, self._occupancy)
+    def verify_integrity(self) -> bool:
+        """Verifies that bitboards match the dictionary representation."""
+        for position, square in self._board.items():
+            piece = square.piece
+            idx = utils.to_bit_index(position)
+            
+            # Check occupancy
+            is_occupied_bb = bool(self._occupancy[None] >> idx & 1)
+            if square.is_occupied != is_occupied_bb:
+                return False
+                
+            if piece:
+                # Check side occupancy
+                if not (self._occupancy[piece.get_side()] >> idx & 1):
+                    return False
+                # Check specific piece bitboard
+                if not (self._bitboards[(piece.get_side(), piece.get_piece_type())] >> idx & 1):
+                    return False
+                    
+        return True
 
     def king_castled(self, king_castled: KingCastled):
         rook = self._board[king_castled.rook_from].piece
         king = self._board[king_castled.king_from].piece
-        rook_from, rook_to = king_castled.rook_from, king_castled.rook_to
-        king_from, king_to = king_castled.king_from, king_castled.king_to
-
-        self._board[rook_from] = Square(rook_from, None)
-        self._board[rook_to] = Square(rook_to, rook)
-
-        self._board[king_from] = Square(king_from, None)
-        self._board[king_to] = Square(king_to, king)
-
+        
+        # Atomically update both positions for both pieces
+        self._remove_piece(king_castled.king_from)
+        self._set_piece(king_castled.king_to, king)
+        
+        self._remove_piece(king_castled.rook_from)
+        self._set_piece(king_castled.rook_to, rook)
 
     def piece_captured(self, piece_captured: PieceCaptured):
         # The PieceMoved event following this will update the square piece on 'to' position.
-        # But we must clear the bit of the captured piece first.
-        utils.clear_piece_bit(utils.to_bit_index(piece_captured.to), piece_captured.piece.get_side(), piece_captured.piece.get_piece_type(), self._bitboards, self._occupancy)
-        pass
+        # But we must clear the state of the captured piece first.
+        self._remove_piece(piece_captured.from_)
+        self._remove_piece(piece_captured.to) # Captured piece is removed from 'to' before the attacker arrives
 
     def pawn_promoted(self, pawn_promoted: PawnPromoted):
+        # Replace pawn with new piece
+        # side = pawn_promoted.side
+        # pos = pawn_promoted.to
+        #
+        # piece_classes = {
+        #     PieceType.Knight: Knight,
+        #     PieceType.Bishop: Bishop,
+        #     PieceType.Rook: Rook,
+        #     PieceType.Queen: Queen
+        # }
+        # promoted_piece = piece_classes[pawn_promoted.promoted_to](side)
+        # promoted_piece.mark_moved()
+        #
+        # self._set_piece(pos, promoted_piece)
         pass
 
     def king_checked(self, king_checked: KingChecked):
@@ -239,6 +263,30 @@ class Board(ValueObject):
     def is_checkmate(self, side: Side) -> bool:
         return self.is_check(side) and len(self.get_legal_moves(side)) == 0
 
+    def _set_piece(self, position: Position, piece: Optional[Piece]):
+        if piece is None:
+            self._remove_piece(position)
+            return
+
+        # Update dictionary
+        self._board[position] = Square(position, piece)
+
+        # Update bitboards
+        utils.set_piece_bit(utils.to_bit_index(position), piece.get_side(), piece.get_piece_type(), self._bitboards,
+                            self._occupancy)
+
+    def _remove_piece(self, position: Position):
+        square = self._board.get(position)
+        piece = square.piece if square else None
+
+        # Update dictionary
+        self._board[position] = Square(position, None)
+
+        # Update bitboards if a piece was there
+        if piece:
+            utils.clear_piece_bit(utils.to_bit_index(position), piece.get_side(), piece.get_piece_type(),
+                                  self._bitboards, self._occupancy)
+
     def __board_initialize__(self, board: dict[Position, Square]):
         for file in File.a():
             for rank in Rank.r1():
@@ -262,7 +310,7 @@ class Board(ValueObject):
                 
                 board[position] = Square(position, piece)
                 if piece:
-                  utils.set_piece_bit(utils.to_bit_index(position), piece.get_side(), piece.get_piece_type(), self._bitboards, self._occupancy)
+                  self._set_piece(position, piece)
 
     def __iter__(self):
         return iter(self._board)

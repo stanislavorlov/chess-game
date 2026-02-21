@@ -110,25 +110,23 @@ class Board(ValueObject):
     def piece_captured(self, piece_captured: PieceCaptured):
         # The PieceMoved event following this will update the square piece on 'to' position.
         # But we must clear the state of the captured piece first.
-        self._remove_piece(piece_captured.from_)
         self._remove_piece(piece_captured.to) # Captured piece is removed from 'to' before the attacker arrives
 
     def pawn_promoted(self, pawn_promoted: PawnPromoted):
         # Replace pawn with new piece
-        # side = pawn_promoted.side
-        # pos = pawn_promoted.to
-        #
-        # piece_classes = {
-        #     PieceType.Knight: Knight,
-        #     PieceType.Bishop: Bishop,
-        #     PieceType.Rook: Rook,
-        #     PieceType.Queen: Queen
-        # }
-        # promoted_piece = piece_classes[pawn_promoted.promoted_to](side)
-        # promoted_piece.mark_moved()
-        #
-        # self._set_piece(pos, promoted_piece)
-        pass
+        side = pawn_promoted.side
+        pos = pawn_promoted.to
+        
+        piece_classes = {
+            PieceType.Knight: Knight,
+            PieceType.Bishop: Bishop,
+            PieceType.Rook: Rook,
+            PieceType.Queen: Queen
+        }
+        promoted_piece = piece_classes[pawn_promoted.promoted_to](side)
+        promoted_piece.mark_moved()
+        
+        self._set_piece(pos, promoted_piece)
 
     def king_checked(self, king_checked: KingChecked):
         pass

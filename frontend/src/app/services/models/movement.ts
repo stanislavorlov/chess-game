@@ -1,7 +1,7 @@
 import { Piece } from "src/app/pages/game/play/play/models/pieces/piece";
 
 export class Movement {
-    public game_id: string;
+    public gameId: string;
     public piece: Piece;
     public from: string;
     public to: string;
@@ -9,7 +9,7 @@ export class Movement {
     public capturedPiece: Piece | null = null;
 
     constructor(game_id: string, piece: Piece, from: string, to: string, capturedPiece: Piece | null = null) {
-        this.game_id = game_id;
+        this.gameId = game_id;
         this.piece = piece;
         this.from = from;
         this.to = to;

@@ -3,7 +3,18 @@ from ...domain.kernel.value_object import ValueObject
 
 class Side(ValueObject):
     __slots__ = ['_value']
-    
+
+    def __init__(self, value: str) -> None:
+        super().__init__()
+        if not isinstance(value, str):
+            raise ValueError("Value must be a string")
+
+        normalized = value.lower()
+        if normalized not in ('w', 'b'):
+            raise ValueError(f"Invalid internal Side value: '{value}'")
+
+        self._value = normalized
+
     @classmethod
     def white(cls):
         return cls("W")
@@ -24,10 +35,3 @@ class Side(ValueObject):
     
     def __hash__(self):
         return hash(self._value)
-    
-    def __init__(self, value) -> None:
-        super().__init__()
-        if not isinstance(value, str):
-            raise ValueError(f"Value must be a string")
-        
-        self._value = value.lower()

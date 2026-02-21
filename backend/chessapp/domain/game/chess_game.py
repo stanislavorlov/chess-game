@@ -3,8 +3,8 @@ from .game_history import ChessGameHistory
 from ..chessboard.file import File
 from ..events.game_created import GameCreated
 from ..events.king_castled import KingCastled
+from ..pieces.piece import Piece
 from ..players.players import Players
-from ..value_objects import side
 from ..value_objects.check_state import CheckState
 from ..value_objects.game_information import GameInformation
 from ..value_objects.game_state import GameState
@@ -134,7 +134,7 @@ class ChessGame(AggregateRoot):
     def is_checkmate(self):
         return self._state.board.is_checkmate(self._state.turn)
 
-    def move_piece(self, _from: Position, to: Position):
+    def move_piece(self, _from: Position, to: Position, moved: Piece, captured: Piece):
         # Identify a piece from board
         square = self._state.board[_from]
         piece = square.piece
@@ -150,6 +150,8 @@ class ChessGame(AggregateRoot):
             self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Wait for your turn"))
         elif self.is_check and piece.get_piece_type() != PieceType.King:
             self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="King is checked"))
+        elif piece != moved:
+            self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Current move doesn't match current state"))
         else:
             movement = Movement(_from, to)
             legal_moves = self._state.board.get_legal_moves(self._state.turn)
@@ -158,6 +160,10 @@ class ChessGame(AggregateRoot):
                 # Check for capture
                 target_square = self._state.board[to]
                 if target_square.piece is not None:
+                    if target_square.piece != captured:
+                        self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Current move doesn't match current state"))
+                        return
+
                     self.emit(PieceCaptured(game_id=self.game_id, from_=_from, to=to, piece=target_square.piece))
 
                 # Castling side effect: Emit PieceMoved for the Rook

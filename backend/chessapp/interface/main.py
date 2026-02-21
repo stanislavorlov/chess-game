@@ -11,7 +11,10 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from ..application.commands.move_piece_command import MovePieceCommand
 from ..domain.chessboard.position import Position
 from ..domain.events.piece_move_failed import PieceMoveFailed
+from ..domain.pieces.piece_factory import PieceFactory
+from ..domain.pieces.piece_type import PieceType
 from ..domain.value_objects.game_id import ChessGameId
+from ..domain.value_objects.side import Side
 from ..infrastructure import models
 from ..infrastructure.config.config import Settings
 from ..infrastructure.mediator.container import get_mediator, get_connection_manager, get_repository, get_logger, \
@@ -52,18 +55,22 @@ async def consume_kafka_commands(_app: FastAPI):
         ):
             try:
                 # Command data now only needs game_id, from, to
+                piece_dict = command_data['piece']
+                captured_dict = command_data['capturedPiece']
                 command = MovePieceCommand(
                     game_id=ChessGameId(PydanticObjectId(command_data['game_id'])),
                     from_=Position.parse(command_data['from']),
-                    to=Position.parse(command_data['to'])
+                    to=Position.parse(command_data['to']),
+                    piece=PieceFactory.create(Side(piece_dict['_side']['_value']), PieceType.value_of(piece_dict['_type'])),
+                    captured=PieceFactory.create(Side(captured_dict['_side']['_value']), PieceType.value_of(captured_dict['_type'])),
                 )
                 logger.info(f"Consuming command from Kafka: {command}")
                 await mediator.handle_command(command)
             except Exception as e:
-                logger.error(f"Error processing Kafka command: {e}")
+                logger.exception(f"Error processing Kafka command: {e}")
                 # Report failure back to client via Redis
                 try:
-                    game_id_str = command_data.get('game_id')
+                    game_id_str = command_data.get('gameId')
                     if game_id_str:
                         failure_event = PieceMoveFailed(
                             game_id=ChessGameId(PydanticObjectId(game_id_str)),

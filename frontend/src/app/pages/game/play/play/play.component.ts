@@ -25,7 +25,7 @@ import { Movement } from 'src/app/services/models/movement';
 import { PieceFactory } from './models/pieces/piece_factory';
 import { Side } from './models/side';
 import { GameTimeOption } from './models/game-time-option';
-import { GameEventFactory, PieceMoveFailedEvent, PieceMovedEvent, PieceCapturedEvent, KingCheckedEvent, KingCheckmatedEvent, KingCastledEvent } from './models/events/game-event';
+import * as DomainEvents from './models/events/game-event';
 
 @Component({
   selector: 'app-play',
@@ -153,10 +153,10 @@ export class PlayComponent implements OnInit, OnDestroy {
       this.playService.getMessages().subscribe(data => {
         try {
           console.log('received message:', data);
-          const event = GameEventFactory.fromRaw(data);
+          const event = DomainEvents.GameEventFactory.fromRaw(data);
           if (!event) return;
 
-          if (event instanceof PieceMoveFailedEvent && event.game_id === this.game.id) {
+          if (event instanceof DomainEvents.PieceMoveFailedEvent && event.game_id === this.game.id) {
             console.warn('Move failed on server:', event.reason);
             this.game.rollbackMove();
 
@@ -168,13 +168,15 @@ export class PlayComponent implements OnInit, OnDestroy {
               },
               width: '350px'
             });
-          } else if (event instanceof KingCastledEvent) {
+          } else if (event instanceof DomainEvents.KingCastledEvent) {
             this.game.castleKing(event);
-          } else if (event instanceof PieceMovedEvent || event instanceof PieceCapturedEvent) {
+          } else if (event instanceof DomainEvents.PieceMovedEvent || event instanceof DomainEvents.PieceCapturedEvent) {
             // Reset check state on any move; if a new check occurs, a king-checked event will follow
             this.game.clearCheck();
-          } else if (event instanceof KingCheckedEvent || event instanceof KingCheckmatedEvent) {
+          } else if (event instanceof DomainEvents.KingCheckedEvent || event instanceof DomainEvents.KingCheckmatedEvent) {
             this.game.setCheck(event.side, event.position);
+          } else if (event instanceof DomainEvents.SyncedStateEvent) {
+            console.log('Game state synced from server:', event);
           }
         } catch (e) {
           console.error('Error parsing WebSocket message', e);

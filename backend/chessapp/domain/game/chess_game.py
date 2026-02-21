@@ -4,7 +4,7 @@ from ..chessboard.file import File
 from ..events import (
     GameCreated, GameFinished, GameStarted, KingCastled,
     KingChecked, KingCheckMated, PawnPromoted, PieceCaptured,
-    PieceMoveFailed, PieceMoved
+    PieceMoveFailed, PieceMoved, SyncedState
 )
 from ..pieces.piece import Piece
 from ..players.players import Players
@@ -136,69 +136,69 @@ class ChessGame(AggregateRoot):
         return self._state.board.is_checkmate(self._state.turn)
 
     def move_piece(self, _from: Position, to: Position, moved: Piece, captured: Piece):
-        # Identify a piece from board
-        square = self._state.board[_from]
-        piece = square.piece
+        try:
+            # Identify a piece from board
+            square = self._state.board[_from]
+            piece = square.piece
 
-        if piece is None:
-             return
+            if piece is None:
+                return
 
-        if not self._state.is_started:
-            self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason='Game was not started'))
-        elif self._state.is_finished:
-            self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason='Game has finished'))
-        elif not self._state.turn == piece.get_side():
-            self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Wait for your turn"))
-        elif self.is_check and piece.get_piece_type() != PieceType.King:
-            self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="King is checked"))
-        elif piece != moved:
-            self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Current move doesn't match current state"))
-        else:
-            movement = Movement(_from, to)
-            legal_moves = self._state.board.get_legal_moves(self._state.turn)
-
-            if movement in legal_moves:
-                # Check for capture
-                target_square = self._state.board[to]
-                if target_square.piece is not None:
-                    if target_square.piece != captured:
-                        self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Current move doesn't match current state"))
-                        return
-
-                    self.emit(PieceCaptured(game_id=self.game_id, from_=_from, to=to, piece=target_square.piece))
-
-                # Castling side effect: Emit PieceMoved for the Rook
-                if piece.get_piece_type() == PieceType.King and abs(to.file.to_index() - _from.file.to_index()) == 2:
-                    is_kingside = to.file.to_index() > _from.file.to_index()
-                    rank = _from.rank
-                    rook_from_file = File.h() if is_kingside else File.a()
-                    rook_to_file = File.f() if is_kingside else File.d()
-
-                    rook_from = Position(rook_from_file, rank)
-                    rook_to = Position(rook_to_file, rank)
-                    #rook = self._state.board[rook_from].piece
-                    #if rook:
-                    #    self.emit(PieceMoved(game_id=self.game_id, from_=rook_from, to=rook_to, piece=rook))
-
-                    self.emit(KingCastled(
-                        game_id=self.game_id,
-                        side=piece.get_side(),
-                        king_to=to,
-                        king_from=_from,
-                        rook_to=rook_to,
-                        rook_from=rook_from,
-                        is_kingside=is_kingside,
-                    ))
-                else:
-                    self.emit(PieceMoved(game_id=self.game_id, from_=_from, to=to, piece=piece))
-
-                self.calculate_move_effect()
+            if not self._state.is_started:
+                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason='Game was not started'))
+            elif self._state.is_finished:
+                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason='Game has finished'))
+            elif not self._state.turn == piece.get_side():
+                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Wait for your turn"))
+            elif self.is_check and piece.get_piece_type() != PieceType.King:
+                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="King is checked"))
+            elif piece != moved:
+                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Current move doesn't match current state"))
             else:
-                reason = "Illegal move"
-                if piece.get_side() != self._state.turn:
-                    reason = "Wait for your turn"
-                
-                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=reason))
+                movement = Movement(_from, to)
+                legal_moves = self._state.board.get_legal_moves(self._state.turn)
+
+                if movement in legal_moves:
+                    # Check for capture
+                    target_square = self._state.board[to]
+                    if target_square.piece is not None:
+                        if target_square.piece != captured:
+                            self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Current move doesn't match current state"))
+                            return
+
+                        self.emit(PieceCaptured(game_id=self.game_id, from_=_from, to=to, piece=target_square.piece))
+
+                    # Castling side effect: Emit PieceMoved for the Rook
+                    if piece.get_piece_type() == PieceType.King and abs(to.file.to_index() - _from.file.to_index()) == 2:
+                        is_kingside = to.file.to_index() > _from.file.to_index()
+                        rank = _from.rank
+                        rook_from_file = File.h() if is_kingside else File.a()
+                        rook_to_file = File.f() if is_kingside else File.d()
+
+                        rook_from = Position(rook_from_file, rank)
+                        rook_to = Position(rook_to_file, rank)
+
+                        self.emit(KingCastled(
+                            game_id=self.game_id,
+                            side=piece.get_side(),
+                            king_to=to,
+                            king_from=_from,
+                            rook_to=rook_to,
+                            rook_from=rook_from,
+                            is_kingside=is_kingside,
+                        ))
+                    else:
+                        self.emit(PieceMoved(game_id=self.game_id, from_=_from, to=to, piece=piece))
+
+                    self.calculate_move_effect()
+                else:
+                    reason = "Illegal move"
+                    if piece.get_side() != self._state.turn:
+                        reason = "Wait for your turn"
+                    
+                    self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=reason))
+        finally:
+            self.raise_event(SyncedState(game_id=self.game_id, turn=self._state.turn))
 
     def calculate_move_effect(self):
         side_ = self._state.turn

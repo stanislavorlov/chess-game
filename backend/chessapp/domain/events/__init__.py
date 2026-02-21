@@ -9,6 +9,7 @@ from .pawn_promoted import PawnPromoted
 from .piece_captured import PieceCaptured
 from .piece_move_failed import PieceMoveFailed
 from .piece_moved import PieceMoved
+from .synced_state import SyncedState
 
 __all__ = [
     'GameCreated',
@@ -22,4 +23,5 @@ __all__ = [
     'PieceCaptured',
     'PieceMoveFailed',
     'PieceMoved',
+    'SyncedState',
 ]

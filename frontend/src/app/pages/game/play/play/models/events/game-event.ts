@@ -1,15 +1,17 @@
+import { Side } from "../side";
+
 export abstract class GameEvent {
     constructor(public readonly game_id: string, public readonly event_type: string) { }
 }
 
 export class PieceMovedEvent extends GameEvent {
-    constructor(game_id: string, public readonly side: string, public readonly from_: string, public readonly to: string) {
+    constructor(game_id: string, public readonly from_: string, public readonly to: string) {
         super(game_id, 'piece-moved');
     }
 }
 
 export class PieceCapturedEvent extends GameEvent {
-    constructor(game_id: string, public readonly side: string, public readonly from_: string, public readonly to: string, public readonly captured: string) {
+    constructor(game_id: string, public readonly from_: string, public readonly to: string, public readonly captured: string) {
         super(game_id, 'piece-captured');
     }
 }
@@ -38,6 +40,12 @@ export class KingCastledEvent extends GameEvent {
     }
 }
 
+export class SyncedStateEvent extends GameEvent {
+    constructor(game_id: string, public readonly turn: Side) {
+        super(game_id, 'synced-state');
+    }
+}
+
 export class GameEventFactory {
     static fromRaw(data: any): GameEvent | null {
         switch (data.event_type) {
@@ -53,6 +61,8 @@ export class GameEventFactory {
                 return new KingCheckmatedEvent(data.game_id, data.side, data.position);
             case 'king-castled':
                 return new KingCastledEvent(data.game_id, data.side, data.king_from, data.king_to, data.rook_from, data.rook_to, data.is_kingside);
+            case 'synced-state':
+                return new SyncedStateEvent(data.game_id, Side.parse(data.turn));
             default:
                 return null;
         }

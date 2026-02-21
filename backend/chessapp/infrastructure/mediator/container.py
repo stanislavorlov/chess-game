@@ -26,6 +26,7 @@ from ...domain.events.pawn_promoted import PawnPromoted
 from ...domain.events.piece_captured import PieceCaptured
 from ...domain.events.piece_move_failed import PieceMoveFailed
 from ...domain.events.piece_moved import PieceMoved
+from ...domain.events.synced_state import SyncedState
 from ...application.handlers.redis_notification_handler import RedisNotificationHandler
 from ...infrastructure.mediator.mediator import Mediator
 from ...infrastructure.config.config import Settings
@@ -79,7 +80,7 @@ def get_mediator(
     all_events = [
         GameCreated, GameStarted, GameFinished, GameStartFailed,
         KingCastled, KingChecked, KingCheckMated, PawnPromoted,
-        PieceCaptured, PieceMoveFailed, PieceMoved
+        PieceCaptured, PieceMoveFailed, PieceMoved, SyncedState
     ]
     for event_cls in all_events:
         if event_cls != GameCreated: 

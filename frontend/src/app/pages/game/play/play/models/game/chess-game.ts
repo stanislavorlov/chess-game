@@ -170,6 +170,10 @@ export class ChessGame {
         }
     }
 
+    public syncState(turn: Side) {
+        this._turn = turn;
+    }
+
     private switchTurn() {
         this._turn = (this._turn == Side.black) ? Side.white : Side.black;
     }

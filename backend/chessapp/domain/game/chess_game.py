@@ -3,6 +3,7 @@ from .game_history import ChessGameHistory
 from ..chessboard.file import File
 from ..events.game_created import GameCreated
 from ..events.king_castled import KingCastled
+from ..events.pawn_promoted import PawnPromoted
 from ..pieces.piece import Piece
 from ..players.players import Players
 from ..value_objects.check_state import CheckState

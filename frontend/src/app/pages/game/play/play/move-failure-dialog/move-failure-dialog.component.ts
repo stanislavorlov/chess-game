@@ -2,9 +2,10 @@ import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { NgIf } from '@angular/common';
+import { MoveFailureReason } from '../models/move-failure-reason';
 
 export interface MoveFailureData {
-  reason: string;
+  reason: MoveFailureReason;
   from_?: string;
   to?: string;
 }
@@ -16,7 +17,7 @@ export interface MoveFailureData {
   template: `
     <h2 mat-dialog-title class="error-title">Move Rejected</h2>
     <mat-dialog-content>
-      <p>{{ data.reason }}</p>
+      <p>{{ data.reason.message }}</p>
       <div *ngIf="data.from_ && data.to" class="move-details">
         Attempted move: <strong>{{ data.from_ }} → {{ data.to }}</strong>
       </div>

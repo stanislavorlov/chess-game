@@ -1,8 +1,9 @@
 import dataclasses
-from ...domain.chessboard.position import Position
-from ...domain.kernel.base import BaseEvent
-from ...domain.pieces.piece import Piece
-from ...domain.value_objects.game_id import ChessGameId
+from ..chessboard.position import Position
+from ..kernel.base import BaseEvent
+from ..pieces.piece import Piece
+from ..value_objects.game_id import ChessGameId
+from ...domain.value_objects.move_failure_reason import MoveFailureReason
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -11,7 +12,7 @@ class PieceMoveFailed(BaseEvent):
     piece: Piece = dataclasses.field()
     from_: Position = dataclasses.field()
     to: Position = dataclasses.field()
-    reason: str = dataclasses.field()
+    reason: MoveFailureReason = dataclasses.field()
 
     @property
     def event_type(self) -> str:

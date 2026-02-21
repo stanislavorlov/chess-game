@@ -1,3 +1,4 @@
+import { MoveFailureReason } from "../move-failure-reason";
 import { Side } from "../side";
 
 export abstract class GameEvent {
@@ -17,7 +18,7 @@ export class PieceCapturedEvent extends GameEvent {
 }
 
 export class PieceMoveFailedEvent extends GameEvent {
-    constructor(game_id: string, public readonly reason: string, public readonly from_: string, public readonly to: string) {
+    constructor(game_id: string, public readonly reason: MoveFailureReason, public readonly from_: string, public readonly to: string) {
         super(game_id, 'piece-move-failed');
     }
 }

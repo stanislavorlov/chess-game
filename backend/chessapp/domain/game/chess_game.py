@@ -12,6 +12,7 @@ from ..value_objects.check_state import CheckState
 from ..value_objects.game_information import GameInformation
 from ..value_objects.game_state import GameState
 from ..value_objects.game_status import GameStatus
+from ..value_objects.move_failure_reason import MoveFailureReason
 from ...domain.chessboard.board import Board
 from ...domain.chessboard.position import Position
 from ...domain.kernel.aggregate_root import AggregateRoot
@@ -145,15 +146,15 @@ class ChessGame(AggregateRoot):
                 return
 
             if not self._state.is_started:
-                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason='Game was not started'))
+                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.game_not_started()))
             elif self._state.is_finished:
-                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason='Game has finished'))
+                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.game_finished()))
             elif not self._state.turn == piece.get_side():
-                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Wait for your turn"))
+                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.not_your_turn()))
             elif self.is_check and piece.get_piece_type() != PieceType.King:
-                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="King is checked"))
+                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.king_in_check()))
             elif piece != moved:
-                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Current move doesn't match current state"))
+                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.state_mismatch()))
             else:
                 movement = Movement(_from, to)
                 legal_moves = self._state.board.get_legal_moves(self._state.turn)
@@ -163,7 +164,7 @@ class ChessGame(AggregateRoot):
                     target_square = self._state.board[to]
                     if target_square.piece is not None:
                         if target_square.piece != captured:
-                            self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason="Current move doesn't match current state"))
+                            self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.state_mismatch()))
                             return
 
                         self.emit(PieceCaptured(game_id=self.game_id, from_=_from, to=to, piece=target_square.piece))
@@ -192,9 +193,9 @@ class ChessGame(AggregateRoot):
 
                     self.calculate_move_effect()
                 else:
-                    reason = "Illegal move"
+                    reason = MoveFailureReason.illegal_move()
                     if piece.get_side() != self._state.turn:
-                        reason = "Wait for your turn"
+                        reason = MoveFailureReason.not_your_turn()
                     
                     self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=reason))
         finally:

@@ -104,7 +104,14 @@
 }
 
 .history {
-  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Creates two equal-width columns */
+  gap: 10px; /* Adds space between rows and columns */
+  
+  /* Optional: Clean up default list styling */
+  list-style-type: none; 
+  padding-top: 10px;
+  margin: 0;
 }
 
 .history-item {

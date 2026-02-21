@@ -170,7 +170,7 @@ def bits_to_movements(bitboard: int, from_idx: int = None, from_delta: int = Non
     return movements
 
 
-def get_sliding_moves(side: Side, p_type: PieceType, pieces: int, full_occupancy: int, own_occupancy: int) -> List[Movement]:
+def get_sliding_moves(p_type: PieceType, pieces: int, full_occupancy: int, own_occupancy: int) -> List[Movement]:
     moves = []
     for i in range(64):
         if (pieces >> i) & 1:

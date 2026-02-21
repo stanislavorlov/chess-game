@@ -156,9 +156,9 @@ class Board(ValueObject):
             ))
 
             # Sliders
-            list_of_moves.extend(utils.get_sliding_moves(side, PieceType.Rook, self._bitboards[(side, PieceType.Rook)], self._occupancy[None], self._occupancy[side]))
-            list_of_moves.extend(utils.get_sliding_moves(side, PieceType.Bishop, self._bitboards[(side, PieceType.Bishop)], self._occupancy[None], self._occupancy[side]))
-            list_of_moves.extend(utils.get_sliding_moves(side, PieceType.Queen, self._bitboards[(side, PieceType.Queen)], self._occupancy[None], self._occupancy[side]))
+            list_of_moves.extend(utils.get_sliding_moves(PieceType.Rook, self._bitboards[(side, PieceType.Rook)], self._occupancy[None], self._occupancy[side]))
+            list_of_moves.extend(utils.get_sliding_moves(PieceType.Bishop, self._bitboards[(side, PieceType.Bishop)], self._occupancy[None], self._occupancy[side]))
+            list_of_moves.extend(utils.get_sliding_moves(PieceType.Queen, self._bitboards[(side, PieceType.Queen)], self._occupancy[None], self._occupancy[side]))
 
         return list_of_moves
 

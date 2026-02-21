@@ -135,7 +135,7 @@ class ChessGame(AggregateRoot):
         return self._state.board.is_checkmate(self._state.turn)
 
     def move_piece(self, _from: Position, to: Position):
-        # Identify piece from board
+        # Identify a piece from board
         square = self._state.board[_from]
         piece = square.piece
 

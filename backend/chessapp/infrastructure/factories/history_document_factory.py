@@ -111,7 +111,6 @@ class GameHistoryDocumentFactory:
                 sequence_number=history_entry.sequence_number,
                 action_type=history_entry.action_type,
                 action_date=datetime.datetime.now(),
-                san=history_entry.san,
                 payload=domain_to_dict(history_entry.history_event)
             )
             history_list.append(history_document)

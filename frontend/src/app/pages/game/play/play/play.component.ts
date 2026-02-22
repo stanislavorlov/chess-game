@@ -131,7 +131,7 @@ export class PlayComponent implements OnInit, OnDestroy {
           data.history.forEach(function (value: HistoryEntryDto) {
             let piece = PieceFactory.getPiece(value.piece);
 
-            that.game.history.push(new Movement(that.game.id, piece, value.from, value.to));
+            that.game.history.push(Movement.create(that.game.id, piece, value.from, value.to).withSan(value.san));
           });
 
           this.gameTimer = setInterval(function () {

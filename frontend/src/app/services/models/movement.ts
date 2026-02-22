@@ -5,15 +5,28 @@ export class Movement {
     public piece: Piece;
     public from: string;
     public to: string;
-
     public capturedPiece: Piece | null = null;
+    public san: string | null = null;
 
-    constructor(game_id: string, piece: Piece, from: string, to: string, capturedPiece: Piece | null = null) {
-        this.gameId = game_id;
+    private constructor(gameId: string, piece: Piece, from: string, to: string) {
+        this.gameId = gameId;
         this.piece = piece;
         this.from = from;
         this.to = to;
+    }
+
+    public static create(gameId: string, piece: Piece, from: string, to: string): Movement {
+        return new Movement(gameId, piece, from, to);
+    }
+
+    public withCapturedPiece(capturedPiece: Piece): Movement {
         this.capturedPiece = capturedPiece;
+        return this;
+    }
+
+    public withSan(san: string): Movement {
+        this.san = san;
+        return this;
     }
 
     get square() {

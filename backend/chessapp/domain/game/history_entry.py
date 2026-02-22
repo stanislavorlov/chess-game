@@ -4,11 +4,12 @@ from ...domain.value_objects.history_entry_id import HistoryEntryId
 
 class ChessGameHistoryEntry(Entity):
 
-    def __init__(self, entry_id: HistoryEntryId, sequence_number: int, history_event):
+    def __init__(self, entry_id: HistoryEntryId, sequence_number: int, history_event, san: str = None):
         super().__init__()
         self._id = entry_id
         self._seq_number = sequence_number
         self._history_event = history_event
+        self._san = san
 
     @property
     def id(self) -> HistoryEntryId:
@@ -25,3 +26,7 @@ class ChessGameHistoryEntry(Entity):
     @property
     def action_type(self):
         return self._history_event.__class__.__name__
+
+    @property
+    def san(self):
+        return self._san

@@ -100,7 +100,10 @@ export class ChessGame {
             this._board.movePiece(from_, to);
 
             if (piece) {
-                const entry = new Movement(this.id, piece, from_.id, to.id, capturedPiece);
+                const entry = Movement.create(this.id, piece, from_.id, to.id)
+                if (!!capturedPiece) {
+                    entry.withCapturedPiece(capturedPiece);
+                }
                 this.history.push(entry);
             }
 
@@ -119,7 +122,7 @@ export class ChessGame {
 
                 // Record king's move on castling, rook's move is implicit in the move entry
                 if (piece) {
-                    const entry = new Movement(this.id, piece, from_.id, to.id);
+                    const entry = Movement.create(this.id, piece, from_.id, to.id);
                     this.history.push(entry);
                 }
 
@@ -147,7 +150,7 @@ export class ChessGame {
             // Record king's move on castling, rook's move is implicit in the move entry
             const piece = this._board.getPiece(kingTo);
             if (piece) {
-                const entry = new Movement(this.id, piece, kingFrom.id, kingTo.id);
+                const entry = Movement.create(this.id, piece, kingFrom.id, kingTo.id);
                 this.history.push(entry);
             }
 

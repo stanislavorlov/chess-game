@@ -14,6 +14,7 @@ export class HistoryEntryDto {
     piece: PieceDto;
     from: string;
     to: string;
+    san: string;
 }
 export class GameStateDto {
     turn: string;

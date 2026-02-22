@@ -15,14 +15,14 @@ class ChessGameHistory(Entity):
     def empty():
         return ChessGameHistory([])
 
-    def record(self, domain_event: BaseEvent):
+    def record(self, domain_event: BaseEvent, san: str = None):
         seq_number = len(self._gameHistory)
-        entry = ChessGameHistoryEntry(HistoryEntryId.generate_id(), seq_number+1, domain_event)
+        entry = ChessGameHistoryEntry(HistoryEntryId.generate_id(), seq_number+1, domain_event, san)
 
         self._gameHistory.append(entry)
 
     def last(self):
-        return self._gameHistory[:-1]
+        return self._gameHistory
 
     def count(self):
         return len(self._gameHistory)

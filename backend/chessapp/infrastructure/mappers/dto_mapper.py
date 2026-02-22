@@ -95,7 +95,8 @@ class DtoMapper:
                 if isinstance(event_data, dict):
                     event_data.update({
                         'sequence': item.sequence_number,
-                        'action_type': item.action_type
+                        'action_type': item.action_type,
+                        'san': item.san
                     })
                 output.append(event_data)
 

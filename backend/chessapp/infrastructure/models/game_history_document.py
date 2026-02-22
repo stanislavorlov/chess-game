@@ -11,6 +11,7 @@ class GameHistoryDocument(Document):
     history_time: datetime = Field(default_factory=datetime.now)
     action_date: datetime
     action_type: str
+    san: Optional[str] = None
     payload: Optional[dict] = None
 
     class Config:

@@ -163,10 +163,10 @@ class ChessGame(AggregateRoot):
             if piece is None:
                 return
 
-            if not self._state.is_started:
-                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.game_not_started()))
-            elif self._state.is_finished:
+            if self._state.is_finished:
                 self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.game_finished()))
+            elif not self._state.is_started:
+                self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.game_not_started()))
             elif not self._state.turn == piece.get_side():
                 self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.not_your_turn()))
             elif piece != moved:

@@ -1,13 +1,16 @@
 import re
 from ...application.dtos.chess_game_dto import ChessGameDto, GameStateDto, GameFormatDto, PlayersDto
 from ...domain.chessboard.board import Board
-from ...domain.events.king_castled import KingCastled
-from ...domain.events.piece_moved import PieceMoved
 from ...domain.game.chess_game import ChessGame
 from ...domain.game.game_history import ChessGameHistory
 from ...domain.pieces.king import King
 from ...domain.pieces.piece import Piece
-
+from ...domain.services.san_calculator import SanCalculator
+from ...domain.events import (
+    GameCreated, GameFinished, GameStarted, KingCastled,
+    KingChecked, KingCheckMated, PawnPromoted, PieceCaptured,
+    PieceMoved, SyncedState
+)
 
 class DtoMapper:
 
@@ -78,12 +81,29 @@ class DtoMapper:
     @staticmethod
     def map_history(history: ChessGameHistory) -> list:
         output = []
+        board = Board()
+        
         allowed_events = [PieceMoved.__name__, KingCastled.__name__]
 
         for item in history:
             event = item.history_event
             class_name = item.action_type
             
+            # Clone board state BEFORE applying the event
+            board_before = board.clone()
+            
+            # Apply event to temporary board to keep it in sync for SAN calculation
+            if class_name == PieceMoved.__name__:
+                board.piece_moved(event)
+            elif class_name == PieceCaptured.__name__:
+                board.piece_captured(event)
+            elif class_name == KingCastled.__name__:
+                board.king_castled(event)
+            elif class_name == PawnPromoted.__name__:
+                board.pawn_promoted(event)
+            elif class_name == GameCreated.__name__:
+                board = Board() # Initial state
+
             if class_name not in allowed_events:
                 continue
 
@@ -94,10 +114,13 @@ class DtoMapper:
             if mapper and callable(mapper):
                 event_data = mapper(event)
                 if isinstance(event_data, dict):
+                    # Calculate SAN on-the-fly using the state BEFORE the move
+                    san = SanCalculator.calculate(event, board_before)
+                    
                     event_data.update({
                         'sequence': item.sequence_number,
                         'action_type': item.action_type,
-                        'san': item.san
+                        'san': san
                     })
                 output.append(event_data)
 

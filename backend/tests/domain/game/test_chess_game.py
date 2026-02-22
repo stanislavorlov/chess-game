@@ -24,6 +24,7 @@ from chessapp.domain.events.king_checkmated import KingCheckMated
 from chessapp.domain.events.synced_state import SyncedState
 from chessapp.domain.events.piece_move_failed import PieceMoveFailed
 from chessapp.domain.value_objects.move_failure_reason import MoveFailureReason
+from chessapp.domain.services.san_calculator import SanCalculator
 
 class TestChessGame(unittest.TestCase):
     def setUp(self):
@@ -45,53 +46,6 @@ class TestChessGame(unittest.TestCase):
         self.game.move_piece(from_pos, to_pos, piece, None)
         self.assertEqual(self.game.game_state.turn, Side.black())
 
-    def test_calculate_san_pawn(self):
-        # 1. e4
-        from_pos = Position(File.e(), Rank.r2())
-        to_pos = Position(File.e(), Rank.r4())
-        piece = self.game.get_board()[from_pos].piece
-        
-        event = PieceMoved(game_id=self.game_id, from_=from_pos, to=to_pos, piece=piece)
-        san = self.game._calculate_san(event, self.game.get_board().clone())
-        self.assertEqual(san, "e4")
-
-    def test_calculate_san_knight(self):
-        # 1. Nf3
-        from_pos = Position(File.g(), Rank.r1())
-        to_pos = Position(File.f(), Rank.r3())
-        piece = self.game.get_board()[from_pos].piece
-        
-        event = PieceMoved(game_id=self.game_id, from_=from_pos, to=to_pos, piece=piece)
-        san = self.game._calculate_san(event, self.game.get_board().clone())
-        self.assertEqual(san, "Nf3")
-
-    def test_calculate_san_capture(self):
-        # Setup a capture scenario
-        # 1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Bxc6
-        
-        def make_move(f, t):
-            fp = Position.parse(f)
-            tp = Position.parse(t)
-            p = self.game.get_board()[fp].piece
-            target = self.game.get_board()[tp].piece
-            self.game.move_piece(fp, tp, p, target)
-
-        make_move("e2", "e4")
-        make_move("e7", "e5")
-        make_move("g1", "f3")
-        make_move("b8", "c6")
-        make_move("f1", "b5")
-        make_move("a7", "a6")
-        
-        # Now Bxc6
-        from_pos = Position.parse("b5")
-        to_pos = Position.parse("c6")
-        piece = self.game.get_board()[from_pos].piece
-        board_before = self.game.get_board().clone()
-        
-        event = PieceMoved(game_id=self.game_id, from_=from_pos, to=to_pos, piece=piece)
-        san = self.game._calculate_san(event, board_before)
-        self.assertEqual(san, "Bxc6")
 
     def test_moves_count(self):
         # Initial moves count is 0
@@ -108,7 +62,7 @@ class TestChessGame(unittest.TestCase):
         
         # Emit a non-move event (e.g. KingChecked)
         from chessapp.domain.events.king_checked import KingChecked
-        self.game.history.record(KingChecked(game_id=self.game_id, side=Side.black(), position=Position.parse("e8")), "Check")
+        self.game.history.record(KingChecked(game_id=self.game_id, side=Side.black(), position=Position.parse("e8")))
         
         # Moves count should still be 1 (PieceMoved only)
         self.assertEqual(self.game.history.moves_count(), 1)

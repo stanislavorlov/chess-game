@@ -38,23 +38,12 @@ class ChessGame(AggregateRoot):
         if self._history:
             for entry in self._history:
                 if entry.history_event:
-                    # Calculate SAN if missing during reconstitution
-                    if entry.san is None:
-                        san = self._calculate_san(entry.history_event, self._state.board.clone())
-                        # Note: We can't easily update the entry in the list if it's already there
-                        # But we can update the internal _san if we have access
-                        entry._san = san
-                    
                     self.apply_event(entry.history_event)
 
-    def emit(self, event, board_before_move=None):
-        san = None
-        if board_before_move:
-            san = self._calculate_san(event, board_before_move)
-            
+    def emit(self, event):
         self.apply_event(event)
         self.raise_event(event)
-        self._history.record(event, san)
+        self._history.record(event)
 
     @staticmethod
     def create(game_id: ChessGameId, players: Players, information: GameInformation):
@@ -99,6 +88,7 @@ class ChessGame(AggregateRoot):
 
     def finish(self, result: str = ''):
         self.emit(GameFinished(game_id=self.game_id, result=result, finished_date=datetime.now()))
+
 
     def apply_event(self, event):
         match event:
@@ -203,9 +193,9 @@ class ChessGame(AggregateRoot):
                             rook_to=rook_to,
                             rook_from=rook_from,
                             is_kingside=is_kingside,
-                        ), board_before)
+                        ))
                     else:
-                        self.emit(PieceMoved(game_id=self.game_id, from_=_from, to=to, piece=piece), board_before)
+                        self.emit(PieceMoved(game_id=self.game_id, from_=_from, to=to, piece=piece))
 
                     self.calculate_move_effect()
                 else:
@@ -228,58 +218,6 @@ class ChessGame(AggregateRoot):
         elif self.is_check:
             self.emit(KingChecked(game_id=self.game_id, side=side_, position=king_pos))
 
-    def _calculate_san(self, event, board_before_move) -> str:
-        if isinstance(event, KingCastled):
-            return "O-O" if event.is_kingside else "O-O-O"
-
-        if isinstance(event, PieceMoved):
-            piece = event.piece
-            from_ = event.from_
-            to = event.to
-            piece_type = piece.get_piece_type()
-            
-            # Castling check (though KingCastled exists)
-            if piece_type == PieceType.King and abs(to.file.to_index() - from_.file.to_index()) == 2:
-                return "O-O" if to.file.to_index() > from_.file.to_index() else "O-O-O"
-
-            san = ""
-            if piece_type != PieceType.Pawn:
-                san += piece_type.value
-            
-            # Disambiguation
-            if piece_type != PieceType.Pawn:
-                others = []
-                for pos in board_before_move:
-                    sq = board_before_move[pos]
-                    if sq.piece and sq.piece.get_side() == piece.get_side() and \
-                       sq.piece.get_piece_type() == piece_type and pos != from_:
-                        
-                        moves = board_before_move.get_legal_moves(piece.get_side())
-                        can_reach = any(m.from_position == pos and m.to_position == to for m in moves)
-                        if can_reach:
-                            others.append(pos)
-                
-                if others:
-                    same_file = any(o.file == from_.file for o in others)
-                    same_rank = any(o.rank == from_.rank for o in others)
-                    
-                    if not same_file:
-                        san += str(from_.file)
-                    elif not same_rank:
-                        san += str(from_.rank)
-                    else:
-                        san += str(from_.file) + str(from_.rank)
-
-            is_capture = board_before_move[to].piece is not None
-            if is_capture:
-                if piece_type == PieceType.Pawn:
-                    san += str(from_.file)
-                san += "x"
-            
-            san += str(to)
-            return san
-
-        return ""
 
     def __switch_turn_from(self, turn: Side):
         side = Side.black() if turn == Side.white() else Side.white()

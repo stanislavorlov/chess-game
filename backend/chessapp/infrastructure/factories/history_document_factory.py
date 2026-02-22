@@ -91,8 +91,7 @@ class GameHistoryDocumentFactory:
             return ChessGameHistoryEntry(
                 entry_id=HistoryEntryId(PydanticObjectId(history_document.id)),
                 sequence_number=history_document.sequence_number,
-                history_event=event,
-                san=history_document.san
+                history_event=event
             )
         return None
 

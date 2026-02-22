@@ -15,6 +15,7 @@ class DtoMapper:
     def map_game(game: ChessGame) -> ChessGameDto:
         return ChessGameDto(
             game_id=str(game.game_id),
+            moves_count=len(game.history),
             date=game.information.date,
             name=game.information.name,
             status=str(game.game_state.status),

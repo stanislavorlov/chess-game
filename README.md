@@ -13,6 +13,8 @@
    `source .venv/bin/activate`
 3. Run the application:
    `uvicorn chessapp.interface.main:app --reload`
+4. Run unit tests:
+   `python3 -m unittest discover tests`
 
 ### Front-end Client
 1. Go to the frontend directory:
@@ -21,6 +23,8 @@
    `npm install`
 3. Run the development server:
    `npm start`
+4. Run unit tests:
+   `npm test -- --browsers=ChromeHeadless --no-watch`
 
 ## Docker
 1. Go to the `backend/docker-compose` folder

@@ -27,6 +27,7 @@ class PlayersDto:
 @dataclass(frozen=True, kw_only=True)
 class ChessGameDto(BaseResponse):
     game_id: str
+    moves_count: int
     date: datetime
     name: str
     status: str

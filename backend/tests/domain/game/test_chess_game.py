@@ -115,46 +115,92 @@ class TestChessGame(unittest.TestCase):
         # Total history: GameCreated, GameStarted, PieceMoved, KingChecked (manual)
         self.assertEqual(self.game.history.count(), 4)
 
-    def test_apply_event_coverage(self):
-        from chessapp.domain.value_objects.game_status import GameStatus
-        
-        # Test GameFinished
-        event = GameFinished(game_id=self.game_id, result="Resignation", finished_date=datetime.now())
-        self.game.apply_event(event)
-        self.assertEqual(self.game.game_state.status, GameStatus.finished())
-        
-        # Test GameCreated
+    def test_apply_event_game_created(self):
         event = GameCreated(game_id=self.game_id)
         self.game.apply_event(event)
         self.assertEqual(self.game.game_state.status, GameStatus.created())
         self.assertEqual(self.game.game_state.turn, Side.white())
-        
-        # Test GameStarted
+
+    def test_apply_event_game_started(self):
         event = GameStarted(game_id=self.game_id, started_date=datetime.now())
         self.game.apply_event(event)
         self.assertEqual(self.game.game_state.status, GameStatus.started())
+
+    def test_apply_event_game_finished(self):
+        event = GameFinished(game_id=self.game_id, result="Resignation", finished_date=datetime.now())
+        self.game.apply_event(event)
+        self.assertEqual(self.game.game_state.status, GameStatus.finished())
+
+    def test_apply_event_piece_moved(self):
+        from_pos = Position.parse("e2")
+        to_pos = Position.parse("e4")
+        piece = self.game.get_board()[from_pos].piece
+        event = PieceMoved(game_id=self.game_id, from_=from_pos, to=to_pos, piece=piece)
         
-        # Test PieceCaptured
+        self.game.apply_event(event)
+        self.assertIsNone(self.game.get_board()[from_pos].piece)
+        self.assertEqual(self.game.get_board()[to_pos].piece, piece)
+
+    def test_apply_event_piece_captured(self):
         from_pos = Position.parse("d2")
         to_pos = Position.parse("d4")
         pawn = self.game.get_board()[from_pos].piece
         event = PieceCaptured(game_id=self.game_id, from_=from_pos, to=to_pos, piece=pawn)
         self.game.apply_event(event)
-        # piece_captured removes piece from board at 'to'
         self.assertIsNone(self.game.get_board()[to_pos].piece)
+
+    def test_apply_event_king_castled(self):
+        # Setup castling event manually
+        king_from = Position.parse("e1")
+        king_to = Position.parse("g1")
+        rook_from = Position.parse("h1")
+        rook_to = Position.parse("f1")
         
-        # Test KingChecked
+        event = KingCastled(
+            game_id=self.game_id,
+            side=Side.white(),
+            king_from=king_from,
+            king_to=king_to,
+            rook_from=rook_from,
+            rook_to=rook_to,
+            is_kingside=True
+        )
+        
+        self.game.apply_event(event)
+        
+        # Verify King and Rook moved
+        self.assertEqual(self.game.get_board()[king_to].piece.get_piece_type(), PieceType.King)
+        self.assertEqual(self.game.get_board()[rook_to].piece.get_piece_type(), PieceType.Rook)
+        self.assertIsNone(self.game.get_board()[king_from].piece)
+        self.assertIsNone(self.game.get_board()[rook_from].piece)
+
+    def test_apply_event_pawn_promoted(self):
+         # Place a pawn on a7 manually for simulation if needed, but apply_event just sets it
+        to_pos = Position.parse("a8")
+        event = PawnPromoted(game_id=self.game_id, side=Side.white(), to=to_pos, promoted_to=PieceType.Queen)
+        self.game.apply_event(event)
+        
+        self.assertEqual(self.game.get_board()[to_pos].piece.get_piece_type(), PieceType.Queen)
+        self.assertEqual(self.game.get_board()[to_pos].piece.get_side(), Side.white())
+
+    def test_apply_event_king_checked(self):
         event = KingChecked(game_id=self.game_id, side=Side.black(), position=Position.parse("e8"))
         self.game.apply_event(event)
         self.assertEqual(self.game.game_state.check_state.side_checked, Side.black())
-        
-        # Test SyncedState
+
+    def test_apply_event_king_checkmated(self):
+        event = KingCheckMated(game_id=self.game_id, side=Side.white(), position=Position.parse("e1"))
+        self.game.apply_event(event)
+        # Check if it marks something? Actually apply_event for KingCheckMated might not do anything specific to state yet
+        # depends on implementation. But we test it executes.
+        pass
+
+    def test_apply_event_synced_state(self):
         event = SyncedState(game_id=self.game_id, turn=Side.black(), legal_moves=[])
         self.game.apply_event(event)
         self.assertEqual(self.game.game_state.turn, Side.black())
 
-    def test_move_piece_guards(self):
-        # 1. Game not started
+    def test_move_piece_guard_not_started(self):
         game2 = ChessGame.create(self.game_id, self.players, self.info)
         from_pos = Position.parse("e2")
         to_pos = Position.parse("e4")
@@ -162,32 +208,34 @@ class TestChessGame(unittest.TestCase):
         game2.move_piece(from_pos, to_pos, piece2, None)
         failed_event = next(e for e in game2.domain_events if isinstance(e, PieceMoveFailed))
         self.assertEqual(failed_event.reason.code, "GAME_NOT_STARTED")
-        
-        # 2. Game finished
+
+    def test_move_piece_guard_finished(self):
         self.game.finish("Draw")
+        from_pos = Position.parse("e2")
+        to_pos = Position.parse("e4")
         piece = self.game.get_board()[from_pos].piece
         self.game.move_piece(from_pos, to_pos, piece, None)
         failed_event = [e for e in self.game.domain_events if isinstance(e, PieceMoveFailed)][-1]
         self.assertEqual(failed_event.reason.code, "GAME_FINISHED")
-        
-        # Reset game for further tests
-        self.setUp()
-        
-        # 3. Not your turn
+
+    def test_move_piece_guard_not_your_turn(self):
         black_from = Position.parse("e7")
         black_to = Position.parse("e5")
         black_piece = self.game.get_board()[black_from].piece
         self.game.move_piece(black_from, black_to, black_piece, None)
         failed_event = [e for e in self.game.domain_events if isinstance(e, PieceMoveFailed)][-1]
         self.assertEqual(failed_event.reason.code, "NOT_YOUR_TURN")
-        
-        # 4. Piece mismatch (moving piece that isn't at 'from')
+
+    def test_move_piece_guard_piece_mismatch(self):
+        from_pos = Position.parse("e2")
+        to_pos = Position.parse("e4")
         wrong_piece = PieceFactory.create(PieceType.Rook, Side.white())
         self.game.move_piece(from_pos, to_pos, wrong_piece, None)
         failed_event = [e for e in self.game.domain_events if isinstance(e, PieceMoveFailed)][-1]
         self.assertEqual(failed_event.reason.code, "STATE_MISMATCH")
-        
-        # 5. Illegal move (pawn backwards)
+
+    def test_move_piece_guard_illegal_move(self):
+        from_pos = Position.parse("e2")
         illegal_to = Position.parse("e1")
         piece = self.game.get_board()[from_pos].piece
         self.game.move_piece(from_pos, illegal_to, piece, None)

@@ -81,5 +81,27 @@ class TestChessGame(unittest.TestCase):
         san = self.game._calculate_san(event, board_before)
         self.assertEqual(san, "Bxc6")
 
+    def test_moves_count(self):
+        # Initial moves count is 0
+        self.assertEqual(self.game.history.moves_count(), 0)
+        
+        # Make a move
+        from_pos = Position.parse("e2")
+        to_pos = Position.parse("e4")
+        piece = self.game.get_board()[from_pos].piece
+        self.game.move_piece(from_pos, to_pos, piece, None)
+        
+        # Moves count should be 1
+        self.assertEqual(self.game.history.moves_count(), 1)
+        
+        # Emit a non-move event (e.g. KingChecked)
+        from chessapp.domain.events.king_checked import KingChecked
+        self.game.history.record(KingChecked(game_id=self.game_id, side=Side.black(), position=Position.parse("e8")), "Check")
+        
+        # Moves count should still be 1 (PieceMoved only)
+        self.assertEqual(self.game.history.moves_count(), 1)
+        # Total history: GameCreated, GameStarted, PieceMoved, KingChecked (manual)
+        self.assertEqual(self.game.history.count(), 4)
+
 if __name__ == '__main__':
     unittest.main()

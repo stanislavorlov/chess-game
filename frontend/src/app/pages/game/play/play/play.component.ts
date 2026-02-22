@@ -57,6 +57,7 @@ export class PlayComponent implements OnInit, OnDestroy {
   public selectedFormat = '';
   public selectedTimeOption: GameTimeOption | null = null;
   public game: ChessGame;
+  public isFlipped = false;
 
   public timeOptionsMap: { [key: string]: GameTimeOption[] } = {
     'bullet': [
@@ -135,17 +136,6 @@ export class PlayComponent implements OnInit, OnDestroy {
           });
 
           this.gameTimer = setInterval(function () {
-            let whiteTimer = document.getElementById('timer1');
-            let blackTimer = document.getElementById('timer2');
-
-            if (whiteTimer) {
-              whiteTimer.innerText = that.formatSeconds(that.game.whiteTimer);
-            }
-
-            if (blackTimer) {
-              blackTimer.innerText = that.formatSeconds(that.game.blackTimer);
-            }
-
             that.game.timerTick();
           }, 1000);
         }
@@ -261,5 +251,13 @@ export class PlayComponent implements OnInit, OnDestroy {
     this.game.board.cells.forEach(cell => {
       cell.checked = !cell.isHeader && !!this.game.checkPosition && cell.id === this.game.checkPosition.toLowerCase();
     });
+  }
+
+  getTopPlayer() {
+    return this.isFlipped ? { side: Side.white, label: 'Player 1 (White)' } : { side: Side.black, label: 'Player 2 (Black)' };
+  }
+
+  getBottomPlayer() {
+    return this.isFlipped ? { side: Side.black, label: 'Player 2 (Black)' } : { side: Side.white, label: 'Player 1 (White)' };
   }
 }

@@ -16,11 +16,11 @@ class GameState(ValueObject):
 
     @property
     def is_started(self):
-        return self._status == GameStatus.started()
+        return self._status.is_following_rank(GameStatus.started())
 
     @property
     def is_finished(self):
-        return self._status == GameStatus.finished()
+        return self._status.is_following_rank(GameStatus.finished())
 
     @property
     def turn(self):

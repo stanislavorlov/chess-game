@@ -89,7 +89,6 @@ class ChessGame(AggregateRoot):
     def finish(self, result: str = ''):
         self.emit(GameFinished(game_id=self.game_id, result=result, finished_date=datetime.now()))
 
-
     def apply_event(self, event):
         match event:
             case PieceMoved():
@@ -113,8 +112,10 @@ class ChessGame(AggregateRoot):
                 self._state.board.pawn_promoted(event)
                 self._state = GameState(self._state.status, self._state.turn, CheckState.default(), self._state.board)
                 self.__switch_turn_from(self._state.turn)
-            case KingChecked() | KingCheckMated():
+            case KingChecked():
                 self._state = GameState(self._state.status, self._state.turn, CheckState(event.side, event.position), self._state.board)
+            case KingCheckMated():
+                self._state = GameState(GameStatus.finished(), self._state.turn, CheckState(event.side, event.position), self._state.board)
             case SyncedState():
                 # Reconstitution: Sync turn if provided
                 side = event.turn
@@ -166,7 +167,6 @@ class ChessGame(AggregateRoot):
                 legal_moves = self._state.board.get_legal_moves(self._state.turn)
 
                 if movement in legal_moves:
-                    board_before = self._state.board.clone()
                     # Check for capture
                     target_square = self._state.board[to]
                     if target_square.piece is not None:

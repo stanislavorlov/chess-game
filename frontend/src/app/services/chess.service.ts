@@ -18,12 +18,7 @@ export class ChessService {
   }
 
   startGame(game: CreateGame) {
-    return this.httpClient.post<ApiResult<ChessGameDto>>('/api/game/create_board/', {
-      name: game.name,
-      game_format: game.format,
-      time: game.time,
-      additional: game.additional
-    }, {});
+    return this.httpClient.post<ApiResult<ChessGameDto>>('/api/game/create_board/', game, {});
   }
 
   newGame() {

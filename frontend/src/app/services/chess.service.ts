@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 import { throwError } from 'rxjs';
 import { CreateGame } from '../pages/game/play/play/models/create-game';
 import { ChessGameDto } from './models/chess-game-dto';
-import { ApiResult } from './models/api-result';
 import { Board } from '../pages/game/play/play/models/board/board';
 import { ChessGame, GameFormat } from '../pages/game/play/play/models/game/chess-game';
 import { Side } from '../pages/game/play/play/models/side';
@@ -18,18 +17,18 @@ export class ChessService {
   }
 
   startGame(game: CreateGame) {
-    return this.httpClient.post<ApiResult<ChessGameDto>>('/api/game/create_board/', game, {});
+    return this.httpClient.post<ChessGameDto>('/api/game/create_board/', game, {});
   }
 
   newGame() {
     let board = new Board([]);
     board.initialize();
 
-    return new ChessGame('', 'Chess Game 1', new GameFormat('', 0, 0), board, Side.white);
+    return new ChessGame('', 'Chess Game 1', new GameFormat('', 0, 0, 0), board, Side.white);
   }
 
   getGame(game_id: string) {
-    return this.httpClient.get<ApiResult<ChessGameDto>>('/api/game/board/' + game_id);
+    return this.httpClient.get<ChessGameDto>('/api/game/board/' + game_id);
   }
 
   private handleError(error: HttpErrorResponse) {

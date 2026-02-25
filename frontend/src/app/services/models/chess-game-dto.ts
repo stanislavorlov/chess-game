@@ -28,7 +28,7 @@ export class GameFormatDto {
     value: string;
     white_remaining_time: number;
     black_remaining_time: number;
-    additional_time: number;
+    move_increment: number;
 }
 export class PlayersDto {
     white_id: string;

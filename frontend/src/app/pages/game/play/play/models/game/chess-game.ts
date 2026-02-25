@@ -25,8 +25,8 @@ export class ChessGame {
         this._format = format;
         this._board = board;
         this.history = [];
-        this._whiteTimer = format.remaining;
-        this._blackTimer = format.remaining;
+        this._whiteTimer = format.white_remainig;
+        this._blackTimer = format.black_remainig;
         this._turn = turn;
     }
 
@@ -218,16 +218,26 @@ export class GameState {
 export class GameFormat {
 
     private _name: string;
-    private _remaining: number;
-    private _additional: number;
+    private _white_remainig: number;
+    private _black_remainig: number;
+    private _move_increment: number
 
-    constructor(name: string, remaining: number, additional: number) {
+    constructor(name: string, white_remainig: number, black_remainig: number, move_increment: number) {
         this._name = name;
-        this._remaining = remaining;
-        this._additional = additional;
+        this._white_remainig = white_remainig;
+        this._black_remainig = black_remainig;
+        this._move_increment = move_increment;
     }
 
-    get remaining() {
-        return this._remaining;
+    get white_remainig() {
+        return this._white_remainig;
+    }
+
+    get black_remainig() {
+        return this._black_remainig;
+    }
+
+    get move_increment() {
+        return this._move_increment;
     }
 }

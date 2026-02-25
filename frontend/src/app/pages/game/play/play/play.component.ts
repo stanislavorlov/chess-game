@@ -14,7 +14,6 @@ import { MoveFailureDialogComponent } from './move-failure-dialog/move-failure-d
 import { ChessService } from 'src/app/services/chess.service';
 import { CreateGame } from './models/create-game';
 import { ChessGameDto, HistoryEntryDto } from 'src/app/services/models/chess-game-dto';
-import { ApiResult } from 'src/app/services/models/api-result';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlayService } from 'src/app/services/play.service';
 import { ChessGame, GameFormat } from './models/game/chess-game';
@@ -90,32 +89,32 @@ export class PlayComponent implements OnInit, OnDestroy {
 
     if (!!gameId) {
       this.playService = new PlayService(gameId);
-      this.chessService.getGame(gameId).subscribe((result: ApiResult<ChessGameDto>) => {
-        if (result.status == 200) {
+      this.chessService.getGame(gameId).subscribe((data: ChessGameDto) => {
+        this.game = new ChessGame(
+          data.game_id,
+          data.name,
+          new GameFormat(
+            data.game_format.value,
+            data.game_format.white_remaining_time,
+            data.game_format.black_remaining_time,
+            data.game_format.move_increment),
+          new Board(data.board),
+          Side.parse(data.state.turn));
 
-          let data = result.data;
-          this.game = new ChessGame(
-            data.game_id,
-            data.name,
-            new GameFormat(data.game_format.value, 0, data.game_format.additional_time),
-            new Board(data.board),
-            Side.parse(data.state.turn));
+        this.game.syncState(Side.parse(data.state.turn), data.state.legal_moves);
+        this.game.setCheck(data.state.check_side, data.state.check_position);
 
-          this.game.syncState(Side.parse(data.state.turn), data.state.legal_moves);
-          this.game.setCheck(data.state.check_side, data.state.check_position);
+        let that = this;
 
-          let that = this;
+        data.history.forEach(function (value: HistoryEntryDto) {
+          let piece = PieceFactory.getPiece(value.piece);
 
-          data.history.forEach(function (value: HistoryEntryDto) {
-            let piece = PieceFactory.getPiece(value.piece);
+          that.game.history.push(Movement.create(that.game.id, piece, value.from, value.to).withSan(value.san));
+        });
 
-            that.game.history.push(Movement.create(that.game.id, piece, value.from, value.to).withSan(value.san));
-          });
-
-          this.gameTimer = setInterval(function () {
-            that.game.timerTick();
-          }, 1000);
-        }
+        this.gameTimer = setInterval(function () {
+          that.game.timerTick();
+        }, 1000);
       });
 
       this.playService.getMessages().subscribe(data => {
@@ -170,12 +169,10 @@ export class PlayComponent implements OnInit, OnDestroy {
     new_game.name = this.game.name;
     new_game.time = this.selectedTimeOption?.baseTime || '';
 
-    this.chessService.startGame(new_game).subscribe((result: ApiResult<ChessGameDto>) => {
-      if (result.status == 200) {
-        let gameId = result.data.game_id;
+    this.chessService.startGame(new_game).subscribe((data: ChessGameDto) => {
+      let gameId = data.game_id;
 
-        this.router.navigate(['/play', gameId])
-      }
+      this.router.navigate(['/play', gameId])
     });
   }
 

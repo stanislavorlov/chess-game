@@ -13,6 +13,7 @@ class KingCastled(BaseEvent):
     rook_from: Position
     rook_to: Position
     is_kingside: bool
+    time_taken: float = 0.0
 
     @property
     def event_type(self) -> str:

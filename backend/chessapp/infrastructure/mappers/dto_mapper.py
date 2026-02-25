@@ -1,16 +1,20 @@
 import re
+from datetime import datetime
+
 from ...application.dtos.chess_game_dto import ChessGameDto, GameStateDto, GameFormatDto, PlayersDto
 from ...domain.chessboard.board import Board
+from ...domain.events import (
+    GameCreated, KingCastled,
+    PawnPromoted, PieceCaptured,
+    PieceMoved
+)
 from ...domain.game.chess_game import ChessGame
 from ...domain.game.game_history import ChessGameHistory
 from ...domain.pieces.king import King
 from ...domain.pieces.piece import Piece
 from ...domain.services.san_calculator import SanCalculator
-from ...domain.events import (
-    GameCreated, GameFinished, GameStarted, KingCastled,
-    KingChecked, KingCheckMated, PawnPromoted, PieceCaptured,
-    PieceMoved, SyncedState
-)
+from ...domain.value_objects.side import Side
+
 
 class DtoMapper:
 
@@ -23,7 +27,7 @@ class DtoMapper:
             name=game.information.name,
             status=str(game.game_state.status),
             state=DtoMapper._map_component(game.game_state),
-            game_format=DtoMapper._map_component(game.information.format),
+            game_format=DtoMapper._map_game_format(game.information.format, game),
             players=DtoMapper._map_component(game.players),
             board=DtoMapper.map_board(game.get_board()),
             history=DtoMapper.map_history(game.history),
@@ -64,11 +68,27 @@ class DtoMapper:
         )
 
     @staticmethod
-    def _map_game_format(game_format: any) -> GameFormatDto:
+    def _map_game_format(game_format: any, game: ChessGame) -> GameFormatDto:
+        white_remaining = game.white_timer
+        black_remaining = game.black_timer
+        
+        if game.game_state.is_started and not game.game_state.is_finished:
+            last_event = game.history.last()
+            # If no history yet, use game start date
+            last_date = last_event.action_date if last_event else game.game_state.started_at
+            
+            if last_date:
+                elapsed = (datetime.now() - last_date).total_seconds()
+                if game.game_state.turn == Side.white():
+                    white_remaining -= elapsed
+                else:
+                    black_remaining -= elapsed
+
         return GameFormatDto(
             value=game_format.to_string(),
-            remaining_time=game_format.time_remaining.main_time.total_seconds(),
-            additional_time=game_format.time_remaining.additional_time.total_seconds(),
+            white_remaining_time=max(0, white_remaining),
+            black_remaining_time=max(0, black_remaining),
+            move_increment=game_format.time_remaining.move_increment.total_seconds(),
         )
 
     @staticmethod

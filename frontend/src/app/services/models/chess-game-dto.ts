@@ -26,7 +26,8 @@ export class GameStateDto {
 }
 export class GameFormatDto {
     value: string;
-    remaining_time: number;
+    white_remaining_time: number;
+    black_remaining_time: number;
     additional_time: number;
 }
 export class PlayersDto {

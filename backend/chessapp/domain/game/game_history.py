@@ -1,4 +1,5 @@
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 from ...domain.game.history_entry import ChessGameHistoryEntry
 from ...domain.kernel.base import BaseEvent
 from ...domain.kernel.entity import Entity
@@ -16,9 +17,15 @@ class ChessGameHistory(Entity):
     def empty():
         return ChessGameHistory([])
 
-    def record(self, domain_event: BaseEvent):
+    def record(self, domain_event: BaseEvent, action_date: Optional[datetime] = None, time_taken: float = 0.0):
         seq_number = len(self._gameHistory)
-        entry = ChessGameHistoryEntry(HistoryEntryId.generate_id(), seq_number+1, domain_event)
+        entry = ChessGameHistoryEntry(
+            HistoryEntryId.generate_id(), 
+            seq_number+1, 
+            domain_event, 
+            action_date or datetime.now(),
+            time_taken=time_taken
+        )
 
         self._gameHistory.append(entry)
 

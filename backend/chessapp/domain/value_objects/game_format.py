@@ -10,8 +10,7 @@ class GameFormat(ValueObject):
         self._time_remaining = time_remaining
         self._value = value
 
-        self.__validate_format(value, time_remaining.main_time)
-        #self.__validate_format(value, time_remaining.additional_time)
+        self.__validate_format(value, time_remaining.base_time, time_remaining.move_increment)
 
     @staticmethod
     def rapid(time_remaining: TimeFormat):
@@ -26,16 +25,20 @@ class GameFormat(ValueObject):
         return GameFormat(time_remaining, "bullet")
 
     @staticmethod
-    def parse_string(value: str, time_remaining: str, additional: str):
+    def parse_string(
+        value: str,
+        time_remaining: str,
+        move_increment: str
+    ):
         match value:
             case "rapid":
-                instance = GameFormat.rapid(TimeFormat.parse_string(time_remaining, additional))
+                instance = GameFormat.rapid(TimeFormat.parse_string(time_remaining, move_increment))
                 return instance
             case "blitz":
-                instance = GameFormat.blitz(TimeFormat.parse_string(time_remaining, additional))
+                instance = GameFormat.blitz(TimeFormat.parse_string(time_remaining, move_increment))
                 return instance
             case "bullet":
-                instance = GameFormat.bullet(TimeFormat.parse_string(time_remaining, additional))
+                instance = GameFormat.bullet(TimeFormat.parse_string(time_remaining, move_increment))
                 return instance
             case _:
                 raise ValueError('Invalid time input has been provided')
@@ -50,27 +53,21 @@ class GameFormat(ValueObject):
     def extend(self):
         pass
 
-    # @staticmethod
-    # def __parse_time(time_str: str):
-    #     match = re.search(r'(?:(\d+)m)?\s*(\d+)s?', time_str)
-    #     if match:
-    #         minutes = int(match.group(1)) if match.group(1) else 0
-    #         seconds = int(match.group(2))
-    #         return minutes, seconds
-    #     return None  # If no match found
-
     @staticmethod
-    def __validate_format(format_: str, time: timedelta) -> bool:
-        time_minutes = divmod(time.total_seconds(), 60)[0]
-        match format_:
-            case "rapid":
-                if time_minutes < 10 or time_minutes > 30:
-                    raise ValueError('Un-supported format')
-            case "blitz":
-                if not 2 <= divmod(time.total_seconds(), 60)[0] <= 5:
-                    raise ValueError('Un-supported format')
-            case "bullet":
-                if not 1 <= divmod(time.total_seconds(), 60)[0] < 3:
-                    raise ValueError('Un-supported format')
+    def __validate_format(format_: str, base_time: timedelta, increment: timedelta) -> bool:
+        base_minutes = divmod(base_time.total_seconds(), 60)[0]
+        inc_seconds = increment.total_seconds()
+        
+        allowed_options = {
+            "bullet": [(1, 0), (1, 1), (2, 1)],
+            "blitz": [(3, 0), (3, 2), (5, 0)],
+            "rapid": [(10, 0), (15, 10), (30, 0)]
+        }
+
+        if format_ not in allowed_options:
+            raise ValueError(f"Invalid format: {format_}")
+
+        if (base_minutes, inc_seconds) not in allowed_options[format_]:
+            raise ValueError(f"Unsupported time control for {format_}: {base_minutes}m | {inc_seconds}s")
 
         return True

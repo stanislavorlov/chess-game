@@ -6,7 +6,7 @@ from ...infrastructure.models import GameHistoryDocument
 class GameFormat(BaseModel):
     value: str
     time_remaining: str
-    additional_time: str
+    move_increment: str
 
 class Players(BaseModel):
     white_id: str
@@ -18,6 +18,8 @@ class GameDocument(Document):
     format: GameFormat
     players: Players
     status: str
+    white_remaining_time: float = 0.0
+    black_remaining_time: float = 0.0
     history: List[Link[GameHistoryDocument]]
 
     class Config:

@@ -35,8 +35,8 @@ class TestGameApi(unittest.TestCase):
             ),
             game_format=GameFormatDto(
                 value="10+5",
-                remaining_time=600.0,
-                additional_time=5.0
+                white_remaining_time=600.0,
+                black_remaining_time=600.0,
             ),
             players=PlayersDto(
                 white_id="white_user",
@@ -88,8 +88,8 @@ class TestGameApi(unittest.TestCase):
             ),
             game_format=GameFormatDto(
                 value="10+5",
-                remaining_time=600.0,
-                additional_time=5.0
+                white_remaining_time=600.0,
+                black_remaining_time=600.0,
             ),
             players=PlayersDto(
                 white_id="",

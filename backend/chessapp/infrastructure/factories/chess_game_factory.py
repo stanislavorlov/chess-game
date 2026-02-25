@@ -20,7 +20,7 @@ class ChessGameFactory:
         game_id: ChessGameId = ChessGameId(document.id)
         players = Players(PlayerId(document.players.white_id), PlayerId(document.players.black_id))
         game_format = GameFormat.parse_string(document.format.value, document.format.time_remaining,
-                                              document.format.additional_time)
+                                              document.format.move_increment)
         
         game_info = GameInformation(game_format, datetime.datetime.now(), document.game_name)
 

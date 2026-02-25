@@ -25,7 +25,7 @@ async def create_board(mediator: Annotated[Mediator, Depends(get_mediator)],
                        model: CreateBoard):
     try:
         game_id = ChessGameId.generate_id()
-        game_format_obj = GameFormat.parse_string(model.game_format, model.time, model.additional)
+        game_format_obj = GameFormat.parse_string(model.format, model.time, model.increment)
         command_result = await mediator.handle_command(CreateGameCommand(game_id=game_id, game_format=game_format_obj, name=model.name))
 
         logger.debug(f"CreateGameCommand result: {command_result}")

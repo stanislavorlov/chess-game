@@ -9,7 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { NgFor, NgIf } from '@angular/common';
+import { NgFor, NgIf, TitleCasePipe } from '@angular/common';
 import { MoveFailureDialogComponent } from './move-failure-dialog/move-failure-dialog.component';
 import { ChessService } from 'src/app/services/chess.service';
 import { CreateGame } from './models/create-game';
@@ -19,12 +19,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PlayService } from 'src/app/services/play.service';
 import { ChessGame, GameFormat } from './models/game/chess-game';
 import { Board } from 'src/app/pages/game/play/play/models/board/board';
-import { TimeSelector } from './models/timeSelector';
 import { Cell } from './models/board/ cell';
 import { Movement } from 'src/app/services/models/movement';
 import { PieceFactory } from './models/pieces/piece_factory';
 import { Side } from './models/side';
-import { GameTimeOption } from './models/game-time-option';
+import { TimeControlOption, TIME_OPTIONS_MAP } from './models/game-time-option';
 import * as DomainEvents from './models/events/game-event';
 
 @Component({
@@ -41,7 +40,7 @@ import * as DomainEvents from './models/events/game-event';
     MatCheckboxModule,
     MatSnackBarModule,
     MatDialogModule,
-    NgFor, NgIf
+    NgFor, NgIf, TitleCasePipe
   ],
   templateUrl: './play.component.html',
   styleUrl: './play.component.scss'
@@ -53,32 +52,14 @@ export class PlayComponent implements OnInit, OnDestroy {
   private gameTimer: NodeJS.Timeout;
   private playService: PlayService;
 
-  public formats: TimeSelector[];
+  public formats: string[];
   public selectedFormat = '';
-  public selectedTimeOption: GameTimeOption | null = null;
+  public selectedTimeOption: TimeControlOption | null = null;
   public game: ChessGame;
   public isFlipped = false;
 
-  public timeOptionsMap: { [key: string]: GameTimeOption[] } = {
-    'bullet': [
-      { type: '1min', label: '1 mins', time: '0h1m', additional: '' },
-      { type: '1|1min', label: '1|1 mins', time: '0h1m', additional: '0h1m' },
-      { type: '2|1min', label: '2|1 mins', time: '0h2m', additional: '0h1m' }
-    ],
-    'blitz': [
-      { type: '3min', label: '3 mins', time: '0h3m', additional: '' },
-      { type: '3|2min', label: '3|2 mins', time: '0h3m', additional: '0h2m' },
-      { type: '5min', label: '5 mins', time: '0h5m', additional: '' }
-    ],
-    'rapid': [
-      { type: '10min', label: '10 mins', time: '0h10m', additional: '' },
-      { type: '15|10min', label: '15|10 mins', time: '0h15m', additional: '0h10m' },
-      { type: '30min', label: '30 mins', time: '0h30m', additional: '' }
-    ]
-  };
-
-  get currentTimeOptions(): GameTimeOption[] {
-    return this.timeOptionsMap[this.selectedFormat] || [];
+  get currentTimeOptions(): TimeControlOption[] {
+    return TIME_OPTIONS_MAP[this.selectedFormat] || [];
   }
 
   constructor(
@@ -86,13 +67,9 @@ export class PlayComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {
-    this.formats = [
-      { value: 'bullet', viewValue: 'Bullet' },
-      { value: 'blitz', viewValue: 'Blitz' },
-      { value: 'rapid', viewValue: 'Rapid' },
-    ]
+    this.formats = Object.keys(TIME_OPTIONS_MAP);
 
-    this.selectedFormat = this.formats[1].value;
+    this.selectedFormat = this.formats[1];
   }
 
   formatSeconds(totalSeconds: number): string {
@@ -120,7 +97,7 @@ export class PlayComponent implements OnInit, OnDestroy {
           this.game = new ChessGame(
             data.game_id,
             data.name,
-            new GameFormat(data.game_format.value, data.game_format.remaining_time, data.game_format.additional_time),
+            new GameFormat(data.game_format.value, 0, data.game_format.additional_time),
             new Board(data.board),
             Side.parse(data.state.turn));
 
@@ -166,6 +143,8 @@ export class PlayComponent implements OnInit, OnDestroy {
             this.game.clearCheck();
           } else if (event instanceof DomainEvents.KingCheckedEvent || event instanceof DomainEvents.KingCheckmatedEvent) {
             this.game.setCheck(event.side, event.position);
+
+            // ToDo: handle checkmate (disable board, show message, etc.)
           } else if (event instanceof DomainEvents.SyncedStateEvent) {
             this.game.syncState(event.turn, event.legal_moves);
           }
@@ -186,10 +165,10 @@ export class PlayComponent implements OnInit, OnDestroy {
 
   startGame(): void {
     const new_game = new CreateGame();
-    new_game.additional = this.selectedTimeOption?.additional || '';
+    new_game.increment = this.selectedTimeOption?.incrementPerMove || '';
     new_game.format = this.selectedFormat;
     new_game.name = this.game.name;
-    new_game.time = this.selectedTimeOption?.time || '';
+    new_game.time = this.selectedTimeOption?.baseTime || '';
 
     this.chessService.startGame(new_game).subscribe((result: ApiResult<ChessGameDto>) => {
       if (result.status == 200) {
@@ -200,7 +179,7 @@ export class PlayComponent implements OnInit, OnDestroy {
     });
   }
 
-  selectTime(option: GameTimeOption): void {
+  selectTime(option: TimeControlOption): void {
     this.selectedTimeOption = option;
   }
 

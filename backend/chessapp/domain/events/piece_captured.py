@@ -12,6 +12,7 @@ class PieceCaptured(BaseEvent):
     to: Position = dataclasses.field()
     # piece been captured by Piece from PieceMoved
     piece: Piece = dataclasses.field()
+    time_taken: float = dataclasses.field(default=0.0)
 
     @property
     def event_type(self) -> str:

@@ -60,21 +60,20 @@
                     <mat-label class="f-w-600 m-b-8 d-block">Time selector</mat-label>
                     <mat-form-field appearance="outline" class="w-100">
                         <mat-select [(value)]="selectedFormat">
-                            @for(option of formats; track option.value) {
-                            <mat-option [value]="option.value">{{
-                                option.viewValue
-                                }}
+                            @for(option of formats; track option) {
+                            <mat-option [value]="option">
+                                {{ option | titlecase }}
                             </mat-option>
                             }
                         </mat-select>
                     </mat-form-field>
-                    <div>
-                        @for(option of currentTimeOptions; track option.type) {
+                    <div class="time-options">
+                        @for(option of currentTimeOptions; track option.label) {
                         <button mat-flat-button (click)="selectTime(option)"
-                            [class.selected]="selectedTimeOption === option" class="bg-success">
+                            [class.selected]="selectedTimeOption === option">
                             {{ option.label }}
                         </button>
-                        <span *ngIf="!$last"> | </span>
+                        <span *ngIf="!$last" class="separator"> | </span>
                         }
                     </div>
                     <div class="m-t-12">

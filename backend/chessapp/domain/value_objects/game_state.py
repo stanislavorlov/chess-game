@@ -1,3 +1,5 @@
+from datetime import datetime
+from typing import Optional
 from .check_state import CheckState
 from ...domain.chessboard.board import Board
 from ...domain.kernel.value_object import ValueObject
@@ -7,12 +9,17 @@ from ...domain.value_objects.side import Side
 
 class GameState(ValueObject):
 
-    def __init__(self, game_status: GameStatus, turn: Side, check_state: CheckState, board: Board):
+    def __init__(self, game_status: GameStatus, turn: Side, check_state: CheckState, board: Board, started_at: Optional[datetime] = None):
         super().__init__()
         self._status = game_status
         self._turn = turn
         self._check_state = check_state
         self._board = board
+        self._started_at = started_at
+
+    @property
+    def started_at(self) -> Optional[datetime]:
+        return self._started_at
 
     @property
     def is_started(self):

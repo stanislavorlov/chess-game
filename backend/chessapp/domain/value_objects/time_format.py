@@ -1,4 +1,3 @@
-import math
 from datetime import timedelta
 import pandas as pd
 from ...domain.kernel.value_object import ValueObject
@@ -6,48 +5,62 @@ from ...domain.kernel.value_object import ValueObject
 
 class TimeFormat(ValueObject):
 
-    def __init__(self, main_time: timedelta, additional_time: timedelta):
+    def __init__(self, base_time: timedelta, move_increment: timedelta):
         super().__init__()
-        self._main = main_time
-        self._additional = additional_time
+        self._base_time = base_time
+        self._move_increment = move_increment
+        self._white = base_time
+        self._black = base_time
 
     @property
-    def main_time(self):
-        return self._main
+    def white_time(self) -> float:
+        return self._white.total_seconds()
 
     @property
-    def additional_time(self):
-        return self._additional
+    def black_time(self) -> float:
+        return self._black.total_seconds()
+
+    def tick(self, side):
+        from ...domain.value_objects.side import Side
+        if side == Side.white():
+            self._white -= timedelta(seconds=1)
+        else:
+            self._black -= timedelta(seconds=1)
+
+    def consume(self, side, duration: timedelta):
+        from ...domain.value_objects.side import Side
+        if side == Side.white():
+            self._white -= duration
+        else:
+            self._black -= duration
+
+    def apply_increment(self, side):
+        from ...domain.value_objects.side import Side
+        if side == Side.white():
+            self._white += self._move_increment
+        else:
+            self._black += self._move_increment
+
+    @property
+    def base_time(self):
+        return self._base_time
+
+    @property
+    def move_increment(self):
+        return self._move_increment
 
     @staticmethod
-    def parse_string(main: str, additional: str):
-        # 5hr34m56s
-        # 2h32m
-        # pd.Timedelta('5hr34m56s')
+    def parse_string(base: str, increment: str):
+        # Interpret base as minutes and increment as seconds
+        base_time = pd.Timedelta(minutes=float(base))
+        move_increment = pd.Timedelta(seconds=float(increment))
 
-        main_time = pd.Timedelta(main)
-        additional_time = pd.Timedelta(additional)
-
-        time_format = TimeFormat(main_time, additional_time)
-
-        # if "|" in time_str:
-        #     time_format._minutes, time_format._additional_minutes = tuple(map(int, time_str.split("|")))
-        # else:
-        #     time_format._minutes = int(time_str)
+        time_format = TimeFormat(base_time, move_increment)
 
         return time_format
 
-    def main_string(self):
-        hours, remainder = divmod(self._main.total_seconds(), 3600)
-        minutes, seconds = divmod(remainder, 60)
+    def base_time_string(self):
+        return str(self._base_time.total_seconds() / 60)
 
-        return f"0hr{minutes}m{seconds}s"
-
-    def additional_string(self):
-        if math.isnan(self._additional.total_seconds()):
-            return "0hr0m0s"
-
-        hours, remainder = divmod(self._additional.total_seconds(), 3600)
-        minutes, seconds = divmod(remainder, 60)
-
-        return f"0hr{minutes}m{seconds}s"
+    def move_increment_string(self):
+        return str(self._move_increment.total_seconds())

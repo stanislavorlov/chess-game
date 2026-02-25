@@ -57,9 +57,9 @@ class GameHistoryDocumentFactory:
                 if not piece or not from_pos or not to_pos: return None
 
                 if history_document.action_type == PieceMoved.__name__:
-                    event = PieceMoved(game_id=game_id, piece=piece, from_=from_pos, to=to_pos)
+                    event = PieceMoved(game_id=game_id, piece=piece, from_=from_pos, to=to_pos, time_taken=history_document.time_taken)
                 else:
-                    event = PieceCaptured(game_id=game_id, piece=piece, from_=from_pos, to=to_pos)
+                    event = PieceCaptured(game_id=game_id, piece=piece, from_=from_pos, to=to_pos, time_taken=history_document.time_taken)
             
             case KingChecked.__name__ | KingCheckMated.__name__:
                 side_raw = payload.get('side')
@@ -84,14 +84,17 @@ class GameHistoryDocumentFactory:
                     king_to=Position.parse(payload['king_to']),
                     rook_from=Position.parse(payload['rook_from']),
                     rook_to=Position.parse(payload['rook_to']),
-                    is_kingside=payload['is_kingside']
+                    is_kingside=payload['is_kingside'],
+                    time_taken=history_document.time_taken
                 )
 
         if event:
             return ChessGameHistoryEntry(
                 entry_id=HistoryEntryId(PydanticObjectId(history_document.id)),
                 sequence_number=history_document.sequence_number,
-                history_event=event
+                history_event=event,
+                action_date=history_document.action_date,
+                time_taken=history_document.time_taken
             )
         return None
 
@@ -110,7 +113,8 @@ class GameHistoryDocumentFactory:
                 game_id=game_id,
                 sequence_number=history_entry.sequence_number,
                 action_type=history_entry.action_type,
-                action_date=datetime.datetime.now(),
+                action_date=history_entry.action_date,
+                time_taken=history_entry.time_taken,
                 payload=domain_to_dict(history_entry.history_event)
             )
             history_list.append(history_document)

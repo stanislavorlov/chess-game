@@ -25,13 +25,16 @@ from chessapp.domain.events.synced_state import SyncedState
 from chessapp.domain.events.piece_move_failed import PieceMoveFailed
 from chessapp.domain.value_objects.move_failure_reason import MoveFailureReason
 from chessapp.domain.services.san_calculator import SanCalculator
+from chessapp.domain.game.history_entry import ChessGameHistoryEntry
+from chessapp.domain.game.game_history import ChessGameHistory
+from chessapp.domain.value_objects.history_entry_id import HistoryEntryId
 
 class TestChessGame(unittest.TestCase):
     def setUp(self):
         self.game_id = ChessGameId.generate_id()
         self.players = Players("white_id", "black_id")
         # Need to use specific format that is supported by validation
-        game_format = GameFormat.parse_string("rapid", "10m", "0s")
+        game_format = GameFormat.parse_string("rapid", "10", "0")
         self.info = GameInformation(game_format, datetime.now(), "Test Game")
         self.game = ChessGame.create(self.game_id, self.players, self.info)
         self.game.start()
@@ -238,6 +241,76 @@ class TestChessGame(unittest.TestCase):
         self.assertTrue(self.game.game_state.is_finished)
         self.assertTrue(any(isinstance(e, KingCheckMated) for e in self.game.domain_events))
         self.assertEqual(self.game.game_state.status, GameStatus.finished())
+
+    def test_timer_reconstitution(self):
+        # Setup: 10m rapid game
+        game_format = GameFormat.parse_string("rapid", "10", "0")
+        start_date = datetime(2023, 1, 1, 12, 0, 0)
+        info = GameInformation(game_format, start_date, "Test Reconstitution")
+        
+        # Manually create history
+        h_id = ChessGameId.generate_id()
+        move1_date = datetime(2023, 1, 1, 12, 0, 10) # 10s later
+        move2_date = datetime(2023, 1, 1, 12, 0, 25) # 15s later
+        
+        events = [
+            GameCreated(game_id=h_id),
+            GameStarted(game_id=h_id, started_date=start_date),
+            PieceMoved(game_id=h_id, from_=Position.parse("e2"), to=Position.parse("e4"), piece=PieceFactory.create(Side.white(), PieceType.Pawn)),
+            PieceMoved(game_id=h_id, from_=Position.parse("e7"), to=Position.parse("e5"), piece=PieceFactory.create(Side.black(), PieceType.Pawn))
+        ]
+        
+        history_entries = [
+            ChessGameHistoryEntry(HistoryEntryId.generate_id(), 1, events[0], start_date, time_taken=0.0),
+            ChessGameHistoryEntry(HistoryEntryId.generate_id(), 2, events[1], start_date, time_taken=0.0),
+            ChessGameHistoryEntry(HistoryEntryId.generate_id(), 3, events[2], move1_date, time_taken=10.0),
+            ChessGameHistoryEntry(HistoryEntryId.generate_id(), 4, events[3], move2_date, time_taken=15.0)
+        ]
+        
+        history = ChessGameHistory(history_entries)
+        
+        # Reconstitute
+        reconstituted_game = ChessGame(h_id, info, self.players, history)
+        
+        # White spent 10s (start_date to move1_date) and got 0s increment
+        # Black spent 15s (move1_date to move2_date) and got 0s increment
+        self.assertEqual(reconstituted_game.white_timer, 590.0) # 600 - 10
+        self.assertEqual(reconstituted_game.black_timer, 585.0) # 600 - 15
+
+    def test_timer_increment(self):
+        # Setup: 15m rapid game with 10s increment (valid control)
+        game_format = GameFormat.parse_string("rapid", "15", "10")
+        start_date = datetime(2023, 1, 1, 12, 0, 0)
+        info = GameInformation(game_format, start_date, "Test Increment")
+        
+        from unittest.mock import patch
+        with patch('chessapp.domain.game.chess_game.datetime') as mock_game_dt, \
+             patch('chessapp.domain.game.game_history.datetime') as mock_hist_dt:
+             
+            mock_game_dt.now.return_value = start_date
+            mock_hist_dt.now.return_value = start_date
+            
+            game = ChessGame.create(self.game_id, self.players, info)
+            game.start()
+            
+            # Initial timers: 15m = 900s
+            self.assertEqual(game.white_timer, 900.0)
+            self.assertEqual(game.black_timer, 900.0)
+            
+            # Make a move by White at 12:00:10 (10s elapsed)
+            move_date = datetime(2023, 1, 1, 12, 0, 10)
+            from_pos = Position.parse("e2")
+            to_pos = Position.parse("e4")
+            piece = game.get_board()[from_pos].piece
+            
+            mock_game_dt.now.return_value = move_date
+            mock_hist_dt.now.return_value = move_date
+            game.move_piece(from_pos, to_pos, piece, None)
+            
+        # White spent 10s and gained 10s increment
+        # 900 - 10 + 10 = 900
+        self.assertEqual(game.white_timer, 900.0)
+        self.assertEqual(game.black_timer, 900.0)
 
 if __name__ == '__main__':
     unittest.main()

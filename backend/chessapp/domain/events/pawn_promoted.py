@@ -12,6 +12,7 @@ class PawnPromoted(BaseEvent):
     side: Side
     to: Position
     promoted_to: PieceType
+    time_taken: float = 0.0
 
     @property
     def event_type(self) -> str:

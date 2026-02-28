@@ -15,5 +15,9 @@ class PieceMoveFailed(BaseEvent):
     reason: MoveFailureReason = dataclasses.field()
 
     @property
+    def has_san(self) -> bool:
+        return False
+
+    @property
     def event_type(self) -> str:
         return "piece-move-failed"

@@ -17,6 +17,11 @@ class BaseEvent(ABC):
     def event_type(self) -> str:
         ...
 
+    @property
+    @abstractmethod
+    def has_san(self) -> bool:
+        ...
+
     def to_dict(self) -> dict:
         from .serialization import domain_to_dict
         result = domain_to_dict(self)

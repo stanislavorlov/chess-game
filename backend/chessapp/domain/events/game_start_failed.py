@@ -8,5 +8,9 @@ class GameStartFailed(BaseEvent):
     game_id: ChessGameId
 
     @property
+    def has_san(self) -> bool:
+        return False
+
+    @property
     def event_type(self) -> str:
         return "game-start-failed"

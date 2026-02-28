@@ -15,5 +15,9 @@ class PieceCaptured(BaseEvent):
     time_taken: float = dataclasses.field(default=0.0)
 
     @property
+    def has_san(self) -> bool:
+        return False
+
+    @property
     def event_type(self) -> str:
         return "piece-captured"

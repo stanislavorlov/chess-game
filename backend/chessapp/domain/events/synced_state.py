@@ -1,5 +1,3 @@
-import dataclasses
-from typing import List
 from dataclasses import dataclass
 from ..value_objects.side import Side
 from ...domain.kernel.base import BaseEvent
@@ -11,6 +9,10 @@ class SyncedState(BaseEvent):
     game_id: ChessGameId
     turn: Side
     legal_moves: str = ""
+
+    @property
+    def has_san(self) -> bool:
+        return False
 
     @property
     def event_type(self) -> str:

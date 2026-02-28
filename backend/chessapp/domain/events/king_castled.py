@@ -16,5 +16,9 @@ class KingCastled(BaseEvent):
     time_taken: float = 0.0
 
     @property
+    def has_san(self) -> bool:
+        return True
+
+    @property
     def event_type(self) -> str:
         return "king-castled"

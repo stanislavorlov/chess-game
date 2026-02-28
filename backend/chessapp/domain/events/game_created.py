@@ -9,5 +9,9 @@ class GameCreated(BaseEvent):
     game_id: ChessGameId = dataclasses.field()
 
     @property
+    def has_san(self) -> bool:
+        return False
+
+    @property
     def event_type(self) -> str:
         return "game-created"

@@ -8,8 +8,12 @@ from ...domain.value_objects.game_id import ChessGameId
 @dataclass(frozen=True, kw_only=True)
 class KingChecked(BaseEvent):
     game_id: ChessGameId
-    side: Side          # which King is checked
+    side: Side          # which King is checked?
     position: Position  # exact position of King
+
+    @property
+    def has_san(self) -> bool:
+        return False
 
     @property
     def event_type(self) -> str:

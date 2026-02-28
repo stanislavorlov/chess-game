@@ -1,11 +1,12 @@
 from datetime import datetime
 from ...domain.kernel.entity import Entity
+from ...domain.kernel.base import BaseEvent
 from ...domain.value_objects.history_entry_id import HistoryEntryId
 
 
 class ChessGameHistoryEntry(Entity):
 
-    def __init__(self, entry_id: HistoryEntryId, sequence_number: int, history_event, action_date: datetime, time_taken: float = 0.0):
+    def __init__(self, entry_id: HistoryEntryId, sequence_number: int, history_event: BaseEvent, action_date: datetime, time_taken: float = 0.0):
         super().__init__()
         self._id = entry_id
         self._seq_number = sequence_number
@@ -30,7 +31,7 @@ class ChessGameHistoryEntry(Entity):
         return self._seq_number
 
     @property
-    def history_event(self):
+    def history_event(self) -> BaseEvent:
         return self._history_event
 
     @property

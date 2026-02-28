@@ -10,5 +10,9 @@ class GameStarted(BaseEvent):
     started_date: datetime
 
     @property
+    def has_san(self) -> bool:
+        return False
+
+    @property
     def event_type(self) -> str:
         return "game-started"

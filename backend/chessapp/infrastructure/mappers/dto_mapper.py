@@ -129,12 +129,9 @@ class DtoMapper:
             if class_name not in allowed_events:
                 continue
 
-            try:
+            if event.has_san:
                 san = SAN.from_move(event, board_before)
                 sans.append(str(san))
-            except ValueError as e:
-                print(f"Error mapping history to SAN: {e}")
-                continue
 
         return ",".join(sans)
 

@@ -14,5 +14,9 @@ class PieceMoved(BaseEvent):
     time_taken: float = dataclasses.field(default=0.0)
 
     @property
+    def has_san(self) -> bool:
+        return True
+
+    @property
     def event_type(self) -> str:
         return "piece-moved"

@@ -1,14 +1,7 @@
 import { Piece } from "src/app/pages/game/play/play/models/pieces/piece";
 import { PieceFactory } from "src/app/pages/game/play/play/models/pieces/piece_factory";
 import { Cell } from "./ cell";
-import { SquareDto } from "src/app/services/models/chess-game-dto";
-import { Rook } from "../pieces/rook";
 import { Side } from "../side";
-import { Pawn } from "../pieces/pawn";
-import { Knight } from "../pieces/knight";
-import { Bishop } from "../pieces/bishop";
-import { Queen } from "../pieces/queen";
-import { King } from "../pieces/king";
 import { PieceType } from "../pieces/piece_type";
 
 export class Board {
@@ -16,46 +9,47 @@ export class Board {
     private _ranks: number[] = [8, 7, 6, 5, 4, 3, 2, 1];
     private _pieceMap: Map<Cell, Piece | null> = new Map();
 
-    constructor(squares: SquareDto[]) {
-        // First, create a map of all squares for easy access
-        squares.forEach((square: SquareDto) => {
-            const [file, rank] = [square.square[0], square.rank];
-            let piece: Piece | null = null;
-            if (!!square.piece) {
-                piece = PieceFactory.getPiece(square.piece);
-                if (square.piece.moved) {
-                    piece.markMoved();
+    constructor(fen: string) {
+        this.fromFen(fen);
+    }
+
+    public fromFen(fen: string) {
+        this._pieceMap.clear();
+        const rows = fen.split('/');
+
+        for (let rankIdx = 0; rankIdx < 8; rankIdx++) {
+            const rank = 8 - rankIdx;
+            const row = rows[rankIdx];
+            let fileIdx = 0;
+
+            for (let charIdx = 0; charIdx < row.length; charIdx++) {
+                const char = row[charIdx];
+
+                if (isNaN(parseInt(char))) {
+                    const file = this._files[fileIdx];
+                    const color = (rank + fileIdx) % 2 === 0 ? 'B' : 'W';
+                    const cell = new Cell(file, rank, color, false, '');
+                    const piece = PieceFactory.getPieceFromChar(char);
+
+                    this._pieceMap.set(cell, piece);
+                    fileIdx++;
+                } else {
+                    const emptyCount = parseInt(char);
+                    for (let i = 0; i < emptyCount; i++) {
+                        const file = this._files[fileIdx];
+                        const color = (rank + fileIdx) % 2 === 0 ? 'B' : 'W';
+                        const cell = new Cell(file, rank, color, false, '');
+
+                        this._pieceMap.set(cell, null);
+                        fileIdx++;
+                    }
                 }
             }
-            const cell = new Cell(file, Number(rank), square.color, false, '');
-            this._pieceMap.set(cell, piece);
-        });
+        }
     }
 
     public initialize() {
-        const setup = [
-            { rank: 1, pieces: [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook], side: Side.white },
-            { rank: 2, pieces: Array(8).fill(Pawn), side: Side.white },
-            { rank: 7, pieces: Array(8).fill(Pawn), side: Side.black },
-            { rank: 8, pieces: [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook], side: Side.black }
-        ];
-
-        for (let rank = 1; rank <= 8; rank++) {
-            for (let i = 0; i < 8; i++) {
-                const file = this._files[i];
-                const color = (rank + i) % 2 === 0 ? 'B' : 'W';
-
-                let piece: Piece | null = null;
-                const rowSetup = setup.find(s => s.rank === rank);
-                if (rowSetup) {
-                    const PieceClass = rowSetup.pieces[i];
-                    piece = new PieceClass(rowSetup.side);
-                }
-
-                const cell = new Cell(file, rank, color, false, '');
-                this._pieceMap.set(cell, piece);
-            }
-        }
+        this.fromFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
     }
 
     get cells() {

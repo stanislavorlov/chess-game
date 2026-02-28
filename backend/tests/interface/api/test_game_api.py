@@ -29,37 +29,22 @@ class TestGameApi(unittest.TestCase):
                 turn="white",
                 started=True,
                 finished=False,
-                check_side=None,
-                check_position=None,
-                legal_moves=[]
+                check_side="",
+                check_position="",
+                legal_moves=""
             ),
             game_format=GameFormatDto(
-                value="10+5",
+                value="rapid",
                 white_remaining_time=600.0,
                 black_remaining_time=600.0,
+                move_increment=0
             ),
             players=PlayersDto(
                 white_id="white_user",
                 black_id="black_user"
             ),
-            board=[
-                {
-                    "square": "e2",
-                    "piece": {"abbreviation": "P", "moved": False},
-                    "color": "white",
-                    "rank": 2
-                }
-            ],
-            history=[
-                {
-                    "sequence": 1,
-                    "piece": {"abbreviation": "P", "moved": True},
-                    "from": "e2",
-                    "to": "e4",
-                    "san": "e4",
-                    "action_type": "PieceMoved"
-                }
-            ]
+            board="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+            history="e4 e5"
         )
         
         self.mock_mediator.handle_query.return_value = [mock_dto]
@@ -67,7 +52,7 @@ class TestGameApi(unittest.TestCase):
         response = self.client.get("/api/game/board/65b2a1e1f1d1e1f1d1e1f1d1")
         
         self.assertEqual(response.status_code, 200)
-        data = response.json()["data"]
+        data = response.json()
         self._verify_dto_contract(data)
 
     def test_create_board_contract(self):
@@ -82,36 +67,37 @@ class TestGameApi(unittest.TestCase):
                 turn="white",
                 started=False,
                 finished=False,
-                check_side=None,
-                check_position=None,
-                legal_moves=[]
+                check_side="",
+                check_position="",
+                legal_moves=""
             ),
             game_format=GameFormatDto(
-                value="10+5",
+                value="rapid",
                 white_remaining_time=600.0,
                 black_remaining_time=600.0,
+                move_increment=0
             ),
             players=PlayersDto(
                 white_id="",
                 black_id=""
             ),
-            board=[],
-            history=[]
+            board="",
+            history=""
         )
         
         self.mock_mediator.handle_command.return_value = [mock_dto]
         
         payload = {
             "name": "New Game",
-            "game_format": "rapid",
-            "time": "600s",
-            "additional": "5s"
+            "format": "rapid",
+            "time": "10",
+            "increment": "0"
         }
         
         response = self.client.post("/api/game/create_board/", json=payload)
         
         self.assertEqual(response.status_code, 200)
-        data = response.json().get("data")
+        data = response.json()
         
         self.assertIsNotNone(data)
         self._verify_dto_contract(data)

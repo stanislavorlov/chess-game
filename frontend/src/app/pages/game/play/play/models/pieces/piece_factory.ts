@@ -8,7 +8,7 @@ import { Queen } from "./queen";
 import { Rook } from "./rook";
 
 export class PieceFactory {
-    
+
     static getPiece(piece: PieceDto) {
         switch (piece.abbreviation.toLowerCase()) {
             case 'wp':
@@ -37,6 +37,29 @@ export class PieceFactory {
                 return new King(Side.black);
             default:
                 throw Error('Un-recognized piece type');
+        }
+    }
+
+    static getPieceFromChar(char: string) {
+        const isWhite = char === char.toUpperCase();
+        const side = isWhite ? Side.white : Side.black;
+        const normalizedChar = char.toLowerCase();
+
+        switch (normalizedChar) {
+            case 'p':
+                return new Pawn(side);
+            case 'r':
+                return new Rook(side);
+            case 'b':
+                return new Bishop(side);
+            case 'n':
+                return new Knight(side);
+            case 'q':
+                return new Queen(side);
+            case 'k':
+                return new King(side);
+            default:
+                throw Error(`Un-recognized piece char: ${char}`);
         }
     }
 }

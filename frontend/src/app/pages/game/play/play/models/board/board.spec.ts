@@ -3,51 +3,14 @@ import { Cell } from './ cell';
 import { Side } from '../side';
 import { PieceType } from '../pieces/piece_type';
 import { PieceFactory } from '../pieces/piece_factory';
-import { SquareDto } from 'src/app/services/models/chess-game-dto';
 
 describe('Board', () => {
     let board: Board;
 
-    // Helper to create a starting board DTO
-    const createStartingBoardDto = (): SquareDto[] => {
-        const squares: SquareDto[] = [];
-        const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-        const ranks = [1, 2, 3, 4, 5, 6, 7, 8];
-
-        for (const rank of ranks) {
-            for (const file of files) {
-                let piece = null;
-                if (rank === 2) piece = { abbreviation: 'wp', moved: false };
-                if (rank === 7) piece = { abbreviation: 'bp', moved: false };
-                if (rank === 1) {
-                    if (file === 'a' || file === 'h') piece = { abbreviation: 'wr', moved: false };
-                    if (file === 'b' || file === 'g') piece = { abbreviation: 'wn', moved: false };
-                    if (file === 'c' || file === 'f') piece = { abbreviation: 'wb', moved: false };
-                    if (file === 'd') piece = { abbreviation: 'wq', moved: false };
-                    if (file === 'e') piece = { abbreviation: 'wk', moved: false };
-                }
-                if (rank === 8) {
-                    if (file === 'a' || file === 'h') piece = { abbreviation: 'br', moved: false };
-                    if (file === 'b' || file === 'g') piece = { abbreviation: 'bn', moved: false };
-                    if (file === 'c' || file === 'f') piece = { abbreviation: 'bb', moved: false };
-                    if (file === 'd') piece = { abbreviation: 'bq', moved: false };
-                    if (file === 'e') piece = { abbreviation: 'bk', moved: false };
-                }
-
-                squares.push({
-                    square: `${file}${rank}`,
-                    rank: rank,
-                    color: (rank + files.indexOf(file)) % 2 === 0 ? 'B' : 'W',
-                    piece: piece
-                });
-            }
-        }
-        return squares;
-    };
+    const startingFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 
     beforeEach(() => {
-        const squares = createStartingBoardDto();
-        board = new Board(squares);
+        board = new Board(startingFen);
     });
 
     it('should initialize with correct piece positions', () => {

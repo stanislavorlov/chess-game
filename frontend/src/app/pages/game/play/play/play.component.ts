@@ -11,6 +11,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { NgClass, NgFor, NgIf, TitleCasePipe } from '@angular/common';
 import { MoveFailureDialogComponent } from './move-failure-dialog/move-failure-dialog.component';
+import { GameOverDialogComponent } from './game-over-dialog/game-over-dialog.component';
 import { ChessService } from 'src/app/services/chess.service';
 import { CreateGame } from './models/create-game';
 import { ChessGameDto } from 'src/app/services/models/chess-game-dto';
@@ -19,7 +20,7 @@ import { PlayService } from 'src/app/services/play.service';
 import { ChessGame, GameFormat } from './models/game/chess-game';
 import { Board } from 'src/app/pages/game/play/play/models/board/board';
 import { Cell } from './models/board/ cell';
-import { Movement, SanMovement, SquareMovement } from 'src/app/services/models/movement';
+import { SanMovement } from 'src/app/services/models/movement';
 import { Side } from './models/side';
 import { TimeControlOption, TIME_OPTIONS_MAP } from './models/game-time-option';
 import * as DomainEvents from './models/events/game-event';
@@ -125,6 +126,16 @@ export class PlayComponent implements OnInit, OnDestroy {
           });
         }
 
+        if (data.state.finished) {
+          this.dialog.open(GameOverDialogComponent, {
+            data: {
+              result: '',
+              finished_date: ''
+            },
+            width: '350px'
+          });
+        }
+
         this.gameTimer = setInterval(function () {
           if (that.game) {
             that.game.timerTick();
@@ -168,6 +179,15 @@ export class PlayComponent implements OnInit, OnDestroy {
             } else if (event instanceof DomainEvents.SyncedStateEvent) {
               console.log('SyncedState received, turn:', event.turn.name);
               this.game.syncState(event.turn, event.legal_moves);
+            } else if (event instanceof DomainEvents.GameFinishedEvent) {
+              console.log('Game finished:', event.result);
+              this.dialog.open(GameOverDialogComponent, {
+                data: {
+                  result: event.result,
+                  finished_date: event.finished_date
+                },
+                width: '350px'
+              });
             }
           } catch (e) {
             console.error('Error parsing WebSocket message', e);

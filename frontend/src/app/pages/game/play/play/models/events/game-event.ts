@@ -5,6 +5,12 @@ export abstract class GameEvent {
     constructor(public readonly game_id: string, public readonly event_type: string) { }
 }
 
+export class GameFinishedEvent extends GameEvent {
+    constructor(game_id: string, public readonly result: string, public readonly finished_date: string) {
+        super(game_id, 'game-finished');
+    }
+}
+
 export class PieceMovedEvent extends GameEvent {
     constructor(game_id: string, public readonly from_: string, public readonly to: string) {
         super(game_id, 'piece-moved');
@@ -64,6 +70,8 @@ export class GameEventFactory {
                 return new KingCastledEvent(data.game_id, data.side, data.king_from, data.king_to, data.rook_from, data.rook_to, data.is_kingside);
             case 'synced-state':
                 return new SyncedStateEvent(data.game_id, Side.parse(data.turn), data.legal_moves || "");
+            case 'game-finished':
+                return new GameFinishedEvent(data.game_id, data.result, data.finished_date);
             default:
                 return null;
         }

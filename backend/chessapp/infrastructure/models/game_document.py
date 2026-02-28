@@ -6,7 +6,7 @@ from ...infrastructure.models import GameHistoryDocument
 class GameFormat(BaseModel):
     value: str
     time_remaining: str
-    move_increment: str
+    move_increment: Optional[str] = "0"
 
 class Players(BaseModel):
     white_id: str

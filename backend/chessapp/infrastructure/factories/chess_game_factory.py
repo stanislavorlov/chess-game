@@ -13,7 +13,7 @@ from .history_document_factory import GameHistoryDocumentFactory
 class ChessGameFactory:
 
     @staticmethod
-    async def create(document: GameDocument) -> ChessGame:
+    async def create(document: GameDocument, history_list: list = None) -> ChessGame:
         if document is None:
             return None
 
@@ -25,10 +25,16 @@ class ChessGameFactory:
         game_info = GameInformation(game_format, datetime.datetime.now(), document.game_name)
 
         history_entries = list()
-        for history_document in document.history:
-            history_entry = GameHistoryDocumentFactory.to_domain(history_document, document.id)
-            if history_entry:
-                history_entries.append(history_entry)
+        
+        # Prefer the explicit history list parameter to avoid Beanie's slow fetch_links
+        source_history = history_list if history_list is not None else document.history
+        
+        for history_document in source_history:
+            # ensure document isn't a unresolved DBRef Link
+            if history_document and hasattr(history_document, 'sequence_number'):
+                history_entry = GameHistoryDocumentFactory.to_domain(history_document, document.id)
+                if history_entry:
+                    history_entries.append(history_entry)
 
         return ChessGame(
             game_id=game_id, 

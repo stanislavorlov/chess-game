@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import time
 from contextlib import asynccontextmanager
 from typing import Annotated
 from beanie import PydanticObjectId, init_beanie
@@ -24,6 +25,20 @@ from ..infrastructure.services.redis_service import RedisService
 from ..infrastructure import constants
 from ..interface.api.routes import game_api
 from ..interface.api.websockets.managers import ConnectionManager
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+from opentelemetry import trace
+
+# Initialize OpenTelemetry
+provider = TracerProvider()
+try:
+    # Use appending mode to keep all traces across restarts
+    trace_file = open("/Users/stanislavorlov/PycharmProjects/chess-game/backend/traces.json", "a")
+    processor = BatchSpanProcessor(ConsoleSpanExporter(out=trace_file))
+    provider.add_span_processor(processor)
+    trace.set_tracer_provider(provider)
+except Exception as e:
+    logging.error(f"Failed to setup OTEL File Exporter: {e}")
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -152,6 +167,16 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @_app.middleware("http")
+    async def add_process_time_header(request, call_next):
+        start_time = time.time()
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        logger.info(f"HTTP {request.method} {request.url.path} processed in {process_time:.4f}s")
+        response.headers["X-Process-Time"] = str(process_time)
+        return response
+
     return _app
 
 app = create_app()
@@ -173,9 +198,11 @@ async def websocket_endpoint(
             message_data['game_id'] = game_id # Ensure game_id is present
             
             try:
+                msg_start = time.time()
                 # Produce to Kafka for durable processing
                 await kafka_service.send_message(constants.KAFKA_CHESS_COMMANDS_TOPIC, message_data)
-                logger.info("Command produced to Kafka successfully")
+                msg_duration = time.time() - msg_start
+                logger.info(f"Command produced to Kafka successfully in {msg_duration:.4f}s")
             except Exception as e:
                 logger.error(f"Failed to produce to Kafka: {e}")
                 # Immediate feedback if local production fails

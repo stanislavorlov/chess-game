@@ -9,7 +9,8 @@ describe('PlayService', () => {
   let service: PlayService;
 
   beforeEach(() => {
-    service = new PlayService('test-game-id');
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(PlayService);
   });
 
   it('should be created', () => {

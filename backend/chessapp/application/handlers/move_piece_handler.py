@@ -16,6 +16,10 @@ class MovePieceHandler(BaseCommandHandler[MovePieceCommand, None]):
         self.logger.info('MovePieceHandler: processing move from %s to %s for game %s', str(event.from_), str(event.to), event.game_id.value)
 
         chess_game = await self.repository.find(event.game_id.value)
+        if chess_game is None:
+            self.logger.warning('MovePieceHandler: game %s not found', event.game_id.value)
+            return
+
         chess_game.move_piece(event.from_, event.to, event.piece, event.captured)
 
         await self.repository.save(chess_game)

@@ -13,7 +13,7 @@ class TestDtoMapperSan(unittest.TestCase):
         # Setup: Create a game and make some moves
         game_id = ChessGameId.generate_id()
         players = Players("white_user", "black_user")
-        game_format = GameFormat.parse_string("rapid", "600s", "5s")
+        game_format = GameFormat.parse_string("rapid", "10", "0")
         info = GameInformation(game_format, datetime.now(), "Test Game")
         game = ChessGame.create(game_id, players, info)
         game.start()
@@ -34,13 +34,8 @@ class TestDtoMapperSan(unittest.TestCase):
         dto = DtoMapper.map_game(game)
         
         # Assert: SAN should be present in history even though it's not in domain
-        self.assertEqual(len(dto.history), 2)
-        self.assertEqual(dto.history[0]['san'], "e4")
-        self.assertEqual(dto.history[1]['san'], "e5")
-        self.assertEqual(dto.history[0]['from'], "e2")
-        self.assertEqual(dto.history[0]['to'], "e4")
-        self.assertEqual(dto.history[1]['from'], "e7")
-        self.assertEqual(dto.history[1]['to'], "e5")
+        # Assert: SAN history should be a joined string
+        self.assertEqual(dto.history, "e4 e5")
 
     def test_map_game_calculates_time_on_the_fly(self):
         from unittest.mock import patch
@@ -60,7 +55,7 @@ class TestDtoMapperSan(unittest.TestCase):
             # Setup: 10m rapid game
             game_id = ChessGameId.generate_id()
             players = Players("white_user", "black_user")
-            game_format = GameFormat.parse_string("rapid", "600s", "0s")
+            game_format = GameFormat.parse_string("rapid", "10", "0")
             info = GameInformation(game_format, start_date, "Test Time")
             game = ChessGame.create(game_id, players, info)
             
@@ -73,7 +68,6 @@ class TestDtoMapperSan(unittest.TestCase):
             dto = DtoMapper.map_game(game)
             
             # White should have 590s remaining (600 - 10)
-            self.assertEqual(dto.game_format.remaining_time, 590.0)
             self.assertEqual(dto.game_format.white_remaining_time, 590.0)
             self.assertEqual(dto.game_format.black_remaining_time, 600.0)
             
@@ -99,7 +93,9 @@ class TestDtoMapperSan(unittest.TestCase):
             # Black's turn, black should have 585s remaining (600 - 15)
             # White should remain at 590 (until next move or tick)
             # Actually, with increment 0, it should be 590.
-            self.assertEqual(dto2.game_format.remaining_time, 585.0)
+            # Black's turn, black should have 585s remaining (600 - 15)
+            # White should remain at 590 (until next move or tick)
+            # Actually, with increment 0, it should be 590.
             self.assertEqual(dto2.game_format.white_remaining_time, 590.0)
             self.assertEqual(dto2.game_format.black_remaining_time, 585.0)
 

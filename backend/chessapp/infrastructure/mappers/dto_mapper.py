@@ -1,6 +1,5 @@
 import re
 from datetime import datetime
-
 from ...application.dtos.chess_game_dto import ChessGameDto, GameStateDto, GameFormatDto, PlayersDto
 from ...domain.chessboard.board import Board
 from ...domain.events import (
@@ -11,9 +10,9 @@ from ...domain.events import (
 from ...domain.game import ChessGame, ChessGameHistory
 from ...domain.movements.movement import Movement
 from ...domain.pieces import King, Piece
-from ...domain.value_objects.san import SAN
-from ...domain.value_objects import Side
+from ...domain.value_objects import SAN, Side
 from ...domain.services.fen_service import FenService
+from ...domain.services.san_service import SanService
 
 
 class DtoMapper:
@@ -128,7 +127,7 @@ class DtoMapper:
                 continue
 
             if event.has_san:
-                san = SAN.from_move(event, board_before)
+                san = SanService.calculate(event, board_before)
                 sans.append(str(san))
 
         return ",".join(sans)

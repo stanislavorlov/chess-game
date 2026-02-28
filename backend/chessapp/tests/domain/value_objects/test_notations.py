@@ -6,6 +6,7 @@ from chessapp.domain.value_objects import UCI, Side, SAN
 from chessapp.domain.chessboard.board import Board
 from chessapp.domain.events.piece_moved import PieceMoved
 from chessapp.domain.pieces import Pawn
+from chessapp.domain.services.san_service import SanService
 
 class TestMoveNotations(unittest.TestCase):
     def test_uci_formatting(self):
@@ -14,21 +15,16 @@ class TestMoveNotations(unittest.TestCase):
         uci = UCI.from_positions(f, t)
         self.assertEqual(str(uci), "e2e4")
 
-    def test_san_pawn_move(self):
+    def test_san_formatting(self):
         board = Board()
-        f = Position(File.e(), Rank.r2())
-        t = Position(File.e(), Rank.r4())
         pawn = Pawn(Side.white())
-        event = PieceMoved(game_id=None, from_=f, to=t, piece=pawn)
+        event = PieceMoved(game_id=None, from_=Position(File.e(), Rank.r2()), to=Position(File.e(), Rank.r4()), piece=pawn)
         
-        san = SAN.from_move(event, board)
+        san = SanService.calculate(event, board)
         self.assertEqual(str(san), "e4")
 
     def test_san_capture(self):
         board = Board()
-        # Setup a capture scenario
-        # White Pawn at e4, Black Pawn at d5
-        from chessapp.domain.pieces.pawn import Pawn
         wp = Pawn(Side.white())
         bp = Pawn(Side.black())
         
@@ -36,7 +32,8 @@ class TestMoveNotations(unittest.TestCase):
         board._set_piece(Position(File.d(), Rank.r5()), bp)
         
         event = PieceMoved(game_id=None, from_=Position(File.e(), Rank.r4()), to=Position(File.d(), Rank.r5()), piece=wp)
-        san = SAN.from_move(event, board)
+        
+        san = SanService.calculate(event, board)
         # Note: SAN logic in Value Object follows simple capture representation for now
         self.assertEqual(str(san), "exd5")
 

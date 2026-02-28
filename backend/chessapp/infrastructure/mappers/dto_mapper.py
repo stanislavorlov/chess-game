@@ -8,13 +8,11 @@ from ...domain.events import (
     PawnPromoted, PieceCaptured,
     PieceMoved
 )
-from ...domain.game.chess_game import ChessGame
-from ...domain.game.game_history import ChessGameHistory
+from ...domain.game import ChessGame, ChessGameHistory
 from ...domain.movements.movement import Movement
-from ...domain.pieces.king import King
-from ...domain.pieces.piece import Piece
+from ...domain.pieces import King, Piece
 from ...domain.value_objects.san import SAN
-from ...domain.value_objects.side import Side
+from ...domain.value_objects import Side
 from ...domain.services.fen_service import FenService
 
 

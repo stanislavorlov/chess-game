@@ -2,12 +2,11 @@ import unittest
 from chessapp.domain.chessboard.position import Position
 from chessapp.domain.chessboard.file import File
 from chessapp.domain.chessboard.rank import Rank
-from chessapp.domain.value_objects.uci import UCI
+from chessapp.domain.value_objects import UCI, Side
 from chessapp.domain.value_objects.san import SAN
 from chessapp.domain.chessboard.board import Board
 from chessapp.domain.events.piece_moved import PieceMoved
-from chessapp.domain.pieces.pawn import Pawn
-from chessapp.domain.value_objects.side import Side
+from chessapp.domain.pieces import Pawn
 
 class TestMoveNotations(unittest.TestCase):
     def test_uci_formatting(self):

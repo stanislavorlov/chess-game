@@ -15,6 +15,8 @@
    `uvicorn chessapp.interface.main:app --reload`
 4. Run unit tests:
    `python3 -m unittest discover tests`
+5. Run integration tests:
+   `PYTHONPATH=. pytest chessapp/tests/integration/test_game_e2e.py`
 
 ### Front-end Client
 1. Go to the frontend directory:
@@ -25,6 +27,14 @@
    `npm start`
 4. Run unit tests:
    `npm test -- --browsers=ChromeHeadless --no-watch`
+
+## How to run integration tests
+1. Run back-end API:
+   * [Back-end API](#back-end-api)
+2. Run fron-end:
+   * [Front-end Client](#front-end-client)
+3. Run the integration tests:
+   `PYTHONPATH=. pytest chessapp/tests/integration/test_game_e2e.py`
 
 ## Docker
 1. Go to the `backend/docker-compose` folder

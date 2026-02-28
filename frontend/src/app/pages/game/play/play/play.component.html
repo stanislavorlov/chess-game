@@ -7,14 +7,14 @@
     <mat-card-content class="b-t-1">
         <div class="row">
             <div class="col-lg-7">
-                <div class="row player-indicator" [class.active]="game.turn.value === getTopPlayer().side.value"
-                    *ngIf="game">
+                <div class="row player-indicator" [ngClass]="{'active': currentTurn === getTopPlayer().side.value}"
+                    [attr.data-testid]="'player-top'" *ngIf="game">
                     <div style="font-weight: bold;">{{getTopPlayer().label}}</div>
                     <div style="margin-left: 10px;">
                         <span>{{ formatSeconds(getTopPlayer().side.value === 'W' ? game.whiteTimer : game.blackTimer)
                             }}</span>
                     </div>
-                    <div *ngIf="game.turn.value === getTopPlayer().side.value" class="turn-badge">YOUR TURN</div>
+                    <div *ngIf="currentTurn === getTopPlayer().side.value" class="turn-badge">YOUR TURN</div>
                 </div>
                 <div class="row" *ngIf="game">
                     <div class="board-grid">
@@ -37,22 +37,22 @@
                         <ng-container *ngFor="let item of game.board.cells">
                             <div (click)="clickBoard(item)" class="square" [class.dark]="item.color === 'B'"
                                 [class.light]="item.color === 'W'" [class.selected]="item.selected"
-                                [class.checked]="item.checked" [style.grid-row]="getGridRow(item.rank)"
-                                [style.grid-column]="getGridColumn(item.file)">
+                                [attr.data-testid]="item.id" [class.checked]="item.checked"
+                                [style.grid-row]="getGridRow(item.rank)" [style.grid-column]="getGridColumn(item.file)">
                                 <img *ngIf="getPiece(item)"
                                     src="./assets/images/pieces/{{getPiece(item)?.abbreviation}}.png">
                             </div>
                         </ng-container>
                     </div>
                 </div>
-                <div class="row player-indicator" [class.active]="game.turn.value === getBottomPlayer().side.value"
-                    *ngIf="game">
+                <div class="row player-indicator" [ngClass]="{'active': currentTurn === getBottomPlayer().side.value}"
+                    [attr.data-testid]="'player-bottom'" *ngIf="game">
                     <div style="font-weight: bold;">{{getBottomPlayer().label}}</div>
                     <div style="margin-left: 10px;">
                         <span>{{ formatSeconds(getBottomPlayer().side.value === 'W' ? game.whiteTimer : game.blackTimer)
                             }}</span>
                     </div>
-                    <div *ngIf="game.turn.value === getBottomPlayer().side.value" class="turn-badge">YOUR TURN</div>
+                    <div *ngIf="currentTurn === getBottomPlayer().side.value" class="turn-badge">YOUR TURN</div>
                 </div>
             </div>
             <div class="col-lg-4">

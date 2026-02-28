@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,7 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { NgFor, NgIf, TitleCasePipe } from '@angular/common';
+import { NgClass, NgFor, NgIf, TitleCasePipe } from '@angular/common';
 import { MoveFailureDialogComponent } from './move-failure-dialog/move-failure-dialog.component';
 import { ChessService } from 'src/app/services/chess.service';
 import { CreateGame } from './models/create-game';
@@ -38,7 +38,7 @@ import * as DomainEvents from './models/events/game-event';
     MatCheckboxModule,
     MatSnackBarModule,
     MatDialogModule,
-    NgFor, NgIf, TitleCasePipe
+    NgClass, NgFor, NgIf, TitleCasePipe
   ],
   templateUrl: './play.component.html',
   styleUrl: './play.component.scss'
@@ -55,6 +55,10 @@ export class PlayComponent implements OnInit, OnDestroy {
   public selectedTimeOption: TimeControlOption | null = null;
   public game: ChessGame;
   public isFlipped = false;
+
+  get currentTurn(): string {
+    return this.game?.turn?.value || 'W';
+  }
 
   get currentTimeOptions(): TimeControlOption[] {
     return TIME_OPTIONS_MAP[this.selectedFormat] || [];
@@ -78,13 +82,22 @@ export class PlayComponent implements OnInit, OnDestroy {
   }
 
   gameInitialized(): boolean {
-    const gameId = this.route.snapshot.paramMap.get('id');
-
-    return gameId != null;
+    return !!this.game && this.game.id !== '';
   }
 
+  private zone = inject(NgZone);
+
   ngOnInit(): void {
-    const gameId = this.route.snapshot.paramMap.get('id');
+    this.route.paramMap.subscribe(params => {
+      const gameId = params.get('id');
+      this.initializeGame(gameId);
+    });
+  }
+
+  private initializeGame(gameId: string | null): void {
+    if (this.gameTimer) {
+      clearInterval(this.gameTimer);
+    }
 
     if (!!gameId) {
       this.playService.setGameId(gameId);
@@ -113,43 +126,53 @@ export class PlayComponent implements OnInit, OnDestroy {
         }
 
         this.gameTimer = setInterval(function () {
-          that.game.timerTick();
+          if (that.game) {
+            that.game.timerTick();
+          }
         }, 1000);
       });
 
-      this.playService.getMessages().subscribe(data => {
-        try {
-          console.log('received message:', data);
-          const event = DomainEvents.GameEventFactory.fromRaw(data);
-          if (!event) return;
+      this.playService.getMessages().subscribe((data: any) => {
+        this.zone.run(() => {
+          try {
+            console.log('received message:', data);
+            const event = DomainEvents.GameEventFactory.fromRaw(data);
+            if (!event || event.game_id !== this.game.id) {
+              console.log('Skipping event (wrong game or null):', event?.game_id);
+              return;
+            }
 
-          if (event instanceof DomainEvents.PieceMoveFailedEvent && event.game_id === this.game.id) {
-            console.warn('Move failed on server:', event.reason);
-            this.game.rollbackMove();
+            console.log('Processing event:', event.event_type);
 
-            this.dialog.open(MoveFailureDialogComponent, {
-              data: {
-                reason: event.reason || 'Illegal move',
-                from_: event.from_,
-                to: event.to
-              },
-              width: '350px'
-            });
-          } else if (event instanceof DomainEvents.KingCastledEvent) {
-            this.game.castleKing(event);
-          } else if (event instanceof DomainEvents.PieceMovedEvent || event instanceof DomainEvents.PieceCapturedEvent) {
-            // Reset check state on any move; if a new check occurs, a king-checked event will follow
-            this.game.clearCheck();
-          } else if (event instanceof DomainEvents.KingCheckedEvent || event instanceof DomainEvents.KingCheckmatedEvent) {
-            this.game.setCheck(event.side, event.position);
+            if (event instanceof DomainEvents.PieceMoveFailedEvent) {
+              console.warn('Move failed on server:', event.reason);
+              this.game.rollbackMove();
 
-            // ToDo: handle checkmate (disable board, show message, etc.)
-          } else if (event instanceof DomainEvents.SyncedStateEvent) {
-            this.game.syncState(event.turn, event.legal_moves);
+              this.dialog.open(MoveFailureDialogComponent, {
+                data: {
+                  reason: event.reason || 'Illegal move',
+                  from_: event.from_,
+                  to: event.to
+                },
+                width: '350px'
+              });
+            } else if (event instanceof DomainEvents.KingCastledEvent) {
+              this.game.castleKing(event);
+            } else if (event instanceof DomainEvents.PieceMovedEvent || event instanceof DomainEvents.PieceCapturedEvent) {
+              // Reset check state on any move; if a new check occurs, a king-checked event will follow
+              console.log('Piece moved/captured event, clearing check');
+              this.game.clearCheck();
+            } else if (event instanceof DomainEvents.KingCheckedEvent || event instanceof DomainEvents.KingCheckmatedEvent) {
+              console.log('King check state update:', event.event_type, event.side);
+              this.game.setCheck(event.side, event.position);
+            } else if (event instanceof DomainEvents.SyncedStateEvent) {
+              console.log('SyncedState received, turn:', event.turn.name);
+              this.game.syncState(event.turn, event.legal_moves);
+            }
+          } catch (e) {
+            console.error('Error parsing WebSocket message', e);
           }
-        } catch (e) {
-          console.error('Error parsing WebSocket message', e);
-        }
+        });
       });
     } else {
       this.game = this.chessService.newGame();

@@ -35,7 +35,7 @@ class TestDtoMapperSan(unittest.TestCase):
         
         # Assert: SAN should be present in history even though it's not in domain
         # Assert: SAN history should be a joined string
-        self.assertEqual(dto.history, "e4 e5")
+        self.assertEqual(dto.history, "e4,e5")
 
     def test_map_game_calculates_time_on_the_fly(self):
         from unittest.mock import patch

@@ -32,7 +32,8 @@ class ChessGame(AggregateRoot):
         self._players = players
         self._information = information
         self._history = history
-        self._state = GameState(GameStatus.created(), Side.white(), CheckState.default(), Board())
+        self._board = Board()
+        self._state = GameState(GameStatus.created(), Side.white(), CheckState.default())
         self._last_action_at: Optional[datetime] = None
         
         # Reconstitution: Replay history to reach current state
@@ -91,12 +92,12 @@ class ChessGame(AggregateRoot):
         return self._history
 
     def get_board(self) -> Board:
-        return self._state.board
+        return self._board
 
     def start(self):
         self.emit(GameStarted(game_id=self.game_id, started_date=datetime.now()))
         # Emit initial state for White
-        legal_moves = self._state.board.get_legal_moves(self._state.turn)
+        legal_moves = self._board.get_legal_moves(self._state.turn)
         legal_moves_str = " ".join([str(m.to_uci()) for m in legal_moves])
         self.raise_event(SyncedState(game_id=self.game_id, turn=self._state.turn, legal_moves=legal_moves_str))
 
@@ -125,37 +126,37 @@ class ChessGame(AggregateRoot):
 
         match event:
             case PieceMoved():
-                self._state.board.piece_moved(event)
+                self._board.piece_moved(event)
                 # Reset check state when a piece is moved; if there's a new check, a following KingChecked event will set it.
                 mover_side = self._state.turn
-                self._state = GameState(self._state.status, self._state.turn, CheckState.default(), self._state.board, started_at=self._state.started_at)
+                self._state = GameState(self._state.status, self._state.turn, CheckState.default(), started_at=self._state.started_at)
                 self.__switch_turn_from(mover_side)
             case PieceCaptured():
-                self._state.board.piece_captured(event)
+                self._board.piece_captured(event)
             case GameCreated():
-                self._state = GameState(GameStatus.created(), Side.white(), CheckState.default(), self._state.board, started_at=None)
+                self._state = GameState(GameStatus.created(), Side.white(), CheckState.default(), started_at=None)
             case GameStarted():
-                self._state = GameState(GameStatus.started(), Side.white(), CheckState.default(), self._state.board, started_at=event.started_date)
+                self._state = GameState(GameStatus.started(), Side.white(), CheckState.default(), started_at=event.started_date)
             case GameFinished():
-                self._state = GameState(GameStatus.finished(), self._state.turn, self._state.check_state, self._state.board, started_at=self._state.started_at)
+                self._state = GameState(GameStatus.finished(), self._state.turn, self._state.check_state, started_at=self._state.started_at)
             case KingCastled():
                 mover_side = self._state.turn
-                self._state = GameState(self._state.status, self._state.turn, CheckState.default(), self._state.board, started_at=self._state.started_at)
-                self._state.board.king_castled(event)
+                self._state = GameState(self._state.status, self._state.turn, CheckState.default(), started_at=self._state.started_at)
+                self._board.king_castled(event)
                 self.__switch_turn_from(mover_side)
             case PawnPromoted():
                 mover_side = self._state.turn
-                self._state.board.pawn_promoted(event)
-                self._state = GameState(self._state.status, self._state.turn, CheckState.default(), self._state.board, started_at=self._state.started_at)
+                self._board.pawn_promoted(event)
+                self._state = GameState(self._state.status, self._state.turn, CheckState.default(), started_at=self._state.started_at)
                 self.__switch_turn_from(mover_side)
             case KingChecked():
-                self._state = GameState(self._state.status, self._state.turn, CheckState(event.side, event.position), self._state.board, started_at=self._state.started_at)
+                self._state = GameState(self._state.status, self._state.turn, CheckState(event.side, event.position), started_at=self._state.started_at)
             case KingCheckMated():
-                self._state = GameState(GameStatus.finished(), self._state.turn, CheckState(event.side, event.position), self._state.board, started_at=self._state.started_at)
+                self._state = GameState(GameStatus.finished(), self._state.turn, CheckState(event.side, event.position), started_at=self._state.started_at)
             case SyncedState():
                 # Reconstitution: Sync turn if provided
                 side = event.turn
-                self._state = GameState(self._state.status, side, self._state.check_state, self._state.board, started_at=self._state.started_at)
+                self._state = GameState(self._state.status, side, self._state.check_state, started_at=self._state.started_at)
 
     @property
     def black_timer(self):
@@ -175,16 +176,16 @@ class ChessGame(AggregateRoot):
 
     @property
     def is_check(self):
-        return self._state.board.is_check(self._state.turn)
+        return self._board.is_check(self._state.turn)
 
     @property
     def is_checkmate(self):
-        return self._state.board.is_checkmate(self._state.turn)
+        return self._board.is_checkmate(self._state.turn)
 
     def move_piece(self, _from: Position, to: Position, moved: Piece, captured: Piece):
         try:
             # Identify a piece from board
-            square = self._state.board[_from]
+            square = self._board[_from]
             piece = square.piece
 
             if piece is None:
@@ -200,11 +201,11 @@ class ChessGame(AggregateRoot):
                 self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.state_mismatch()))
             else:
                 movement = Movement(_from, to)
-                legal_moves = self._state.board.get_legal_moves(self._state.turn)
+                legal_moves = self._board.get_legal_moves(self._state.turn)
 
                 if movement in legal_moves:
                     # Check for capture
-                    target_square = self._state.board[to]
+                    target_square = self._board[to]
                     if target_square.piece is not None:
                         if target_square.piece != captured:
                             self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=MoveFailureReason.state_mismatch()))
@@ -241,13 +242,13 @@ class ChessGame(AggregateRoot):
                     
                     self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=reason))
         finally:
-            legal_moves = self._state.board.get_legal_moves(self._state.turn)
+            legal_moves = self._board.get_legal_moves(self._state.turn)
             legal_moves_str = " ".join([str(m.to_uci()) for m in legal_moves])
             self.raise_event(SyncedState(game_id=self.game_id, turn=self._state.turn, legal_moves=legal_moves_str))
 
     def calculate_move_effect(self):
         side_ = self._state.turn
-        king_pos = self._state.board.get_king_position(side_)
+        king_pos = self._board.get_king_position(side_)
 
         if self.is_checkmate:
             self.emit(KingCheckMated(game_id=self.game_id, side=side_, position=king_pos))
@@ -258,4 +259,4 @@ class ChessGame(AggregateRoot):
 
     def __switch_turn_from(self, turn: Side):
         side = Side.black() if turn == Side.white() else Side.white()
-        self._state = GameState(self._state.status, side, self._state.check_state, self._state.board, started_at=self._state.started_at)
+        self._state = GameState(self._state.status, side, self._state.check_state, started_at=self._state.started_at)

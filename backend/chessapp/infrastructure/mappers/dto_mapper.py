@@ -25,7 +25,7 @@ class DtoMapper:
             date=game.information.date,
             name=game.information.name,
             status=str(game.game_state.status),
-            state=DtoMapper._map_component(game.game_state),
+            state=DtoMapper._map_game_state(game.game_state, game.get_board()),
             game_format=DtoMapper._map_game_format(game.information.format, game),
             players=DtoMapper._map_component(game.players),
             board=FenService.generate(game.get_board()),
@@ -49,14 +49,14 @@ class DtoMapper:
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
     @staticmethod
-    def _map_game_state(state: any) -> GameStateDto:
+    def _map_game_state(state: any, board: Board) -> GameStateDto:
         check_side = state.check_state.side_checked.value() if state.check_state.side_checked else None
         check_pos = str(state.check_state.position_checked) if state.check_state.position_checked else None
         
         legal_moves = ""
         if state.is_started and not state.is_finished:
             # Compact UCI format: "e2e4 e7e5"
-            moves : list[Movement] = state.board.get_legal_moves(state.turn)
+            moves : list[Movement] = board.get_legal_moves(state.turn)
             legal_moves = " ".join([str(m.to_uci()) for m in moves])
 
         return GameStateDto(

@@ -21,8 +21,7 @@ export class ChessService {
   }
 
   newGame() {
-    let board = new Board([]);
-    board.initialize();
+    let board = new Board('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
 
     return new ChessGame('', 'Chess Game 1', new GameFormat('', 0, 0, 0), board, Side.white);
   }

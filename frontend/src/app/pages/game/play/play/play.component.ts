@@ -13,14 +13,13 @@ import { NgFor, NgIf, TitleCasePipe } from '@angular/common';
 import { MoveFailureDialogComponent } from './move-failure-dialog/move-failure-dialog.component';
 import { ChessService } from 'src/app/services/chess.service';
 import { CreateGame } from './models/create-game';
-import { ChessGameDto, HistoryEntryDto } from 'src/app/services/models/chess-game-dto';
+import { ChessGameDto } from 'src/app/services/models/chess-game-dto';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlayService } from 'src/app/services/play.service';
 import { ChessGame, GameFormat } from './models/game/chess-game';
 import { Board } from 'src/app/pages/game/play/play/models/board/board';
 import { Cell } from './models/board/ cell';
-import { Movement } from 'src/app/services/models/movement';
-import { PieceFactory } from './models/pieces/piece_factory';
+import { Movement, SanMovement, SquareMovement } from 'src/app/services/models/movement';
 import { Side } from './models/side';
 import { TimeControlOption, TIME_OPTIONS_MAP } from './models/game-time-option';
 import * as DomainEvents from './models/events/game-event';
@@ -49,7 +48,7 @@ export class PlayComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private selectedSquare: Cell | null = null;
   private gameTimer: NodeJS.Timeout;
-  private playService: PlayService;
+  private readonly playService = inject(PlayService);
 
   public formats: string[];
   public selectedFormat = '';
@@ -88,7 +87,7 @@ export class PlayComponent implements OnInit, OnDestroy {
     const gameId = this.route.snapshot.paramMap.get('id');
 
     if (!!gameId) {
-      this.playService = new PlayService(gameId);
+      this.playService.setGameId(gameId);
       this.chessService.getGame(gameId).subscribe((data: ChessGameDto) => {
         this.game = new ChessGame(
           data.game_id,
@@ -106,11 +105,12 @@ export class PlayComponent implements OnInit, OnDestroy {
 
         let that = this;
 
-        data.history.forEach(function (value: HistoryEntryDto) {
-          let piece = PieceFactory.getPiece(value.piece);
-
-          that.game.history.push(Movement.create(that.game.id, piece, value.from, value.to).withSan(value.san));
-        });
+        if (data.history) {
+          data.history.split(',').forEach((san: string) => {
+            const historyMove = new SanMovement(that.game.id, san);
+            that.game.history.push(historyMove);
+          });
+        }
 
         this.gameTimer = setInterval(function () {
           that.game.timerTick();

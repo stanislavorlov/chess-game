@@ -10,10 +10,12 @@ from ...domain.events import (
 )
 from ...domain.game.chess_game import ChessGame
 from ...domain.game.game_history import ChessGameHistory
+from ...domain.movements.movement import Movement
 from ...domain.pieces.king import King
 from ...domain.pieces.piece import Piece
-from ...domain.services.san_calculator import SanCalculator
+from ...domain.value_objects.san import SAN
 from ...domain.value_objects.side import Side
+from ...domain.services.fen_service import FenService
 
 
 class DtoMapper:
@@ -29,7 +31,7 @@ class DtoMapper:
             state=DtoMapper._map_component(game.game_state),
             game_format=DtoMapper._map_game_format(game.information.format, game),
             players=DtoMapper._map_component(game.players),
-            board=DtoMapper.map_board(game.get_board()),
+            board=FenService.generate(game.get_board()),
             history=DtoMapper.map_history(game.history),
         )
 
@@ -54,9 +56,11 @@ class DtoMapper:
         check_side = state.check_state.side_checked.value() if state.check_state.side_checked else None
         check_pos = str(state.check_state.position_checked) if state.check_state.position_checked else None
         
-        legal_moves = []
+        legal_moves = ""
         if state.is_started and not state.is_finished:
-            legal_moves = [m.to_dict() for m in state.board.get_legal_moves(state.turn)]
+            # Compact UCI format: "e2e4 e7e5"
+            moves : list[Movement] = state.board.get_legal_moves(state.turn)
+            legal_moves = " ".join([str(m.to_uci()) for m in moves])
 
         return GameStateDto(
             turn=state.turn.value(),
@@ -99,20 +103,18 @@ class DtoMapper:
         )
 
     @staticmethod
-    def map_history(history: ChessGameHistory) -> list:
-        output = []
+    def map_history(history: ChessGameHistory) -> str:
+        sans = []
         board = Board()
         
-        allowed_events = [PieceMoved.__name__, KingCastled.__name__]
+        allowed_events = [PieceMoved.__name__, KingCastled.__name__, PieceCaptured.__name__, PawnPromoted.__name__]
 
         for item in history:
             event = item.history_event
             class_name = item.action_type
             
-            # Clone board state BEFORE applying the event
             board_before = board.clone()
             
-            # Apply event to temporary board to keep it in sync for SAN calculation
             if class_name == PieceMoved.__name__:
                 board.piece_moved(event)
             elif class_name == PieceCaptured.__name__:
@@ -122,29 +124,19 @@ class DtoMapper:
             elif class_name == PawnPromoted.__name__:
                 board.pawn_promoted(event)
             elif class_name == GameCreated.__name__:
-                board = Board() # Initial state
+                board = Board() 
 
             if class_name not in allowed_events:
                 continue
 
-            event_name = DtoMapper._to_snake_case(class_name)
-            mapper_name = f"_map_{event_name}"
-            mapper = getattr(DtoMapper, mapper_name, None)
-            
-            if mapper and callable(mapper):
-                event_data = mapper(event)
-                if isinstance(event_data, dict):
-                    # Calculate SAN on-the-fly using the state BEFORE the move
-                    san = SanCalculator.calculate(event, board_before)
-                    
-                    event_data.update({
-                        'sequence': item.sequence_number,
-                        'action_type': item.action_type,
-                        'san': san
-                    })
-                output.append(event_data)
+            try:
+                san = SAN.from_move(event, board_before)
+                sans.append(str(san))
+            except ValueError as e:
+                print(f"Error mapping history to SAN: {e}")
+                continue
 
-        return output
+        return ",".join(sans)
 
     @staticmethod
     def _map_piece_moved(event: PieceMoved) -> dict:

@@ -5,9 +5,6 @@ class Rank:
     _valid_ranks = range(1, 9)  # Valid ranks are integers from 1 to 8
 
     def __init__(self, rank: int):
-        self._start = 1
-        self._end = 8
-
         # Validate that the rank is between 1 and 8
         if rank not in Rank._valid_ranks:
             raise ValueError(f"Invalid rank: '{rank}'. Must be an integer between 1 and 8.")
@@ -74,16 +71,12 @@ class Rank:
         return f"Rank({self._rank})"
 
     def __iter__(self):
-        return self
+        for i in range(1, 9):
+            yield Rank(i)
 
-    def __next__(self):
-        if self._start <= self._end:
-            rank = self.from_index(self._start)
-            self._start += 1
-
-            return  rank
-
-        raise StopIteration
+    def __reversed__(self):
+        for i in range(8, 0, -1):
+            yield Rank(i)
 
     def __sub__(self, other):
         if isinstance(other, Rank):

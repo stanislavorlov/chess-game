@@ -1,5 +1,5 @@
 import { Board } from "src/app/pages/game/play/play/models/board/board";
-import { Movement } from "src/app/services/models/movement";
+import { Movement, SquareMovement } from "src/app/services/models/movement";
 import { Cell } from "../board/ cell";
 import { Side } from "../side";
 import { KingCastledEvent } from "../events/game-event";
@@ -100,7 +100,7 @@ export class ChessGame {
             this._board.movePiece(from_, to);
 
             if (piece) {
-                const entry = Movement.create(this.id, piece, from_.id, to.id)
+                const entry = SquareMovement.create(this.id, piece, from_.id, to.id)
                 if (!!capturedPiece) {
                     entry.withCapturedPiece(capturedPiece);
                 }
@@ -122,7 +122,7 @@ export class ChessGame {
 
                 // Record king's move on castling, rook's move is implicit in the move entry
                 if (piece) {
-                    const entry = Movement.create(this.id, piece, from_.id, to.id);
+                    const entry = SquareMovement.create(this.id, piece, from_.id, to.id);
                     this.history.push(entry);
                 }
 
@@ -150,7 +150,7 @@ export class ChessGame {
             // Record king's move on castling, rook's move is implicit in the move entry
             const piece = this._board.getPiece(kingTo);
             if (piece) {
-                const entry = Movement.create(this.id, piece, kingFrom.id, kingTo.id);
+                const entry = SquareMovement.create(this.id, piece, kingFrom.id, kingTo.id);
                 this.history.push(entry);
             }
 
@@ -160,7 +160,7 @@ export class ChessGame {
 
     public rollbackMove() {
         const lastMove = this.history.pop();
-        if (lastMove) {
+        if (lastMove instanceof SquareMovement) {
             this._board.revertMove(lastMove.from, lastMove.to, lastMove.capturedPiece);
             this.switchTurn();
         }
@@ -174,10 +174,12 @@ export class ChessGame {
         }
     }
 
-    public syncState(turn: Side, legal_moves?: any[]) {
+    public syncState(turn: Side, legal_moves?: string) {
         this._turn = turn;
         if (legal_moves) {
-            this._selectableSquares = new Set(legal_moves.map(m => m.from));
+            // legal_moves is "e2e4 e7e5..."
+            const moveList = legal_moves.split(' ').filter(m => m.length >= 4);
+            this._selectableSquares = new Set(moveList.map(m => m.substring(0, 2)));
         }
     }
 

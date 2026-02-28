@@ -97,7 +97,8 @@ class ChessGame(AggregateRoot):
         self.emit(GameStarted(game_id=self.game_id, started_date=datetime.now()))
         # Emit initial state for White
         legal_moves = self._state.board.get_legal_moves(self._state.turn)
-        self.raise_event(SyncedState(game_id=self.game_id, turn=self._state.turn, legal_moves=legal_moves))
+        legal_moves_str = " ".join([str(m.to_uci()) for m in legal_moves])
+        self.raise_event(SyncedState(game_id=self.game_id, turn=self._state.turn, legal_moves=legal_moves_str))
 
     def finish(self, result: str = ''):
         self.emit(GameFinished(game_id=self.game_id, result=result, finished_date=datetime.now()))
@@ -241,7 +242,8 @@ class ChessGame(AggregateRoot):
                     self.raise_event(PieceMoveFailed(game_id=self.game_id, piece=piece, from_=_from, to=to, reason=reason))
         finally:
             legal_moves = self._state.board.get_legal_moves(self._state.turn)
-            self.raise_event(SyncedState(game_id=self.game_id, turn=self._state.turn, legal_moves=legal_moves))
+            legal_moves_str = " ".join([str(m.to_uci()) for m in legal_moves])
+            self.raise_event(SyncedState(game_id=self.game_id, turn=self._state.turn, legal_moves=legal_moves_str))
 
     def calculate_move_effect(self):
         side_ = self._state.turn

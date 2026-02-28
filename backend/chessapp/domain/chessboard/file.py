@@ -3,9 +3,6 @@ from ...domain.movements.delta.delta import Delta
 class File:
 
     def __init__(self, file:str):
-        self._start = 0
-        self._end = 7
-
         if len(file) != 1 or file < 'a' or file > 'h':
             raise ValueError(f"Invalid file: '{file}'. Must be a letter between 'a' and 'h'.")
         self._file = file
@@ -72,16 +69,12 @@ class File:
         return f"File('{self._file}')"
 
     def __iter__(self):
-        return self
+        for i in range(8):
+            yield File.from_index(i)
 
-    def __next__(self):
-        if self._start <= self._end:
-            file = self.from_index(self._start)
-            self._start += 1
-
-            return file
-
-        raise StopIteration
+    def __reversed__(self):
+        for i in range(7, -1, -1):
+            yield File.from_index(i)
 
     def __sub__(self, other):
         if isinstance(other, File):

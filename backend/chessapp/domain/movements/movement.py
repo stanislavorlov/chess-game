@@ -1,4 +1,5 @@
 from ...domain.chessboard.position import Position
+from ...domain.value_objects.uci import UCI
 
 class Movement:
 
@@ -16,6 +17,12 @@ class Movement:
 
     def to_string(self):
         return f'{str(self._from)} - {str(self._to)}'
+
+    def to_uci(self) -> UCI:
+        """
+        Converts this move to UCI Value Object.
+        """
+        return UCI.from_positions(self._from, self._to)
 
     def __eq__(self, other):
         if isinstance(other, Movement):

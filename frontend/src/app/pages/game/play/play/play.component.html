@@ -84,8 +84,7 @@
                     <h2>Game history</h2>
                     <ul class="history">
                         <li class="history-item" *ngFor="let entry of game.history">
-                            <img src="./assets/images/pieces/{{entry.piece.abbreviation}}.png">
-                            <span>{{entry.san}}</span> <span>({{entry.square}})</span>
+                            <span>{{entry.displayValue}}</span>
                         </li>
                     </ul>
                 </div>

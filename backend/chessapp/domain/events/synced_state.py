@@ -10,7 +10,7 @@ from ...domain.value_objects.game_id import ChessGameId
 class SyncedState(BaseEvent):
     game_id: ChessGameId
     turn: Side
-    legal_moves: List[dict] = dataclasses.field(default_factory=list)
+    legal_moves: str = ""
 
     @property
     def event_type(self) -> str:

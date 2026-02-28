@@ -2,8 +2,7 @@ import unittest
 from chessapp.domain.chessboard.position import Position
 from chessapp.domain.chessboard.file import File
 from chessapp.domain.chessboard.rank import Rank
-from chessapp.domain.value_objects import UCI, Side
-from chessapp.domain.value_objects.san import SAN
+from chessapp.domain.value_objects import UCI, Side, SAN
 from chessapp.domain.chessboard.board import Board
 from chessapp.domain.events.piece_moved import PieceMoved
 from chessapp.domain.pieces import Pawn

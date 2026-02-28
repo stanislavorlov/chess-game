@@ -1,15 +1,17 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from .check_state import CheckState
-from ...domain.chessboard.board import Board
 from ...domain.kernel.value_object import ValueObject
 from ...domain.value_objects.game_status import GameStatus
 from ...domain.value_objects.side import Side
 
+if TYPE_CHECKING:
+    from ...domain.chessboard.board import Board
+
 
 class GameState(ValueObject):
 
-    def __init__(self, game_status: GameStatus, turn: Side, check_state: CheckState, board: Board, started_at: Optional[datetime] = None):
+    def __init__(self, game_status: GameStatus, turn: Side, check_state: CheckState, board: "Board", started_at: Optional[datetime] = None):
         super().__init__()
         self._status = game_status
         self._turn = turn

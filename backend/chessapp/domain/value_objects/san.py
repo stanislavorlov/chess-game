@@ -1,7 +1,5 @@
 from ..kernel.value_object import ValueObject
 from ..pieces.piece_type import PieceType
-from ..events.king_castled import KingCastled
-from ..events.piece_moved import PieceMoved
 
 class SAN(ValueObject):
     def __init__(self, value: str):
@@ -21,6 +19,9 @@ class SAN(ValueObject):
         Logic migrated from SanCalculator.
         Calculates Standard Algebraic Notation for a given move event.
         """
+        from ..events.king_castled import KingCastled
+        from ..events.piece_moved import PieceMoved
+
         if isinstance(event, KingCastled):
             return cls("O-O" if event.is_kingside else "O-O-O")
 

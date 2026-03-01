@@ -17,6 +17,11 @@ ARTIFACTS_DIR = "/Users/stanislavorlov/PycharmProjects/chess-game/backend/chessa
 async def db_cleanup():
     """Cleanup test games before and after the test suite."""
     os.makedirs(ARTIFACTS_DIR, exist_ok=True)
+    
+    # Load .env explicitly for testing context
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", "chessapp", ".env"))
+    
     settings = Settings()
     client = AsyncIOMotorClient(settings.MONGO_HOST)
     db = client.get_database(settings.MONGO_DB)

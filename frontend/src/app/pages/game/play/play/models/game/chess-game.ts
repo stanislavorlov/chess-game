@@ -13,7 +13,7 @@ export class ChessGame {
     private _whiteTimer: number;
     private _blackTimer: number;
     private _turn: Side;
-    private _checkSide: string | null = null;
+    private _checkSide: Side | null = null;
     private _checkPosition: string | null = null;
     private _selectableSquares: Set<string> = new Set();
 
@@ -30,7 +30,7 @@ export class ChessGame {
         this._turn = turn;
     }
 
-    public setCheck(side: string | null, position: string | null) {
+    public setCheck(side: Side | null, position: string | null) {
         this._checkSide = side;
         this._checkPosition = position;
 

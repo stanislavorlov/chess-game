@@ -115,7 +115,9 @@ export class PlayComponent implements OnInit, OnDestroy {
           Side.parse(data.state.turn));
 
         this.game.syncState(Side.parse(data.state.turn), data.state.legal_moves);
-        this.game.setCheck(data.state.check_side, data.state.check_position);
+        if (!!data.state.check_side && !!data.state.check_position) {
+          this.game.setCheck(Side.parse(data.state.check_side), data.state.check_position);
+        }
 
         let that = this;
 
@@ -129,7 +131,7 @@ export class PlayComponent implements OnInit, OnDestroy {
         if (data.state.finished) {
           this.dialog.open(GameOverDialogComponent, {
             data: {
-              result: '',
+              result: that.game.checkSide == Side.black ? 'White wins' : 'Black wins',
               finished_date: ''
             },
             width: '350px'
@@ -175,7 +177,7 @@ export class PlayComponent implements OnInit, OnDestroy {
               this.game.clearCheck();
             } else if (event instanceof DomainEvents.KingCheckedEvent || event instanceof DomainEvents.KingCheckmatedEvent) {
               console.log('King check state update:', event.event_type, event.side);
-              this.game.setCheck(event.side, event.position);
+              this.game.setCheck(Side.parse(event.side), event.position);
             } else if (event instanceof DomainEvents.SyncedStateEvent) {
               console.log('SyncedState received, turn:', event.turn.name);
               this.game.syncState(event.turn, event.legal_moves);

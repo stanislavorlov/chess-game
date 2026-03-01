@@ -43,3 +43,23 @@
 
 - To start the infrastructure only:
 `docker compose -f backend/docker-compose/docker-compose.infra.yml up -d`
+
+### Stats app
+
+#### Build (to verify dependencies)
+
+#### Initial Setup & Updating Swagger
+If you clone the repo or update any API comments, you must generate the docs first:
+```bash
+cd backend/statsapp
+swag init
+go mod tidy
+```
+
+#### Build & Run
+To compile and launch the application:
+```bash
+cd backend/statsapp
+go run main.go
+```
+The Swagger UI will be available at: http://localhost:8081/swagger/index.html

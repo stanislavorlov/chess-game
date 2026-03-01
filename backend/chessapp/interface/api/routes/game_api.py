@@ -1,9 +1,8 @@
-import traceback
 import logging
-from typing import Dict, Any, Annotated
+import traceback
+from typing import Any, Annotated
 from beanie import PydanticObjectId
-from fastapi import APIRouter, Depends, Response, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException
 from ....application.commands.create_game_command import CreateGameCommand
 from ....application.queries.chess_game_query import ChessGameQuery
 from ....domain.value_objects.game_format import GameFormat

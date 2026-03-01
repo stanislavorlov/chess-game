@@ -12,12 +12,12 @@ import (
 var Client *mongo.Client
 var StatCollection *mongo.Collection
 
-func ConnectMongoDB() error {
+func ConnectMongoDB(host string, dbName string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// Connect to local MongoDB by default
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	clientOptions := options.Client().ApplyURI(host)
 
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
@@ -32,7 +32,7 @@ func ConnectMongoDB() error {
 	log.Println("Connected to MongoDB!")
 
 	Client = client
-	StatCollection = client.Database("statsdb").Collection("stats")
+	StatCollection = client.Database(dbName).Collection("stats")
 	return nil
 }
 

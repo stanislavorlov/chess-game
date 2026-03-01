@@ -3,8 +3,11 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"statsapp/database"
 	"statsapp/routes"
+
+	"github.com/joho/godotenv"
 )
 
 // @title           Stats API
@@ -14,8 +17,16 @@ import (
 // @BasePath  /api
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
+	dbHost := os.Getenv("MONGO_HOST")
+	dbName := os.Getenv("MONGO_DB")
+
 	// Initialize MongoDB connection
-	err := database.ConnectMongoDB()
+	err = database.ConnectMongoDB(dbHost, dbName)
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}

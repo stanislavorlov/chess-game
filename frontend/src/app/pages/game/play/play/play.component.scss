@@ -110,10 +110,13 @@
   gap: 10px;
   /* Adds space between rows and columns */
 
-  /* Optional: Clean up default list styling */
+  /* Clean up default list styling */
   list-style-type: none;
   padding-top: 10px;
   margin: 0;
+
+  /* Initialize move number counter */
+  counter-reset: move-num;
 }
 
 .history-item {
@@ -123,7 +126,17 @@
   gap: 8px;
   /* spacing between img and text */
   list-style: none;
-  /* optional: removes default bullet */
+  /* removes default bullet */
+}
+
+/* Add numbering for White's moves (the odd items) */
+.history-item:nth-child(odd)::before {
+  counter-increment: move-num;
+  content: counter(move-num) ".";
+  color: #888;
+  width: 24px;
+  display: inline-block;
+  text-align: left;
 }
 
 .history-item img {

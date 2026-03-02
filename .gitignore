@@ -180,3 +180,9 @@ cython_debug/
 # JetBrains
 **/*.iml
 **/.idea/misc.xml
+
+# Node.js
+node_modules/
+dist/
+build/
+.npm/

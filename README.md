@@ -63,3 +63,22 @@ cd backend/statsapp
 go run main.go
 ```
 The Swagger UI will be available at: http://localhost:8081/swagger/index.html
+
+### Auth app
+
+#### Build (to verify dependencies)
+
+#### Initial Setup & Updating Swagger
+If you clone the repo or update any API comments, you must generate the docs first:
+```bash
+cd backend/authapp
+npm install
+```
+
+#### Build & Run
+To compile and launch the application:
+```bash
+cd backend/authapp
+npm run dev
+```
+The Swagger UI will be available at: http://localhost:3000/swagger/index.html

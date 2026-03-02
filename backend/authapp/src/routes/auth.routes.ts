@@ -4,6 +4,37 @@ import { generateToken } from '../utils/generateToken';
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new player
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Player registered successfully
+ *       400:
+ *         description: Bad request (user exists or invalid data)
+ *       500:
+ *         description: Server error
+ */
 // @desc    Register a new player
 // @route   POST /api/auth/register
 // @access  Public
@@ -39,6 +70,34 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     }
 });
 
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Authenticate a player and get token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid email or password
+ *       500:
+ *         description: Server error
+ */
 // @desc    Auth user & get token
 // @route   POST /api/auth/login
 // @access  Public

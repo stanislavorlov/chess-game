@@ -20,12 +20,18 @@ const router = express.Router();
  *               - username
  *               - email
  *               - password
+ *               - level
+ *               - country
  *             properties:
  *               username:
  *                 type: string
  *               email:
  *                 type: string
  *               password:
+ *                 type: string
+ *               level:
+ *                 type: integer
+ *               country:
  *                 type: string
  *     responses:
  *       201:
@@ -40,7 +46,7 @@ const router = express.Router();
 // @access  Public
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, level, country } = req.body;
 
         const playerExists = await Player.findOne({ $or: [{ email }, { username }] });
 
@@ -53,6 +59,8 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
             username,
             email,
             passwordHash: password, // Mongoose pre-save hook will hash it
+            level,
+            country
         });
 
         if (player) {
@@ -61,6 +69,8 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
                 username: player.username,
                 email: player.email,
                 token: generateToken(player._id.toString()),
+                level: player.level,
+                country: player.country
             });
         } else {
             res.status(400).json({ message: 'Invalid player data' });
@@ -114,6 +124,8 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
                 username: player.username,
                 email: player.email,
                 token: generateToken(player._id.toString()),
+                level: player.level,
+                country: player.country
             });
         } else {
             res.status(401).json({ message: 'Invalid email or password' });

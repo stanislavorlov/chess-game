@@ -5,6 +5,8 @@ export interface IPlayer extends Document {
     username: string;
     email: string;
     passwordHash: string;
+    level: number;
+    country: string;
     createdAt: Date;
     matchPassword(enteredPassword: string): Promise<boolean>;
 }
@@ -33,6 +35,14 @@ const PlayerSchema: Schema = new Schema({
         type: Date,
         default: Date.now,
     },
+    level: {
+        type: Number,
+        required: true,
+    },
+    country: {
+        type: String,
+        required: true,
+    }
 });
 
 // Method to verify passwords
@@ -41,14 +51,13 @@ PlayerSchema.methods.matchPassword = async function (enteredPassword: string) {
 };
 
 // Pre-save hook to hash password if it was modified
-PlayerSchema.pre('save', async function (this: any, next: any) {
+PlayerSchema.pre('save', async function (this: any) {
     if (!this.isModified('passwordHash')) {
-        return next();
+        return;
     }
 
     const salt = await bcrypt.genSalt(10);
     this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
-    next();
 });
 
 export const Player = mongoose.model<IPlayer>('Player', PlayerSchema);

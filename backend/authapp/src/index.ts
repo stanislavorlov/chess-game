@@ -10,8 +10,8 @@ import path from 'path';
 // Attempt to load from `../chessapp/.env` (if running via `npm run dev`) 
 // or `../../chessapp/.env` (if running `node dist/index.js` inside the `authapp` folder)
 const envPath = process.env.NODE_ENV === 'production'
-    ? path.resolve(__dirname, '../../chessapp/.env')
-    : path.resolve(__dirname, '../../chessapp/.env');
+    ? path.resolve(__dirname, '../../authapp/.env')
+    : path.resolve(__dirname, '../../authapp/.env');
 
 dotenv.config({ path: envPath });
 

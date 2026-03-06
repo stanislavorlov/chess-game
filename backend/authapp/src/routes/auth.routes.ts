@@ -181,10 +181,86 @@ router.get('/currentPlayer', async (req: Request, res: Response): Promise<void> 
             username: player.username,
             email: player.email,
             level: player.level,
-            country: player.country
+            country: player.country,
+            firstName: player.firstName ?? '',
+            lastName: player.lastName ?? '',
         });
     } catch (error: any) {
         res.status(401).json({ message: 'Not authorized, token failed' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/auth/updatePlayer:
+ *   post:
+ *     summary: Update current player
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               country:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Player updated successfully
+ *       401:
+ *         description: Not authorized
+ *       500:
+ *         description: Server error
+ */
+// @desc    Update current player
+// @route   POST /api/auth/updatePlayer
+// @access  Private
+router.post('/updatePlayer', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { firstName, lastName, country, password } = req.body;
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            res.status(401).json({ message: 'Not authorized' });
+            return;
+        }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = verifyToken(token) as any;
+        let player = await Player.findById(decoded.sub).select('-passwordHash');
+        if (!player) {
+            res.status(401).json({ message: 'Player not found' });
+            return;
+        }
+
+        player.firstName = firstName ?? player.firstName;
+        player.lastName = lastName ?? player.lastName;
+        player.country = country ?? player.country;
+        if (password) {
+            player.passwordHash = password;
+        }
+
+        await player.save();
+
+        res.json({
+            _id: player._id,
+            username: player.username,
+            email: player.email,
+            level: player.level,
+            firstName: player.firstName ?? '',
+            lastName: player.lastName ?? '',
+            country: player.country ?? ''
+        });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
     }
 });
 

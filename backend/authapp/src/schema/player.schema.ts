@@ -33,6 +33,14 @@ const PlayerSchema: Schema<IPlayer> = new Schema({
     country: {
         type: String,
         required: true,
+    },
+    firstName: {
+        type: String,
+        required: false,
+    },
+    lastName: {
+        type: String,
+        required: false,
     }
 });
 

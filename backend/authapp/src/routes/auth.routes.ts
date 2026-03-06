@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { generateToken } from '../utils/generateToken';
+import { generateToken, verifyToken } from '../utils/generateToken';
 import { Player } from '../schema/player.schema';
 
 const router = express.Router();
@@ -132,6 +132,59 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         }
     } catch (error: any) {
         res.status(500).json({ message: error.message });
+    }
+});
+
+router.get('/health', (req: Request, res: Response): void => {
+    res.json({ status: 'ok', service: 'authapp' });
+});
+
+/**
+ * @swagger
+ * /api/auth/currentPlayer:
+ *   get:
+ *     summary: Get current player
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Current player
+ *       401:
+ *         description: Not authorized
+ *       500:
+ *         description: Server error
+ */
+// @desc    Get current player
+// @route   GET /api/auth/currentPlayer
+// @access  Private
+router.get('/currentPlayer', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            res.status(401).json({ message: 'Not authorized' });
+            return;
+        }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = verifyToken(token) as any;
+
+        const player = await Player.findById(decoded.sub).select('-passwordHash');
+
+        if (!player) {
+            res.status(401).json({ message: 'Player not found' });
+            return;
+        }
+
+        res.json({
+            _id: player._id,
+            username: player.username,
+            email: player.email,
+            level: player.level,
+            country: player.country
+        });
+    } catch (error: any) {
+        res.status(401).json({ message: 'Not authorized, token failed' });
     }
 });
 

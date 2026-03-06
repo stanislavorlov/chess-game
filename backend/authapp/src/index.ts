@@ -32,6 +32,15 @@ const swaggerOptions = {
                 description: 'Local server',
             },
         ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                },
+            },
+        },
     },
     apis: [path.join(__dirname, './routes/*.routes.*')], // Works for both .ts and .js files
 };

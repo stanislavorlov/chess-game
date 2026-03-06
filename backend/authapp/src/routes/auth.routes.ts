@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
-import { Player } from '../models/Player';
 import { generateToken } from '../utils/generateToken';
+import { Player } from '../schema/player.schema';
 
 const router = express.Router();
 

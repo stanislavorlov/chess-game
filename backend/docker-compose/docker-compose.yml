@@ -3,7 +3,7 @@ services:
   main-app:
     build:
       context: ..
-      dockerfile: Dockerfile
+      dockerfile: chessapp/Dockerfile
     container_name: main-app
     ports:
       - "${API_PORT:-8000}:8000"
@@ -16,6 +16,34 @@ services:
       kafka:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+
+  auth-app:
+    build:
+      context: ../authapp
+      dockerfile: Dockerfile
+    container_name: auth-app
+    ports:
+      - "3000:3000"
+    env_file:
+      - ../chessapp/.env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  stats-app:
+    build:
+      context: ../statsapp
+      dockerfile: Dockerfile
+    container_name: stats-app
+    ports:
+      - "8081:8081"
+    env_file:
+      - ../chessapp/.env
+    depends_on:
+      kafka:
         condition: service_healthy
       mongodb:
         condition: service_healthy

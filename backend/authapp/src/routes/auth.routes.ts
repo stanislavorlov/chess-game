@@ -1,8 +1,11 @@
 import express, { Request, Response } from 'express';
-import { generateToken, verifyToken } from '../utils/generateToken';
-import { Player } from '../schema/player.schema';
+import { AuthController } from '../controllers/auth.controller';
+import { PlayerRepository } from '../repository/player.repository';
+import { authMiddleware, AuthRequest } from '../middlewares/auth.middleware';
 
 const router = express.Router();
+const playerRepository = new PlayerRepository();
+const authController = new AuthController(playerRepository);
 
 /**
  * @swagger
@@ -46,35 +49,7 @@ const router = express.Router();
 // @access  Public
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
     try {
-        const { username, email, password, level, country } = req.body;
-
-        const playerExists = await Player.findOne({ $or: [{ email }, { username }] });
-
-        if (playerExists) {
-            res.status(400).json({ message: 'Player with that username or email already exists' });
-            return;
-        }
-
-        const player = await Player.create({
-            username,
-            email,
-            passwordHash: password, // Mongoose pre-save hook will hash it
-            level,
-            country
-        });
-
-        if (player) {
-            res.status(201).json({
-                _id: player._id,
-                username: player.username,
-                email: player.email,
-                token: generateToken(player._id.toString()),
-                level: player.level,
-                country: player.country
-            });
-        } else {
-            res.status(400).json({ message: 'Invalid player data' });
-        }
+        await authController.registerUser(req, res);
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }
@@ -113,23 +88,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 // @access  Public
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
     try {
-        const { email, password } = req.body;
-
-        // Note: We need to explicitly select passwordHash since we excluded it in the schema
-        const player = await Player.findOne({ email }).select('+passwordHash');
-
-        if (player && (await player.matchPassword(password))) {
-            res.json({
-                _id: player._id,
-                username: player.username,
-                email: player.email,
-                token: generateToken(player._id.toString()),
-                level: player.level,
-                country: player.country
-            });
-        } else {
-            res.status(401).json({ message: 'Invalid email or password' });
-        }
+        await authController.loginUser(req, res);
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }
@@ -158,34 +117,11 @@ router.get('/health', (req: Request, res: Response): void => {
 // @desc    Get current player
 // @route   GET /api/auth/currentPlayer
 // @access  Private
-router.get('/currentPlayer', async (req: Request, res: Response): Promise<void> => {
+router.get('/currentPlayer', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            res.status(401).json({ message: 'Not authorized' });
-            return;
-        }
-
-        const token = authHeader.split(' ')[1];
-        const decoded = verifyToken(token) as any;
-
-        const player = await Player.findById(decoded.sub).select('-passwordHash');
-
-        if (!player) {
-            res.status(401).json({ message: 'Player not found' });
-            return;
-        }
-
-        res.json({
-            _id: player._id,
-            username: player.username,
-            email: player.email,
-            level: player.level,
-            country: player.country,
-            firstName: player.firstName ?? '',
-            lastName: player.lastName ?? '',
-        });
+        await authController.getProfile(req, res);
     } catch (error: any) {
+        console.log(error);
         res.status(401).json({ message: 'Not authorized, token failed' });
     }
 });
@@ -224,41 +160,9 @@ router.get('/currentPlayer', async (req: Request, res: Response): Promise<void> 
 // @desc    Update current player
 // @route   POST /api/auth/updatePlayer
 // @access  Private
-router.post('/updatePlayer', async (req: Request, res: Response): Promise<void> => {
+router.post('/updatePlayer', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const { firstName, lastName, country, password } = req.body;
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            res.status(401).json({ message: 'Not authorized' });
-            return;
-        }
-
-        const token = authHeader.split(' ')[1];
-        const decoded = verifyToken(token) as any;
-        let player = await Player.findById(decoded.sub).select('-passwordHash');
-        if (!player) {
-            res.status(401).json({ message: 'Player not found' });
-            return;
-        }
-
-        player.firstName = firstName ?? player.firstName;
-        player.lastName = lastName ?? player.lastName;
-        player.country = country ?? player.country;
-        if (password) {
-            player.passwordHash = password;
-        }
-
-        await player.save();
-
-        res.json({
-            _id: player._id,
-            username: player.username,
-            email: player.email,
-            level: player.level,
-            firstName: player.firstName ?? '',
-            lastName: player.lastName ?? '',
-            country: player.country ?? ''
-        });
+        await authController.updateProfile(req, res);
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }

@@ -14,10 +14,10 @@ export const generateToken = (id: string): string => {
     });
 };
 
-export const verifyToken = (token: string): string => {
+export const verifyToken = (token: string): jwt.JwtPayload | string => {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
         throw new Error('JWT_SECRET is not defined');
     }
-    return jwt.verify(token, secret) as string;
+    return jwt.verify(token, secret);
 };

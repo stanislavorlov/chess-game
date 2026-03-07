@@ -24,7 +24,7 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+		log.Println("No .env file found; assuming variables are provided by the environment.")
 	}
 
 	dbHost := os.Getenv("MONGO_HOST")

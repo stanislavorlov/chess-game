@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.routes';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
 import path from 'path';
+import mongoose from 'mongoose';
 
 // Attempt to load from `../chessapp/.env` (if running via `npm run dev`) 
 // or `../../chessapp/.env` (if running `node dist/index.js` inside the `authapp` folder)
@@ -55,8 +56,27 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 
-app.get('/health', (req: Request, res: Response) => {
+app.get('/health/live', (req: Request, res: Response) => {
     res.json({ status: 'ok', service: 'authapp' });
+});
+
+app.get('/health/ready', (req: Request, res: Response) => {
+    // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting, 99 = uninitialized
+    const dbStatus = mongoose.connection.readyState;
+
+    if (dbStatus === 1) {
+        res.status(200).json({
+            status: 'ready',
+            service: 'authapp',
+            dbStatus: 'connected'
+        });
+    } else {
+        res.status(503).json({
+            status: 'not ready',
+            service: 'authapp',
+            dbStatus: 'disconnected'
+        });
+    }
 });
 
 const PORT = process.env.AUTH_PORT || 3000;

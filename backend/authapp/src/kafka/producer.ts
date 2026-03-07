@@ -8,6 +8,7 @@ export interface ProducerOptions {
 export class KafkaProducer {
     private kafka: Kafka;
     private producer: Producer;
+    private _isConnected: boolean = false;
 
     constructor(options: ProducerOptions) {
         this.kafka = new Kafka({
@@ -18,9 +19,14 @@ export class KafkaProducer {
         this.producer = this.kafka.producer();
     }
 
+    public get isConnected(): boolean {
+        return this._isConnected;
+    }
+
     public async connect(): Promise<void> {
         try {
             await this.producer.connect();
+            this._isConnected = true;
             console.log(`[KafkaProducer] Connected to Kafka broker`);
         } catch (error) {
             console.error('[KafkaProducer] Error connecting to Kafka', error);
@@ -31,6 +37,7 @@ export class KafkaProducer {
     public async disconnect(): Promise<void> {
         try {
             await this.producer.disconnect();
+            this._isConnected = false;
             console.log(`[KafkaProducer] Disconnected from Kafka broker`);
         } catch (error) {
             console.error('[KafkaProducer] Error disconnecting from Kafka', error);

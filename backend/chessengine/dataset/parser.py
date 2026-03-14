@@ -14,10 +14,10 @@ def get_first_10_rows():
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
-            for i, row in enumerate(reader):
+            for i, reader_row in enumerate(reader):
                 if i >= 10:
                     break
-                data.append(row)
+                data.append(reader_row)
     except FileNotFoundError:
         print(f"Dataset file not found at: {file_path}")
             

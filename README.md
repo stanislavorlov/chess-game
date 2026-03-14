@@ -82,3 +82,15 @@ cd backend/authapp
 npm run dev
 ```
 The Swagger UI will be available at: http://localhost:3000/swagger/index.html
+
+### Engine App
+To compile and launch the application:
+```bash
+cd backend/engineapp
+go run main.go
+```
+To run unit tests:
+```bash
+cd backend/engineapp
+go test -v
+```

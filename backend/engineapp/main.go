@@ -6,11 +6,14 @@ import (
 	"net/http"
 	"os"
 
+	"engineapp/database"
 	"engineapp/handlers"
 	"engineapp/handlers/health"
 	"engineapp/handlers/ws"
 	pb "engineapp/proto"
 	"engineapp/server"
+
+	"github.com/joho/godotenv"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -29,6 +32,27 @@ func main() {
 
 	log.SetPrefix("[ChessEngine]")
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found; assuming variables are provided by the environment.")
+	}
+
+	mongoURI := os.Getenv("MONGO_HOST")
+	if mongoURI == "" {
+		log.Fatal("Failed to get MONGO_HOST from environment variables")
+	}
+
+	mongoDBName := os.Getenv("MONGO_DB")
+	if mongoDBName == "" {
+		log.Fatal("Failed to get MONGO_DB from environment variables")
+	}
+
+	// Initialize MongoDB Connection
+	if err := database.ConnectMongoDB(mongoURI, mongoDBName); err != nil {
+		log.Fatalf("Failed to connect to MongoDB: %v", err)
+	}
+	defer database.DisconnectMongoDB()
 
 	// Start HTTP server concurrently
 	go func() {

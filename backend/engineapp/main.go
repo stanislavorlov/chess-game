@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"engineapp/handlers"
 	"engineapp/handlers/health"
 	"engineapp/handlers/ws"
 	pb "engineapp/proto"
@@ -33,7 +34,7 @@ func main() {
 	go func() {
 		http.HandleFunc("/health/live", health.Check)
 		http.HandleFunc("/health/ready", health.Check)
-		http.HandleFunc("/ws/", ws.HandleConnections)
+		http.HandleFunc("/ws/", ws.HandleConnections(handlers.HandleMove))
 
 		log.Printf("Engine HTTP Service running on port %s", port)
 		if err := http.ListenAndServe(":"+port, nil); err != nil {

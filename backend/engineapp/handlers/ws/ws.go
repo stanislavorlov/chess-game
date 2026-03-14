@@ -23,42 +23,45 @@ type Client struct {
 
 var clients = make(map[*Client]bool)
 
-func HandleConnections(w http.ResponseWriter, r *http.Request) {
-	// Extract game_id from path: /ws/{game_id}
-	path := r.URL.Path
-	gameID := strings.TrimPrefix(path, "/ws/")
+func HandleConnections(moveHandler func(gameID string, message []byte) []byte) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Extract game_id from path: /ws/{game_id}
+		path := r.URL.Path
+		gameID := strings.TrimPrefix(path, "/ws/")
 
-	if gameID == "" || gameID == "/" {
-		http.Error(w, "Game ID is required", http.StatusBadRequest)
-		return
-	}
-
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Printf("Error upgrading to websocket: %v", err)
-		return
-	}
-	defer ws.Close()
-
-	client := &Client{conn: ws, send: make(chan []byte, 256)}
-	clients[client] = true
-	log.Printf("New WebSocket client connected to game %s", gameID)
-
-	for {
-		_, message, err := ws.ReadMessage()
-		if err != nil {
-			log.Printf("WebSocket client disconnected or error: %v", err)
-			delete(clients, client)
-			break
+		if gameID == "" || gameID == "/" {
+			http.Error(w, "Game ID is required", http.StatusBadRequest)
+			return
 		}
 
-		log.Printf("Received message: %s", message)
+		wsConn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Printf("Error upgrading to websocket: %v", err)
+			return
+		}
+		defer wsConn.Close()
 
-		// Echo for now, can be replaced by actual logic later
-		if err := ws.WriteMessage(websocket.TextMessage, message); err != nil {
-			log.Printf("Error writing message: %v", err)
-			delete(clients, client)
-			break
+		client := &Client{conn: wsConn, send: make(chan []byte, 256)}
+		clients[client] = true
+		log.Printf("New WebSocket client connected to game %s", gameID)
+
+		for {
+			_, message, err := wsConn.ReadMessage()
+			if err != nil {
+				log.Printf("WebSocket client disconnected or error: %v", err)
+				delete(clients, client)
+				break
+			}
+
+			// Route message to appropriate handler
+			responseBytes := moveHandler(gameID, message)
+
+			if len(responseBytes) > 0 {
+				if err := client.conn.WriteMessage(websocket.TextMessage, responseBytes); err != nil {
+					log.Printf("Error writing move response: %v", err)
+					// Usually client disconnections are handled by the main read loop
+				}
+			}
 		}
 	}
 }

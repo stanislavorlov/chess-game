@@ -94,3 +94,15 @@ To run unit tests:
 cd backend/engineapp
 go test -v
 ```
+Kill running process:
+```bash
+killall -9 main || true
+```
+
+In the Method dropdown next to the URL, you will now see chess.ChessEngine / ValidateMove. Select it.
+
+Go to the Message tab and enter the following JSON:
+```{
+  "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  "move": "e2e4"
+}```

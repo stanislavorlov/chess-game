@@ -8,8 +8,9 @@ import (
 
 	"engineapp/handlers/health"
 	"engineapp/handlers/ws"
-	"engineapp/server"
 	pb "engineapp/proto"
+	"engineapp/server"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -24,6 +25,9 @@ func main() {
 	if grpcPort == "" {
 		grpcPort = "50051"
 	}
+
+	log.SetPrefix("[ChessEngine]")
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Start HTTP server concurrently
 	go func() {
@@ -45,7 +49,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterChessEngineServer(grpcServer, server.NewChessEngineServer())
-	
+
 	// Register reflection service on gRPC server
 	reflection.Register(grpcServer)
 

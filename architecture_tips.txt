@@ -2,8 +2,8 @@ Gateway / Auth	Express.js	JWT, Registration, Session Management.
 Game Engine	Go	WebSockets, Move Validation, Bitboards, Blitz Timers.
 Intelligence	FastAPI	AI Analysis, ML Models, Complex Data Processing (numpy, pandas, YOLO, GNN).
 ----
-Direction	Data Sent	Purpose
-User → Go	UCI Move (e.g., e2e4)	Player attempts a move via WebSocket.
-Go → FastAPI	12 uint64 bitboards	Requesting an evaluation or AI move.
-FastAPI → Go	Evaluation score / Best move	Returning the "Intelligence."
-Go → User	New FEN + Move	Updating the UI via WebSocket.
+Direction	        Data Sent	                    Purpose
+User → Go	        UCI Move (e.g., e2e4)	        Player attempts a move via WebSocket.
+Go → FastAPI	    12 uint64 bitboards	            Requesting an evaluation or AI move.
+FastAPI → Go	    Evaluation score / Best move	Returning the "Intelligence."
+Go → User	        New FEN + Move	                Updating the UI via WebSocket.

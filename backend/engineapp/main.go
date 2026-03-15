@@ -10,8 +10,6 @@ import (
 	"engineapp/handlers"
 	"engineapp/handlers/health"
 	"engineapp/handlers/ws"
-	pb "engineapp/proto"
-	"engineapp/server"
 
 	"github.com/joho/godotenv"
 
@@ -73,7 +71,6 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterChessEngineServer(grpcServer, server.NewChessEngineServer())
 
 	// Register reflection service on gRPC server
 	reflection.Register(grpcServer)

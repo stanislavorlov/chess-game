@@ -2,8 +2,10 @@ import asyncio
 import json
 import logging
 import time
+import grpc
 from contextlib import asynccontextmanager
 from typing import Annotated
+from ..interface.grpc import chessapp_pb2, chessapp_pb2_grpc
 from beanie import PydanticObjectId, init_beanie
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -51,6 +53,17 @@ logger = logging.getLogger("chessapp")
 logging.getLogger("pymongo").setLevel(logging.WARNING)
 logging.getLogger("motor").setLevel(logging.WARNING)
 logging.getLogger("aiokafka").setLevel(logging.WARNING)
+
+class AiService(chessapp_pb2_grpc.AiServiceServicer):
+    async def GetPredictedMove(self, request, context):
+        logger.info(f"Predicting move for bitboard={request.bitboard}, is_white={request.is_white_turn}")
+        
+        # TODO: Call actual AI model
+        predicted_move = "e2e4" 
+        
+        return chessapp_pb2.PredictedMoveResponse(
+            uci_move=predicted_move
+        )
 
 
 async def consume_kafka_commands(_app: FastAPI):
@@ -141,6 +154,13 @@ async def lifespan(_app: FastAPI):
     kafka_task = asyncio.create_task(consume_kafka_commands(_app))
     redis_task = asyncio.create_task(subscribe_redis_notifications(_app))
 
+    # Start built-in gRPC Server
+    grpc_server = grpc.aio.server()
+    chessapp_pb2_grpc.add_AiServiceServicer_to_server(AiService(), grpc_server)
+    grpc_server.add_insecure_port('[::]:50052')
+    await grpc_server.start()
+    logger.info("Python gRPC Server started on port 50052")
+
     yield
 
     # Cancellation of background tasks
@@ -152,6 +172,7 @@ async def lifespan(_app: FastAPI):
     
     await _app.state.kafka.stop_all()
     await _app.state.redis.disconnect()
+    await grpc_server.stop(0)
     client.close()
 
 

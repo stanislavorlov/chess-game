@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package chessapp;
+
+option go_package = "engineapp/proto;chess";
+
+service AiService {
+  rpc GetPredictedMove (PredictedMoveRequest) returns (PredictedMoveResponse);
+}
+
+message PredictedMoveRequest {
+  string bitboard = 1;      // JSON or string representation of the parsed bitboard
+  bool is_white_turn = 2;   // Whether the AI is playing white
+}
+
+message PredictedMoveResponse {
+  string uci_move = 1;      // e.g. "e2e4"
+}

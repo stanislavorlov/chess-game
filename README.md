@@ -39,10 +39,10 @@
 ## Docker
 1. Go to the `backend/docker-compose` folder
 - To start the application with infrastructure:
-`docker compose -f backend/docker-compose/docker-compose.yml up -d`
+`docker compose -f docker-compose.yml up -d`
 
 - To start the infrastructure only:
-`docker compose -f backend/docker-compose/docker-compose.infra.yml up -d`
+`docker compose -f docker-compose.infra.yml up -d`
 
 ### Stats app
 

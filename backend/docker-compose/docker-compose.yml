@@ -59,6 +59,8 @@ services:
       - "${ENGINEAPP_GRPC_PORT:-50051}:${ENGINEAPP_GRPC_PORT:-50051}"
     env_file:
       - ../.env
+    environment:
+      MONGO_DB: ${MONGO_DB}
     depends_on:
       mongodb:
         condition: service_healthy

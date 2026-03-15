@@ -10,13 +10,9 @@ RUN apt update -y && \
     gcc \
     musl-dev
 
-ADD pyproject.toml /chessapp
-
+COPY chessapp/requirements.txt /chessapp/requirements.txt
 RUN pip install --upgrade pip
-RUN pip install poetry
-
-RUN poetry config virtualenvs.create false
-RUN poetry install --no-root --no-interaction --no-ansi
+RUN pip install -r requirements.txt
 
 COPY chessapp/ /chessapp/chessapp/
 COPY chessengine/ /chessapp/chessengine/

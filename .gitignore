@@ -186,3 +186,7 @@ node_modules/
 dist/
 build/
 .npm/
+
+# Local Golang Binaries
+backend/engineapp/engineapp
+backend/statsapp/statsapp

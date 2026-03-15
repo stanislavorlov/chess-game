@@ -6,10 +6,11 @@ services:
       dockerfile: chessapp/Dockerfile
     container_name: main-app
     ports:
-      - "${API_PORT:-8000}:8000"
-    command: "uvicorn --factory chessapp.interface.main:create_app --reload --timeout-graceful-shutdown 2 --host 0.0.0.0 --port 8000"
+      - "${CHESSAPP_HTTP_PORT:-8000}:${CHESSAPP_HTTP_PORT:-8000}"
+      - "${CHESSAPP_GRPC_PORT:-50052}:${CHESSAPP_GRPC_PORT:-50052}"
+    command: "uvicorn --factory chessapp.interface.main:create_app --reload --timeout-graceful-shutdown 2 --host 0.0.0.0 --port ${CHESSAPP_HTTP_PORT:-8000}"
     env_file:
-      - ../chessapp/.env
+      - ../.env
     volumes:
       - ..:/app/
     depends_on:
@@ -26,9 +27,9 @@ services:
       dockerfile: Dockerfile
     container_name: auth-app
     ports:
-      - "3000:3000"
+      - "${AUTHAPP_PORT:-3000}:${AUTHAPP_PORT:-3000}"
     env_file:
-      - ../chessapp/.env
+      - ../.env
     depends_on:
       mongodb:
         condition: service_healthy
@@ -39,14 +40,30 @@ services:
       dockerfile: Dockerfile
     container_name: stats-app
     ports:
-      - "8081:8081"
+      - "${STATSAPP_PORT:-8081}:${STATSAPP_PORT:-8081}"
     env_file:
-      - ../chessapp/.env
+      - ../.env
     depends_on:
       kafka:
         condition: service_healthy
       mongodb:
         condition: service_healthy
+
+  engine-app:
+    build:
+      context: ../engineapp
+      dockerfile: Dockerfile
+    container_name: engine-app
+    ports:
+      - "${ENGINEAPP_HTTP_PORT:-8082}:${ENGINEAPP_HTTP_PORT:-8082}"
+      - "${ENGINEAPP_GRPC_PORT:-50051}:${ENGINEAPP_GRPC_PORT:-50051}"
+    env_file:
+      - ../.env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      main-app:
+        condition: service_started
 
   redis:
     image: redis:latest

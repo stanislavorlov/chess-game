@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"os"
 	"time"
 
 	"engineapp/handlers/ws"
@@ -24,7 +25,12 @@ func HandleMove(gameID string, message []byte) []byte {
 	log.Printf("[Game: %s] Parsed move: %+v", gameID, msg)
 
 	// Call Python chessapp via gRPC for AI move
-	conn, err := grpc.NewClient("localhost:50052", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	grpcHost := os.Getenv("CHESSAPP_GRPC_HOST")
+	if grpcHost == "" {
+		grpcHost = "localhost:50052"
+	}
+
+	conn, err := grpc.NewClient(grpcHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Printf("Failed to connect to chessapp gRPC: %v", err)
 	} else {
@@ -35,10 +41,10 @@ func HandleMove(gameID string, message []byte) []byte {
 		defer cancel()
 
 		predictResp, err := client.GetPredictedMove(ctx, &pb.PredictedMoveRequest{
-			Bitboard: "dummy_bitboard_placeholder", 
+			Bitboard:    "dummy_bitboard_placeholder",
 			IsWhiteTurn: true,
 		})
-		
+
 		if err != nil {
 			log.Printf("Failed to call GetPredictedMove via gRPC: %v", err)
 		} else {

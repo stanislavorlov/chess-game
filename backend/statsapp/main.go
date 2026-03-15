@@ -22,9 +22,9 @@ import (
 // @BasePath  /api
 
 func main() {
-	err := godotenv.Load()
+	err := godotenv.Load("../.env")
 	if err != nil {
-		log.Println("No .env file found; assuming variables are provided by the environment.")
+		log.Println("No ../.env file found; assuming variables are provided by the environment.")
 	}
 
 	dbHost := os.Getenv("MONGO_HOST")
@@ -67,8 +67,13 @@ func main() {
 	// Setup routes
 	router := routes.SetupRouter()
 
-	log.Println("Starting server on port 8081...")
-	if err := router.Run(":8081"); err != nil && err != http.ErrServerClosed {
+	port := os.Getenv("STATSAPP_PORT")
+	if port == "" {
+		port = "8081"
+	}
+
+	log.Printf("Starting server on port %s...", port)
+	if err := router.Run(":" + port); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Server error: %s\n", err)
 	}
 }

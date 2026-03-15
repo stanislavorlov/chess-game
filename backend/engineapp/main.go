@@ -18,12 +18,12 @@ import (
 )
 
 func main() {
-	port := os.Getenv("ENGINE_PORT")
+	port := os.Getenv("ENGINEAPP_HTTP_PORT")
 	if port == "" {
 		port = "8082"
 	}
 
-	grpcPort := os.Getenv("GRPC_PORT")
+	grpcPort := os.Getenv("ENGINEAPP_GRPC_PORT")
 	if grpcPort == "" {
 		grpcPort = "50051"
 	}
@@ -31,9 +31,9 @@ func main() {
 	log.SetPrefix("[ChessEngine]")
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-	err := godotenv.Load()
+	err := godotenv.Load("../.env")
 	if err != nil {
-		log.Println("No .env file found; assuming variables are provided by the environment.")
+		log.Println("No ../.env file found; assuming variables are provided by the environment.")
 	}
 
 	mongoURI := os.Getenv("MONGO_HOST")

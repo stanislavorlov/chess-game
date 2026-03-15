@@ -2,14 +2,16 @@ FROM golang:1.21-alpine
 
 WORKDIR /app
 
-COPY go.mod ./
-# COPY go.sum ./
+COPY go.mod go.sum ./
 RUN go mod download
 
-COPY *.go ./
+COPY . .
 
-RUN go build -o /engineapp
+RUN go build -o /engineapp .
 
-EXPOSE 8080
+# Expose HTTP port
+EXPOSE 8082
+# Expose gRPC port
+EXPOSE 50051
 
 CMD [ "/engineapp" ]

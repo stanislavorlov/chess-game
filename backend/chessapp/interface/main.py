@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import os
 import time
 import grpc
 from contextlib import asynccontextmanager
@@ -157,9 +158,11 @@ async def lifespan(_app: FastAPI):
     # Start built-in gRPC Server
     grpc_server = grpc.aio.server()
     chessapp_pb2_grpc.add_AiServiceServicer_to_server(AiService(), grpc_server)
-    grpc_server.add_insecure_port('[::]:50052')
+    
+    grpc_port = os.getenv('CHESSAPP_GRPC_PORT', '50052')
+    grpc_server.add_insecure_port(f'[::]:{grpc_port}')
     await grpc_server.start()
-    logger.info("Python gRPC Server started on port 50052")
+    logger.info(f"Python gRPC Server started on port {grpc_port}")
 
     yield
 

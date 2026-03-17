@@ -9,6 +9,7 @@ import (
 
 	"engineapp/handlers/ws"
 	pb "engineapp/proto"
+	"engineapp/services"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -23,6 +24,14 @@ func HandleMove(gameID string, message []byte) []byte {
 	}
 
 	log.Printf("[Game: %s] Parsed move: %+v", gameID, msg)
+
+	// Restore game state from DB or Redis
+	boardState, err := services.GetGameState(context.Background(), gameID)
+	if err != nil {
+		log.Printf("[Game: %s] Failed to get GameState: %v", gameID, err)
+	} else {
+		log.Printf("[Game: %s] Restored Board State FEN: %s", gameID, boardState.Fen)
+	}
 
 	// Call Python chessapp via gRPC for AI move
 	grpcHost := os.Getenv("CHESSAPP_GRPC_HOST")

@@ -36,21 +36,16 @@ func main() {
 		log.Println("No ../.env file found; assuming variables are provided by the environment.")
 	}
 
-	mongoURI := os.Getenv("MONGO_HOST")
-	if mongoURI == "" {
-		log.Fatal("Failed to get MONGO_HOST from environment variables")
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL != "" {
+		if err := database.ConnectRedis(redisURL); err != nil {
+			log.Printf("Failed to connect to Redis initially: %v", err)
+		} else {
+			defer database.DisconnectRedis()
+		}
+	} else {
+		log.Println("No REDIS_URL provided, skipping Redis connection")
 	}
-
-	mongoDBName := os.Getenv("MONGO_DB")
-	if mongoDBName == "" {
-		log.Fatal("Failed to get MONGO_DB from environment variables")
-	}
-
-	// Initialize MongoDB Connection
-	if err := database.ConnectMongoDB(mongoURI, mongoDBName); err != nil {
-		log.Fatalf("Failed to connect to MongoDB: %v", err)
-	}
-	defer database.DisconnectMongoDB()
 
 	// Start HTTP server concurrently
 	go func() {

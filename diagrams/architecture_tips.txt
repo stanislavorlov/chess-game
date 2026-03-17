@@ -7,3 +7,7 @@ User → Go	        UCI Move (e.g., e2e4)	        Player attempts a move via Web
 Go → FastAPI	    12 uint64 bitboards	            Requesting an evaluation or AI move.
 FastAPI → Go	    Evaluation score / Best move	Returning the "Intelligence."
 Go → User	        New FEN + Move	                Updating the UI via WebSocket.
+---
+Go handles 100k+ concurrent WebSocket connections
+Go holds the "active" board in memory
+FastAPI is stateless (only AI models)

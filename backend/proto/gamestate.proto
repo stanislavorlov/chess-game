@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package gamestate;
+
+option go_package = "engineapp/proto;proto";
+
+service GameState {
+    rpc GetState (GameStateRequest) returns (GameStateResponse);
+}
+
+message GameStateRequest {
+    string game_id = 1;
+}
+
+message GameStateResponse {
+    string fen = 1;
+}

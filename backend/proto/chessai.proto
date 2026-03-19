@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package chessapp;
+package chessai;
 
-option go_package = "engineapp/proto;chess";
+option go_package = "engineapp/proto;proto";
 
 service AiService {
   rpc GetPredictedMove (PredictedMoveRequest) returns (PredictedMoveResponse);

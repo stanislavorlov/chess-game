@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             v7.34.0
-// source: chessapp.proto
+// source: chessai.proto
 
-package chess
+package proto
 
 import (
 	context "context"
@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AiService_GetPredictedMove_FullMethodName = "/chessapp.AiService/GetPredictedMove"
+	AiService_GetPredictedMove_FullMethodName = "/chessai.AiService/GetPredictedMove"
 )
 
 // AiServiceClient is the client API for AiService service.
@@ -108,7 +108,7 @@ func _AiService_GetPredictedMove_Handler(srv interface{}, ctx context.Context, d
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AiService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "chessapp.AiService",
+	ServiceName: "chessai.AiService",
 	HandlerType: (*AiServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -117,5 +117,5 @@ var AiService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "chessapp.proto",
+	Metadata: "chessai.proto",
 }

@@ -25,7 +25,7 @@ func HandleMove(gameID string, message []byte) []byte {
 
 	log.Printf("[Game: %s] Parsed move: %+v", gameID, msg)
 
-	// Restore game state from DB or Redis
+	// Restore game state from Redis or FastAPI gRPC
 	boardState, err := services.GetGameState(context.Background(), gameID)
 	if err != nil {
 		log.Printf("[Game: %s] Failed to get GameState: %v", gameID, err)

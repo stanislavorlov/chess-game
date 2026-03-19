@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v7.34.0
-// source: chessapp.proto
+// source: chessai.proto
 
-package chess
+package proto
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -31,7 +31,7 @@ type PredictedMoveRequest struct {
 
 func (x *PredictedMoveRequest) Reset() {
 	*x = PredictedMoveRequest{}
-	mi := &file_chessapp_proto_msgTypes[0]
+	mi := &file_chessai_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +43,7 @@ func (x *PredictedMoveRequest) String() string {
 func (*PredictedMoveRequest) ProtoMessage() {}
 
 func (x *PredictedMoveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_chessapp_proto_msgTypes[0]
+	mi := &file_chessai_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +56,7 @@ func (x *PredictedMoveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PredictedMoveRequest.ProtoReflect.Descriptor instead.
 func (*PredictedMoveRequest) Descriptor() ([]byte, []int) {
-	return file_chessapp_proto_rawDescGZIP(), []int{0}
+	return file_chessai_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *PredictedMoveRequest) GetBitboard() string {
@@ -82,7 +82,7 @@ type PredictedMoveResponse struct {
 
 func (x *PredictedMoveResponse) Reset() {
 	*x = PredictedMoveResponse{}
-	mi := &file_chessapp_proto_msgTypes[1]
+	mi := &file_chessai_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -94,7 +94,7 @@ func (x *PredictedMoveResponse) String() string {
 func (*PredictedMoveResponse) ProtoMessage() {}
 
 func (x *PredictedMoveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_chessapp_proto_msgTypes[1]
+	mi := &file_chessai_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +107,7 @@ func (x *PredictedMoveResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PredictedMoveResponse.ProtoReflect.Descriptor instead.
 func (*PredictedMoveResponse) Descriptor() ([]byte, []int) {
-	return file_chessapp_proto_rawDescGZIP(), []int{1}
+	return file_chessai_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *PredictedMoveResponse) GetUciMove() string {
@@ -117,39 +117,39 @@ func (x *PredictedMoveResponse) GetUciMove() string {
 	return ""
 }
 
-var File_chessapp_proto protoreflect.FileDescriptor
+var File_chessai_proto protoreflect.FileDescriptor
 
-const file_chessapp_proto_rawDesc = "" +
+const file_chessai_proto_rawDesc = "" +
 	"\n" +
-	"\x0echessapp.proto\x12\bchessapp\"V\n" +
+	"\rchessai.proto\x12\achessai\"V\n" +
 	"\x14PredictedMoveRequest\x12\x1a\n" +
 	"\bbitboard\x18\x01 \x01(\tR\bbitboard\x12\"\n" +
 	"\ris_white_turn\x18\x02 \x01(\bR\visWhiteTurn\"2\n" +
 	"\x15PredictedMoveResponse\x12\x19\n" +
-	"\buci_move\x18\x01 \x01(\tR\auciMove2`\n" +
-	"\tAiService\x12S\n" +
-	"\x10GetPredictedMove\x12\x1e.chessapp.PredictedMoveRequest\x1a\x1f.chessapp.PredictedMoveResponseB\x17Z\x15engineapp/proto;chessb\x06proto3"
+	"\buci_move\x18\x01 \x01(\tR\auciMove2^\n" +
+	"\tAiService\x12Q\n" +
+	"\x10GetPredictedMove\x12\x1d.chessai.PredictedMoveRequest\x1a\x1e.chessai.PredictedMoveResponseB\x17Z\x15engineapp/proto;protob\x06proto3"
 
 var (
-	file_chessapp_proto_rawDescOnce sync.Once
-	file_chessapp_proto_rawDescData []byte
+	file_chessai_proto_rawDescOnce sync.Once
+	file_chessai_proto_rawDescData []byte
 )
 
-func file_chessapp_proto_rawDescGZIP() []byte {
-	file_chessapp_proto_rawDescOnce.Do(func() {
-		file_chessapp_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_chessapp_proto_rawDesc), len(file_chessapp_proto_rawDesc)))
+func file_chessai_proto_rawDescGZIP() []byte {
+	file_chessai_proto_rawDescOnce.Do(func() {
+		file_chessai_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_chessai_proto_rawDesc), len(file_chessai_proto_rawDesc)))
 	})
-	return file_chessapp_proto_rawDescData
+	return file_chessai_proto_rawDescData
 }
 
-var file_chessapp_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_chessapp_proto_goTypes = []any{
-	(*PredictedMoveRequest)(nil),  // 0: chessapp.PredictedMoveRequest
-	(*PredictedMoveResponse)(nil), // 1: chessapp.PredictedMoveResponse
+var file_chessai_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_chessai_proto_goTypes = []any{
+	(*PredictedMoveRequest)(nil),  // 0: chessai.PredictedMoveRequest
+	(*PredictedMoveResponse)(nil), // 1: chessai.PredictedMoveResponse
 }
-var file_chessapp_proto_depIdxs = []int32{
-	0, // 0: chessapp.AiService.GetPredictedMove:input_type -> chessapp.PredictedMoveRequest
-	1, // 1: chessapp.AiService.GetPredictedMove:output_type -> chessapp.PredictedMoveResponse
+var file_chessai_proto_depIdxs = []int32{
+	0, // 0: chessai.AiService.GetPredictedMove:input_type -> chessai.PredictedMoveRequest
+	1, // 1: chessai.AiService.GetPredictedMove:output_type -> chessai.PredictedMoveResponse
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -157,26 +157,26 @@ var file_chessapp_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_chessapp_proto_init() }
-func file_chessapp_proto_init() {
-	if File_chessapp_proto != nil {
+func init() { file_chessai_proto_init() }
+func file_chessai_proto_init() {
+	if File_chessai_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_chessapp_proto_rawDesc), len(file_chessapp_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_chessai_proto_rawDesc), len(file_chessai_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_chessapp_proto_goTypes,
-		DependencyIndexes: file_chessapp_proto_depIdxs,
-		MessageInfos:      file_chessapp_proto_msgTypes,
+		GoTypes:           file_chessai_proto_goTypes,
+		DependencyIndexes: file_chessai_proto_depIdxs,
+		MessageInfos:      file_chessai_proto_msgTypes,
 	}.Build()
-	File_chessapp_proto = out.File
-	file_chessapp_proto_goTypes = nil
-	file_chessapp_proto_depIdxs = nil
+	File_chessai_proto = out.File
+	file_chessai_proto_goTypes = nil
+	file_chessai_proto_depIdxs = nil
 }

@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from . import chessapp_pb2 as chessapp__pb2
+from . import chessai_pb2 as chessai__pb2
 
 GRPC_GENERATED_VERSION = '1.78.0'
 GRPC_VERSION = grpc.__version__
@@ -18,7 +18,7 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in chessapp_pb2_grpc.py depends on'
+        + ' but the generated code in chessai_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
@@ -35,9 +35,9 @@ class AiServiceStub(object):
             channel: A grpc.Channel.
         """
         self.GetPredictedMove = channel.unary_unary(
-                '/chessapp.AiService/GetPredictedMove',
-                request_serializer=chessapp__pb2.PredictedMoveRequest.SerializeToString,
-                response_deserializer=chessapp__pb2.PredictedMoveResponse.FromString,
+                '/chessai.AiService/GetPredictedMove',
+                request_serializer=chessai__pb2.PredictedMoveRequest.SerializeToString,
+                response_deserializer=chessai__pb2.PredictedMoveResponse.FromString,
                 _registered_method=True)
 
 
@@ -55,14 +55,14 @@ def add_AiServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GetPredictedMove': grpc.unary_unary_rpc_method_handler(
                     servicer.GetPredictedMove,
-                    request_deserializer=chessapp__pb2.PredictedMoveRequest.FromString,
-                    response_serializer=chessapp__pb2.PredictedMoveResponse.SerializeToString,
+                    request_deserializer=chessai__pb2.PredictedMoveRequest.FromString,
+                    response_serializer=chessai__pb2.PredictedMoveResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'chessapp.AiService', rpc_method_handlers)
+            'chessai.AiService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('chessapp.AiService', rpc_method_handlers)
+    server.add_registered_method_handlers('chessai.AiService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
@@ -83,9 +83,9 @@ class AiService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/chessapp.AiService/GetPredictedMove',
-            chessapp__pb2.PredictedMoveRequest.SerializeToString,
-            chessapp__pb2.PredictedMoveResponse.FromString,
+            '/chessai.AiService/GetPredictedMove',
+            chessai__pb2.PredictedMoveRequest.SerializeToString,
+            chessai__pb2.PredictedMoveResponse.FromString,
             options,
             channel_credentials,
             insecure,

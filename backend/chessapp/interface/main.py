@@ -6,7 +6,8 @@ import time
 import grpc
 from contextlib import asynccontextmanager
 from typing import Annotated
-from ..interface.grpc import chessapp_pb2, chessapp_pb2_grpc
+from ..interface.grpc import chessai_pb2, chessai_pb2_grpc, gamestate_pb2, gamestate_pb2_grpc
+from ..domain.services.fen_service import FenService
 from beanie import PydanticObjectId, init_beanie
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,16 +56,43 @@ logging.getLogger("pymongo").setLevel(logging.WARNING)
 logging.getLogger("motor").setLevel(logging.WARNING)
 logging.getLogger("aiokafka").setLevel(logging.WARNING)
 
-class AiService(chessapp_pb2_grpc.AiServiceServicer):
+class AiService(chessai_pb2_grpc.AiServiceServicer):
     async def GetPredictedMove(self, request, context):
         logger.info(f"Predicting move for bitboard={request.bitboard}, is_white={request.is_white_turn}")
         
         # TODO: Call actual AI model
         predicted_move = "e2e4" 
         
-        return chessapp_pb2.PredictedMoveResponse(
+        return chessai_pb2.PredictedMoveResponse(
             uci_move=predicted_move
         )
+
+
+class GameStateServicer(gamestate_pb2_grpc.GameStateServicer):
+    async def GetState(self, request, context):
+        logger.info(f"Retrieving game state for game_id={request.game_id}")
+        try:
+            game_id = PydanticObjectId(request.game_id)
+            repo = get_repository()
+            game = await repo.find(game_id)
+            if not game:
+                context.set_code(grpc.StatusCode.NOT_FOUND)
+                context.set_details(f"Game {request.game_id} not found")
+                return gamestate_pb2.GameStateResponse()
+
+            fen = FenService.generate(game.get_board())
+            # Add side to move and other FEN details if needed, 
+            # but FenService currently only generates piece placement.
+            # Let's adjust it to be a full FEN if possible.
+            turn = "w" if game.game_state.turn == Side.white() else "b"
+            full_fen = f"{fen} {turn} - - 0 1"
+
+            return gamestate_pb2.GameStateResponse(fen=full_fen)
+        except Exception as e:
+            logger.error(f"Error retrieving game state: {e}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(str(e))
+            return gamestate_pb2.GameStateResponse()
 
 
 async def consume_kafka_commands(_app: FastAPI):
@@ -157,7 +185,8 @@ async def lifespan(_app: FastAPI):
 
     # Start built-in gRPC Server
     grpc_server = grpc.aio.server()
-    chessapp_pb2_grpc.add_AiServiceServicer_to_server(AiService(), grpc_server)
+    chessai_pb2_grpc.add_AiServiceServicer_to_server(AiService(), grpc_server)
+    gamestate_pb2_grpc.add_GameStateServicer_to_server(GameStateServicer(), grpc_server)
     
     grpc_port = os.getenv('CHESSAPP_GRPC_PORT', '50052')
     grpc_server.add_insecure_port(f'[::]:{grpc_port}')

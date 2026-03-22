@@ -12,7 +12,9 @@ export class PlayService {
   constructor() { }
 
   setGameId(game_id: string) {
-    this.socket$ = webSocket('ws://localhost:8000/ws/' + game_id);
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    this.socket$ = webSocket(`${protocol}//${host}/ws/${game_id}`);
   }
 
   // Send a message to the server

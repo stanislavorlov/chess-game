@@ -17,12 +17,12 @@ func PredictMove(ctx context.Context, gameID string, currentEntry *database.Game
 	// Call Python chessapp via gRPC for AI move
 	grpcHost := os.Getenv("CHESSAPP_GRPC_HOST")
 	if grpcHost == "" {
-		grpcHost = "localhost:50052"
+		return "", errors.New("CHESSAPP_GRPC_HOST not set")
 	}
 
 	conn, err := grpc.NewClient(grpcHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Printf("Failed to connect to chessapp gRPC: %v", err)
+		return "", errors.New("Failed to get predicted move from chessapp")
 	} else {
 		defer conn.Close()
 		client := pb.NewAiServiceClient(conn)

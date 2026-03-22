@@ -23,7 +23,7 @@ const (
 
 type PredictedMoveRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Bitboard      string                 `protobuf:"bytes,1,opt,name=bitboard,proto3" json:"bitboard,omitempty"`                             // JSON or string representation of the parsed bitboard
+	Bitboard      uint64                 `protobuf:"varint,1,opt,name=bitboard,proto3" json:"bitboard,omitempty"`                            // Bitboard representation (unsigned 64-bit integer)
 	IsWhiteTurn   bool                   `protobuf:"varint,2,opt,name=is_white_turn,json=isWhiteTurn,proto3" json:"is_white_turn,omitempty"` // Whether the AI is playing white
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -59,11 +59,11 @@ func (*PredictedMoveRequest) Descriptor() ([]byte, []int) {
 	return file_chessai_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *PredictedMoveRequest) GetBitboard() string {
+func (x *PredictedMoveRequest) GetBitboard() uint64 {
 	if x != nil {
 		return x.Bitboard
 	}
-	return ""
+	return 0
 }
 
 func (x *PredictedMoveRequest) GetIsWhiteTurn() bool {
@@ -123,7 +123,7 @@ const file_chessai_proto_rawDesc = "" +
 	"\n" +
 	"\rchessai.proto\x12\achessai\"V\n" +
 	"\x14PredictedMoveRequest\x12\x1a\n" +
-	"\bbitboard\x18\x01 \x01(\tR\bbitboard\x12\"\n" +
+	"\bbitboard\x18\x01 \x01(\x04R\bbitboard\x12\"\n" +
 	"\ris_white_turn\x18\x02 \x01(\bR\visWhiteTurn\"2\n" +
 	"\x15PredictedMoveResponse\x12\x19\n" +
 	"\buci_move\x18\x01 \x01(\tR\auciMove2^\n" +

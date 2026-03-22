@@ -24,18 +24,18 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0e\x63hessapp.proto\x12\x08\x63hessapp\"?\n\x14PredictedMoveRequest\x12\x10\n\x08\x62itboard\x18\x01 \x01(\t\x12\x15\n\ris_white_turn\x18\x02 \x01(\x08\")\n\x15PredictedMoveResponse\x12\x10\n\x08uci_move\x18\x01 \x01(\t2`\n\tAiService\x12S\n\x10GetPredictedMove\x12\x1e.chessai.PredictedMoveRequest\x1a\x1f.chessai.PredictedMoveResponseB\x17Z\x15\x65ngineapp/proto;chessb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rchessai.proto\x12\x07\x63hessai\"?\n\x14PredictedMoveRequest\x12\x10\n\x08\x62itboard\x18\x01 \x01(\x04\x12\x15\n\ris_white_turn\x18\x02 \x01(\x08\")\n\x15PredictedMoveResponse\x12\x10\n\x08uci_move\x18\x01 \x01(\t2^\n\tAiService\x12Q\n\x10GetPredictedMove\x12\x1d.chessai.PredictedMoveRequest\x1a\x1e.chessai.PredictedMoveResponseB\x17Z\x15\x65ngineapp/proto;protob\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'chessai_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z\025engineapp/proto;chess'
-  _globals['_PREDICTEDMOVEREQUEST']._serialized_start=28
-  _globals['_PREDICTEDMOVEREQUEST']._serialized_end=91
-  _globals['_PREDICTEDMOVERESPONSE']._serialized_start=93
-  _globals['_PREDICTEDMOVERESPONSE']._serialized_end=134
-  _globals['_AISERVICE']._serialized_start=136
-  _globals['_AISERVICE']._serialized_end=232
+  _globals['DESCRIPTOR']._serialized_options = b'Z\025engineapp/proto;proto'
+  _globals['_PREDICTEDMOVEREQUEST']._serialized_start=26
+  _globals['_PREDICTEDMOVEREQUEST']._serialized_end=89
+  _globals['_PREDICTEDMOVERESPONSE']._serialized_start=91
+  _globals['_PREDICTEDMOVERESPONSE']._serialized_end=132
+  _globals['_AISERVICE']._serialized_start=134
+  _globals['_AISERVICE']._serialized_end=228
 # @@protoc_insertion_point(module_scope)

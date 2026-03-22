@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 	"net/http"
@@ -47,11 +48,28 @@ func main() {
 		log.Println("No REDIS_URL provided, skipping Redis connection")
 	}
 
+	mongoUri := os.Getenv("MONGO_URI")
+	ctx := context.Background()
+	var mongoRepo *database.MongoRepository
+	if mongoUri != "" {
+		var err error
+		mongoRepo, err = database.ConnectMongo(ctx, mongoUri)
+		if err != nil {
+			log.Printf("Failed to connect to Mongo initially: %v", err)
+		} else {
+			defer mongoRepo.Disconnect(ctx)
+		}
+	} else {
+		log.Println("No MONGO_URI provided, skipping Mongo connection")
+	}
+
+	moveHandler := handlers.NewMoveHandler(mongoRepo)
+
 	// Start HTTP server concurrently
 	go func() {
 		http.HandleFunc("/health/live", health.Check)
 		http.HandleFunc("/health/ready", health.Check)
-		http.HandleFunc("/ws/", ws.HandleConnections(handlers.HandleMove))
+		http.HandleFunc("/ws/", ws.HandleConnections(moveHandler.HandleMove))
 
 		log.Printf("Engine HTTP Service running on port %s", port)
 		if err := http.ListenAndServe(":"+port, nil); err != nil {

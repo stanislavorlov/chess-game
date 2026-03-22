@@ -9,7 +9,7 @@ service AiService {
 }
 
 message PredictedMoveRequest {
-  string bitboard = 1;      // JSON or string representation of the parsed bitboard
+  uint64 bitboard = 1;      // Bitboard representation (unsigned 64-bit integer)
   bool is_white_turn = 2;   // Whether the AI is playing white
 }
 

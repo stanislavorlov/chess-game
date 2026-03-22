@@ -46,6 +46,8 @@
 
 ### Stats app
 
+Gin Framework
+
 #### Build (to verify dependencies)
 
 #### Initial Setup & Updating Swagger

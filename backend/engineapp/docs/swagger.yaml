@@ -1,0 +1,54 @@
+basePath: /
+definitions:
+  health.HealthResponse:
+    properties:
+      service:
+        type: string
+      status:
+        type: string
+    type: object
+host: localhost:8082
+info:
+  contact: {}
+  description: This is the Chess Engine App service responsible for game logic and
+    AI moves.
+  title: EngineApp API
+  version: "1.0"
+paths:
+  /game/{gameId}:
+    get:
+      description: retrieves the current state of a chess game from the database
+      parameters:
+      - description: Game ID
+        in: path
+        name: gameId
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Game status
+          schema:
+            type: string
+        "400":
+          description: gameId is required or failed to fetch game
+          schema:
+            type: string
+      summary: Get game state
+      tags:
+      - games
+  /health/live:
+    get:
+      description: returns the health status of the engineapp service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/health.HealthResponse'
+      summary: Check service health
+      tags:
+      - health
+swagger: "2.0"

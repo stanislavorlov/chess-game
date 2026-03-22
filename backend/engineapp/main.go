@@ -7,12 +7,21 @@ import (
 	"os"
 
 	"engineapp/database"
+	_ "engineapp/docs"
 	"engineapp/handlers"
 	"engineapp/handlers/health"
 	"engineapp/handlers/ws"
 
+	httpSwagger "github.com/swaggo/http-swagger"
+
 	"github.com/joho/godotenv"
 )
+
+// @title           EngineApp API
+// @version         1.0
+// @description     This is the Chess Engine App service responsible for game logic and AI moves.
+// @host      localhost:8082
+// @BasePath  /
 
 func main() {
 	port := os.Getenv("ENGINEAPP_HTTP_PORT")
@@ -39,7 +48,7 @@ func main() {
 		log.Println("No REDIS_URL provided, skipping Redis connection")
 	}
 
-	mongoUri := os.Getenv("MONGO_URI")
+	mongoUri := os.Getenv("MONGO_HOST")
 	ctx := context.Background()
 	var mongoRepo *database.MongoRepository
 	if mongoUri != "" {
@@ -51,14 +60,19 @@ func main() {
 			defer mongoRepo.Disconnect(ctx)
 		}
 	} else {
-		log.Println("No MONGO_URI provided, skipping Mongo connection")
+		log.Println("No MONGO_HOST provided, skipping Mongo connection")
 	}
 
 	moveHandler := handlers.NewMoveHandler(mongoRepo)
+	gameHandler := handlers.NewGameHandler(mongoRepo)
 
 	http.HandleFunc("/health/live", health.Check)
 	http.HandleFunc("/health/ready", health.Check)
 	http.HandleFunc("/ws/", ws.HandleConnections(moveHandler.HandleMove))
+	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
+
+	http.HandleFunc("GET /game/{gameId}", gameHandler.GetGame)
+	http.HandleFunc("POST /game", gameHandler.RequestGame)
 
 	log.Printf("Engine HTTP Service running on port %s", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {

@@ -56,15 +56,12 @@ func main() {
 
 	moveHandler := handlers.NewMoveHandler(mongoRepo)
 
-	// Start HTTP server concurrently
-	go func() {
-		http.HandleFunc("/health/live", health.Check)
-		http.HandleFunc("/health/ready", health.Check)
-		http.HandleFunc("/ws/", ws.HandleConnections(moveHandler.HandleMove))
+	http.HandleFunc("/health/live", health.Check)
+	http.HandleFunc("/health/ready", health.Check)
+	http.HandleFunc("/ws/", ws.HandleConnections(moveHandler.HandleMove))
 
-		log.Printf("Engine HTTP Service running on port %s", port)
-		if err := http.ListenAndServe(":"+port, nil); err != nil {
-			log.Fatalf("HTTP Server failed to start: %v", err)
-		}
-	}()
+	log.Printf("Engine HTTP Service running on port %s", port)
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
+		log.Fatalf("HTTP Server failed to start: %v", err)
+	}
 }

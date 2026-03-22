@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"net"
 	"net/http"
 	"os"
 
@@ -13,9 +12,6 @@ import (
 	"engineapp/handlers/ws"
 
 	"github.com/joho/godotenv"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -24,17 +20,12 @@ func main() {
 		port = "8082"
 	}
 
-	grpcPort := os.Getenv("ENGINEAPP_GRPC_PORT")
-	if grpcPort == "" {
-		grpcPort = "50051"
-	}
-
 	log.SetPrefix("[ChessEngine]")
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	err := godotenv.Load("../.env")
 	if err != nil {
-		log.Println("No ../.env file found; assuming variables are provided by the environment.")
+		log.Fatalf("No ../.env file found; assuming variables are provided by the environment.")
 	}
 
 	redisURL := os.Getenv("REDIS_URL")
@@ -76,20 +67,4 @@ func main() {
 			log.Fatalf("HTTP Server failed to start: %v", err)
 		}
 	}()
-
-	// Start gRPC server
-	lis, err := net.Listen("tcp", ":"+grpcPort)
-	if err != nil {
-		log.Fatalf("failed to listen on port %s: %v", grpcPort, err)
-	}
-
-	grpcServer := grpc.NewServer()
-
-	// Register reflection service on gRPC server
-	reflection.Register(grpcServer)
-
-	log.Printf("Engine gRPC Service running on port %s", grpcPort)
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("gRPC Server failed to serve: %v", err)
-	}
 }

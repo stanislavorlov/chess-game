@@ -1,5 +1,18 @@
 basePath: /
 definitions:
+  database.GameState:
+    properties:
+      createdAt:
+        type: string
+      finishedAt:
+        type: string
+      gameStatus:
+        type: string
+      id:
+        type: string
+      startedAt:
+        type: string
+    type: object
   health.HealthResponse:
     properties:
       service:
@@ -15,6 +28,32 @@ info:
   title: EngineApp API
   version: "1.0"
 paths:
+  /game:
+    post:
+      consumes:
+      - application/json
+      description: creates a new chess game state in the database
+      parameters:
+      - description: Game State
+        in: body
+        name: game
+        required: true
+        schema:
+          $ref: '#/definitions/database.GameState'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/database.GameState'
+        "400":
+          description: Failed to decode or create game
+          schema:
+            type: string
+      summary: Create game state
+      tags:
+      - games
   /game/{gameId}:
     get:
       description: retrieves the current state of a chess game from the database

@@ -9,6 +9,46 @@
     "host": "localhost:8082",
     "basePath": "/",
     "paths": {
+        "/game": {
+            "post": {
+                "description": "creates a new chess game state in the database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "games"
+                ],
+                "summary": "Create game state",
+                "parameters": [
+                    {
+                        "description": "Game State",
+                        "name": "game",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.GameState"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/database.GameState"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to decode or create game",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/game/{gameId}": {
             "get": {
                 "description": "retrieves the current state of a chess game from the database",
@@ -66,6 +106,26 @@
         }
     },
     "definitions": {
+        "database.GameState": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "finishedAt": {
+                    "type": "string"
+                },
+                "gameStatus": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "startedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "health.HealthResponse": {
             "type": "object",
             "properties": {

@@ -86,11 +86,23 @@ npm run dev
 The Swagger UI will be available at: http://localhost:3000/swagger/index.html
 
 ### Engine App
+#### Build & Run
 To compile and launch the application:
 ```bash
 cd backend/engineapp
 go run main.go
 ```
+
+#### Initial Setup & Updating Swagger
+If you update any API comments, you must generate the docs first:
+```bash
+cd backend/engineapp
+~/go/bin/swag init
+go mod tidy
+```
+
+The Swagger UI will be available at: http://localhost:8082/swagger/index.html
+
 To run unit tests:
 ```bash
 cd backend/engineapp

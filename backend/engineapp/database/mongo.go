@@ -60,6 +60,15 @@ func (r *MongoRepository) GetGameState(ctx context.Context, gameID string) (*Gam
 	return &state, nil
 }
 
+func (r *MongoRepository) CreateGameState(ctx context.Context, game *GameState) error {
+	coll := r.database.Collection(GameStateCollection)
+	_, err := coll.InsertOne(ctx, game)
+	if err != nil {
+		return fmt.Errorf("failed to create game state: %w", err)
+	}
+	return nil
+}
+
 // GetGameHistory retrieves all history records for a given game ID, sorted by sequence.
 func (r *MongoRepository) GetGameHistory(ctx context.Context, gameID string) ([]GameHistory, error) {
 	coll := r.database.Collection(GameHistoryCollection)

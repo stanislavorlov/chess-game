@@ -46,6 +46,35 @@ func (h *GameHandler) GetGame(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// RequestGame creates a new game state.
+// @Summary Create game state
+// @Description creates a new chess game state in the database
+// @Tags games
+// @Accept json
+// @Produce json
+// @Param game body database.GameState true "Game State"
+// @Success 200 {object} database.GameState
+// @Failure 400 {string} string "Failed to decode or create game"
+// @Router /game [post]
 func (h *GameHandler) RequestGame(w http.ResponseWriter, r *http.Request) {
-	// Can leave it in FastAPI
+	var game database.GameState
+	if err := json.NewDecoder(r.Body).Decode(&game); err != nil {
+		log.Printf("Failed to decode game JSON: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Failed to decode game"))
+		return
+	}
+
+	if err := h.Repo.CreateGameState(r.Context(), &game); err != nil {
+		log.Printf("Failed to create game state: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Failed to create game"))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(game); err != nil {
+		log.Printf("Failed to encode game JSON: %v", err)
+	}
 }

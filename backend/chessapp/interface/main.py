@@ -58,7 +58,7 @@ logging.getLogger("aiokafka").setLevel(logging.WARNING)
 
 class AiService(chessai_pb2_grpc.AiServiceServicer):
     async def GetPredictedMove(self, request, context):
-        logger.info(f"Predicting move for bitboard={request.bitboard}, is_white={request.is_white_turn}")
+        logger.info(f"Predicting move for bitboards_state={request.bitboards_state}, is_white={request.is_white_turn}")
         
         # TODO: Call actual AI model
         predicted_move = "e2e4" 

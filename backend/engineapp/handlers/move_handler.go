@@ -68,6 +68,17 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte) []byte {
 
 	// ToDo: move all the Database & Mongo logic to the Go engine app
 
+	gameState, err := h.Repo.GetGameState(context.Background(), gameID)
+	if err != nil {
+		log.Printf("[Game: %s] Failed to get GameState: %v", gameID, err)
+		return nil
+	}
+
+	if gameState.GameStatus != "active" {
+		log.Printf("[Game: %s] Game is not active", gameID)
+		return nil
+	}
+
 	history, err := h.Repo.GetGameHistory(context.Background(), gameID)
 	if err != nil {
 		log.Printf("[Game: %s] Failed to get GameHistory: %v", gameID, err)
@@ -82,7 +93,13 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte) []byte {
 	// Get the last history entry (latest bitboard)
 	latestEntry := &history[len(history)-1]
 
-	predictedMoveUci, err := services.PredictMove(context.Background(), gameID, latestEntry)
+	bitboards, err := services.FENToBitboards(latestEntry.BoardFen)
+	if err != nil {
+		log.Printf("Failed to convert FEN to bitboards: %v", err)
+		return nil
+	}
+
+	predictedMoveUci, err := services.PredictMove(context.Background(), gameID, bitboards)
 	if err != nil {
 		log.Printf("Failed to get predicted move: %v", err)
 	}

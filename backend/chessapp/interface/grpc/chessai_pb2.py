@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rchessai.proto\x12\x07\x63hessai\"?\n\x14PredictedMoveRequest\x12\x10\n\x08\x62itboard\x18\x01 \x01(\x04\x12\x15\n\ris_white_turn\x18\x02 \x01(\x08\")\n\x15PredictedMoveResponse\x12\x10\n\x08uci_move\x18\x01 \x01(\t2^\n\tAiService\x12Q\n\x10GetPredictedMove\x12\x1d.chessai.PredictedMoveRequest\x1a\x1e.chessai.PredictedMoveResponseB\x17Z\x15\x65ngineapp/proto;protob\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rchessai.proto\x12\x07\x63hessai\"\x8d\x03\n\x14PredictedMoveRequest\x12\x45\n\x0f\x62itboards_state\x18\x01 \x01(\x0b\x32,.chessai.PredictedMoveRequest.BitboardsState\x12\x15\n\ris_white_turn\x18\x02 \x01(\x08\x1a\x96\x02\n\x0e\x42itboardsState\x12\x13\n\x0bwhite_pawns\x18\x01 \x01(\x04\x12\x15\n\rwhite_knights\x18\x02 \x01(\x04\x12\x15\n\rwhite_bishops\x18\x03 \x01(\x04\x12\x13\n\x0bwhite_rooks\x18\x04 \x01(\x04\x12\x14\n\x0cwhite_queens\x18\x05 \x01(\x04\x12\x13\n\x0bwhite_kings\x18\x06 \x01(\x04\x12\x13\n\x0b\x62lack_pawns\x18\x07 \x01(\x04\x12\x15\n\rblack_knights\x18\x08 \x01(\x04\x12\x15\n\rblack_bishops\x18\t \x01(\x04\x12\x13\n\x0b\x62lack_rooks\x18\n \x01(\x04\x12\x14\n\x0c\x62lack_queens\x18\x0b \x01(\x04\x12\x13\n\x0b\x62lack_kings\x18\x0c \x01(\x04\")\n\x15PredictedMoveResponse\x12\x10\n\x08uci_move\x18\x01 \x01(\t2^\n\tAiService\x12Q\n\x10GetPredictedMove\x12\x1d.chessai.PredictedMoveRequest\x1a\x1e.chessai.PredictedMoveResponseB\x17Z\x15\x65ngineapp/proto;protob\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,10 +32,12 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'chessai_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z\025engineapp/proto;proto'
-  _globals['_PREDICTEDMOVEREQUEST']._serialized_start=26
-  _globals['_PREDICTEDMOVEREQUEST']._serialized_end=89
-  _globals['_PREDICTEDMOVERESPONSE']._serialized_start=91
-  _globals['_PREDICTEDMOVERESPONSE']._serialized_end=132
-  _globals['_AISERVICE']._serialized_start=134
-  _globals['_AISERVICE']._serialized_end=228
+  _globals['_PREDICTEDMOVEREQUEST']._serialized_start=27
+  _globals['_PREDICTEDMOVEREQUEST']._serialized_end=424
+  _globals['_PREDICTEDMOVEREQUEST_BITBOARDSSTATE']._serialized_start=146
+  _globals['_PREDICTEDMOVEREQUEST_BITBOARDSSTATE']._serialized_end=424
+  _globals['_PREDICTEDMOVERESPONSE']._serialized_start=426
+  _globals['_PREDICTEDMOVERESPONSE']._serialized_end=467
+  _globals['_AISERVICE']._serialized_start=469
+  _globals['_AISERVICE']._serialized_end=563
 # @@protoc_insertion_point(module_scope)

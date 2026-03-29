@@ -22,11 +22,11 @@ const (
 )
 
 type PredictedMoveRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Bitboard      uint64                 `protobuf:"varint,1,opt,name=bitboard,proto3" json:"bitboard,omitempty"`                            // Bitboard representation (unsigned 64-bit integer)
-	IsWhiteTurn   bool                   `protobuf:"varint,2,opt,name=is_white_turn,json=isWhiteTurn,proto3" json:"is_white_turn,omitempty"` // Whether the AI is playing white
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState               `protogen:"open.v1"`
+	BitboardsState *PredictedMoveRequest_BitboardsState `protobuf:"bytes,1,opt,name=bitboards_state,json=bitboardsState,proto3" json:"bitboards_state,omitempty"`
+	IsWhiteTurn    bool                                 `protobuf:"varint,2,opt,name=is_white_turn,json=isWhiteTurn,proto3" json:"is_white_turn,omitempty"` // Whether the AI is playing white
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *PredictedMoveRequest) Reset() {
@@ -59,11 +59,11 @@ func (*PredictedMoveRequest) Descriptor() ([]byte, []int) {
 	return file_chessai_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *PredictedMoveRequest) GetBitboard() uint64 {
+func (x *PredictedMoveRequest) GetBitboardsState() *PredictedMoveRequest_BitboardsState {
 	if x != nil {
-		return x.Bitboard
+		return x.BitboardsState
 	}
-	return 0
+	return nil
 }
 
 func (x *PredictedMoveRequest) GetIsWhiteTurn() bool {
@@ -117,14 +117,166 @@ func (x *PredictedMoveResponse) GetUciMove() string {
 	return ""
 }
 
+type PredictedMoveRequest_BitboardsState struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WhitePawns    uint64                 `protobuf:"varint,1,opt,name=white_pawns,json=whitePawns,proto3" json:"white_pawns,omitempty"`
+	WhiteKnights  uint64                 `protobuf:"varint,2,opt,name=white_knights,json=whiteKnights,proto3" json:"white_knights,omitempty"`
+	WhiteBishops  uint64                 `protobuf:"varint,3,opt,name=white_bishops,json=whiteBishops,proto3" json:"white_bishops,omitempty"`
+	WhiteRooks    uint64                 `protobuf:"varint,4,opt,name=white_rooks,json=whiteRooks,proto3" json:"white_rooks,omitempty"`
+	WhiteQueens   uint64                 `protobuf:"varint,5,opt,name=white_queens,json=whiteQueens,proto3" json:"white_queens,omitempty"`
+	WhiteKings    uint64                 `protobuf:"varint,6,opt,name=white_kings,json=whiteKings,proto3" json:"white_kings,omitempty"`
+	BlackPawns    uint64                 `protobuf:"varint,7,opt,name=black_pawns,json=blackPawns,proto3" json:"black_pawns,omitempty"`
+	BlackKnights  uint64                 `protobuf:"varint,8,opt,name=black_knights,json=blackKnights,proto3" json:"black_knights,omitempty"`
+	BlackBishops  uint64                 `protobuf:"varint,9,opt,name=black_bishops,json=blackBishops,proto3" json:"black_bishops,omitempty"`
+	BlackRooks    uint64                 `protobuf:"varint,10,opt,name=black_rooks,json=blackRooks,proto3" json:"black_rooks,omitempty"`
+	BlackQueens   uint64                 `protobuf:"varint,11,opt,name=black_queens,json=blackQueens,proto3" json:"black_queens,omitempty"`
+	BlackKings    uint64                 `protobuf:"varint,12,opt,name=black_kings,json=blackKings,proto3" json:"black_kings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PredictedMoveRequest_BitboardsState) Reset() {
+	*x = PredictedMoveRequest_BitboardsState{}
+	mi := &file_chessai_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PredictedMoveRequest_BitboardsState) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PredictedMoveRequest_BitboardsState) ProtoMessage() {}
+
+func (x *PredictedMoveRequest_BitboardsState) ProtoReflect() protoreflect.Message {
+	mi := &file_chessai_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PredictedMoveRequest_BitboardsState.ProtoReflect.Descriptor instead.
+func (*PredictedMoveRequest_BitboardsState) Descriptor() ([]byte, []int) {
+	return file_chessai_proto_rawDescGZIP(), []int{0, 0}
+}
+
+func (x *PredictedMoveRequest_BitboardsState) GetWhitePawns() uint64 {
+	if x != nil {
+		return x.WhitePawns
+	}
+	return 0
+}
+
+func (x *PredictedMoveRequest_BitboardsState) GetWhiteKnights() uint64 {
+	if x != nil {
+		return x.WhiteKnights
+	}
+	return 0
+}
+
+func (x *PredictedMoveRequest_BitboardsState) GetWhiteBishops() uint64 {
+	if x != nil {
+		return x.WhiteBishops
+	}
+	return 0
+}
+
+func (x *PredictedMoveRequest_BitboardsState) GetWhiteRooks() uint64 {
+	if x != nil {
+		return x.WhiteRooks
+	}
+	return 0
+}
+
+func (x *PredictedMoveRequest_BitboardsState) GetWhiteQueens() uint64 {
+	if x != nil {
+		return x.WhiteQueens
+	}
+	return 0
+}
+
+func (x *PredictedMoveRequest_BitboardsState) GetWhiteKings() uint64 {
+	if x != nil {
+		return x.WhiteKings
+	}
+	return 0
+}
+
+func (x *PredictedMoveRequest_BitboardsState) GetBlackPawns() uint64 {
+	if x != nil {
+		return x.BlackPawns
+	}
+	return 0
+}
+
+func (x *PredictedMoveRequest_BitboardsState) GetBlackKnights() uint64 {
+	if x != nil {
+		return x.BlackKnights
+	}
+	return 0
+}
+
+func (x *PredictedMoveRequest_BitboardsState) GetBlackBishops() uint64 {
+	if x != nil {
+		return x.BlackBishops
+	}
+	return 0
+}
+
+func (x *PredictedMoveRequest_BitboardsState) GetBlackRooks() uint64 {
+	if x != nil {
+		return x.BlackRooks
+	}
+	return 0
+}
+
+func (x *PredictedMoveRequest_BitboardsState) GetBlackQueens() uint64 {
+	if x != nil {
+		return x.BlackQueens
+	}
+	return 0
+}
+
+func (x *PredictedMoveRequest_BitboardsState) GetBlackKings() uint64 {
+	if x != nil {
+		return x.BlackKings
+	}
+	return 0
+}
+
 var File_chessai_proto protoreflect.FileDescriptor
 
 const file_chessai_proto_rawDesc = "" +
 	"\n" +
-	"\rchessai.proto\x12\achessai\"V\n" +
-	"\x14PredictedMoveRequest\x12\x1a\n" +
-	"\bbitboard\x18\x01 \x01(\x04R\bbitboard\x12\"\n" +
-	"\ris_white_turn\x18\x02 \x01(\bR\visWhiteTurn\"2\n" +
+	"\rchessai.proto\x12\achessai\"\xc4\x04\n" +
+	"\x14PredictedMoveRequest\x12U\n" +
+	"\x0fbitboards_state\x18\x01 \x01(\v2,.chessai.PredictedMoveRequest.BitboardsStateR\x0ebitboardsState\x12\"\n" +
+	"\ris_white_turn\x18\x02 \x01(\bR\visWhiteTurn\x1a\xb0\x03\n" +
+	"\x0eBitboardsState\x12\x1f\n" +
+	"\vwhite_pawns\x18\x01 \x01(\x04R\n" +
+	"whitePawns\x12#\n" +
+	"\rwhite_knights\x18\x02 \x01(\x04R\fwhiteKnights\x12#\n" +
+	"\rwhite_bishops\x18\x03 \x01(\x04R\fwhiteBishops\x12\x1f\n" +
+	"\vwhite_rooks\x18\x04 \x01(\x04R\n" +
+	"whiteRooks\x12!\n" +
+	"\fwhite_queens\x18\x05 \x01(\x04R\vwhiteQueens\x12\x1f\n" +
+	"\vwhite_kings\x18\x06 \x01(\x04R\n" +
+	"whiteKings\x12\x1f\n" +
+	"\vblack_pawns\x18\a \x01(\x04R\n" +
+	"blackPawns\x12#\n" +
+	"\rblack_knights\x18\b \x01(\x04R\fblackKnights\x12#\n" +
+	"\rblack_bishops\x18\t \x01(\x04R\fblackBishops\x12\x1f\n" +
+	"\vblack_rooks\x18\n" +
+	" \x01(\x04R\n" +
+	"blackRooks\x12!\n" +
+	"\fblack_queens\x18\v \x01(\x04R\vblackQueens\x12\x1f\n" +
+	"\vblack_kings\x18\f \x01(\x04R\n" +
+	"blackKings\"2\n" +
 	"\x15PredictedMoveResponse\x12\x19\n" +
 	"\buci_move\x18\x01 \x01(\tR\auciMove2^\n" +
 	"\tAiService\x12Q\n" +
@@ -142,19 +294,21 @@ func file_chessai_proto_rawDescGZIP() []byte {
 	return file_chessai_proto_rawDescData
 }
 
-var file_chessai_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_chessai_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_chessai_proto_goTypes = []any{
-	(*PredictedMoveRequest)(nil),  // 0: chessai.PredictedMoveRequest
-	(*PredictedMoveResponse)(nil), // 1: chessai.PredictedMoveResponse
+	(*PredictedMoveRequest)(nil),                // 0: chessai.PredictedMoveRequest
+	(*PredictedMoveResponse)(nil),               // 1: chessai.PredictedMoveResponse
+	(*PredictedMoveRequest_BitboardsState)(nil), // 2: chessai.PredictedMoveRequest.BitboardsState
 }
 var file_chessai_proto_depIdxs = []int32{
-	0, // 0: chessai.AiService.GetPredictedMove:input_type -> chessai.PredictedMoveRequest
-	1, // 1: chessai.AiService.GetPredictedMove:output_type -> chessai.PredictedMoveResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	2, // 0: chessai.PredictedMoveRequest.bitboards_state:type_name -> chessai.PredictedMoveRequest.BitboardsState
+	0, // 1: chessai.AiService.GetPredictedMove:input_type -> chessai.PredictedMoveRequest
+	1, // 2: chessai.AiService.GetPredictedMove:output_type -> chessai.PredictedMoveResponse
+	2, // [2:3] is the sub-list for method output_type
+	1, // [1:2] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_chessai_proto_init() }
@@ -168,7 +322,7 @@ func file_chessai_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_chessai_proto_rawDesc), len(file_chessai_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

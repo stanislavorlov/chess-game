@@ -6,14 +6,13 @@ import (
 	"log"
 	"os"
 
-	"engineapp/database"
 	pb "engineapp/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func PredictMove(ctx context.Context, gameID string, currentEntry *database.GameHistory) (string, error) {
+func PredictMove(ctx context.Context, gameID string, bitboards []uint64) (string, error) {
 	// Call Python chessapp via gRPC for AI move
 	grpcHost := os.Getenv("CHESSAPP_GRPC_HOST")
 	if grpcHost == "" {
@@ -27,9 +26,27 @@ func PredictMove(ctx context.Context, gameID string, currentEntry *database.Game
 		defer conn.Close()
 		client := pb.NewAiServiceClient(conn)
 
+		var bitboardsState *pb.PredictedMoveRequest_BitboardsState
+		if len(bitboards) >= 12 {
+			bitboardsState = &pb.PredictedMoveRequest_BitboardsState{
+				WhitePawns:   bitboards[0],
+				WhiteKnights: bitboards[1],
+				WhiteBishops: bitboards[2],
+				WhiteRooks:   bitboards[3],
+				WhiteQueens:  bitboards[4],
+				WhiteKings:   bitboards[5],
+				BlackPawns:   bitboards[6],
+				BlackKnights: bitboards[7],
+				BlackBishops: bitboards[8],
+				BlackRooks:   bitboards[9],
+				BlackQueens:  bitboards[10],
+				BlackKings:   bitboards[11],
+			}
+		}
+
 		predictResp, err := client.GetPredictedMove(ctx, &pb.PredictedMoveRequest{
-			Bitboard:    currentEntry.Bitboard,
-			IsWhiteTurn: true,
+			BitboardsState: bitboardsState,
+			IsWhiteTurn:    true,
 		})
 
 		if err != nil {

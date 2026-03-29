@@ -9,7 +9,22 @@ service AiService {
 }
 
 message PredictedMoveRequest {
-  uint64 bitboard = 1;      // Bitboard representation (unsigned 64-bit integer)
+  message BitboardsState {
+    uint64 white_pawns = 1;
+    uint64 white_knights = 2;
+    uint64 white_bishops = 3;
+    uint64 white_rooks = 4;
+    uint64 white_queens = 5;
+    uint64 white_kings = 6;
+    uint64 black_pawns = 7;
+    uint64 black_knights = 8;
+    uint64 black_bishops = 9;
+    uint64 black_rooks = 10;
+    uint64 black_queens = 11;
+    uint64 black_kings = 12;
+  }
+
+  BitboardsState bitboards_state = 1;
   bool is_white_turn = 2;   // Whether the AI is playing white
 }
 

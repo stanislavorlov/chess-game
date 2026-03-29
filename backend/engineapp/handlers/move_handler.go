@@ -7,6 +7,7 @@ import (
 
 	"engineapp/database"
 	"engineapp/handlers/ws"
+	"engineapp/models"
 	"engineapp/services"
 )
 
@@ -29,44 +30,6 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte) []byte {
 	}
 
 	log.Printf("[Game: %s] Parsed move: %+v", gameID, msg)
-
-	// Restore game state from Redis or FastAPI gRPC
-	/*boardState, err := services.GetGameState(context.Background(), gameID)
-	if err != nil {
-		log.Printf("[Game: %s] Failed to get GameState: %v", gameID, err)
-	} else {
-		log.Printf("[Game: %s] Restored Board State FEN: %s", gameID, boardState.Fen)
-	}
-
-	// Call Python chessapp via gRPC for AI move
-	grpcHost := os.Getenv("CHESSAPP_GRPC_HOST")
-	if grpcHost == "" {
-		grpcHost = "localhost:50052"
-	}
-
-	conn, err := grpc.NewClient(grpcHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Printf("Failed to connect to chessapp gRPC: %v", err)
-	} else {
-		defer conn.Close()
-		client := pb.NewAiServiceClient(conn)
-
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		defer cancel()
-
-		predictResp, err := client.GetPredictedMove(ctx, &pb.PredictedMoveRequest{
-			Bitboard:    "dummy_bitboard_placeholder",
-			IsWhiteTurn: true,
-		})
-
-		if err != nil {
-			log.Printf("Failed to call GetPredictedMove via gRPC: %v", err)
-		} else {
-			log.Printf("Received Predicted Move from Python gRPC: uci_move=%s", predictResp.UciMove)
-		}
-	}*/
-
-	// ToDo: move all the Database & Mongo logic to the Go engine app
 
 	gameState, err := h.Repo.GetGameState(context.Background(), gameID)
 	if err != nil {
@@ -97,6 +60,39 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte) []byte {
 	if err != nil {
 		log.Printf("Failed to convert FEN to bitboards: %v", err)
 		return nil
+	}
+
+	bbMap := make(map[models.PieceKey]uint64)
+	bbMap[models.PieceKey{Side: models.White, PieceType: models.Pawn}] = bitboards.WhitePawns
+	bbMap[models.PieceKey{Side: models.White, PieceType: models.Knight}] = bitboards.WhiteKnights
+	bbMap[models.PieceKey{Side: models.White, PieceType: models.Bishop}] = bitboards.WhiteBishops
+	bbMap[models.PieceKey{Side: models.White, PieceType: models.Rook}] = bitboards.WhiteRooks
+	bbMap[models.PieceKey{Side: models.White, PieceType: models.Queen}] = bitboards.WhiteQueens
+	bbMap[models.PieceKey{Side: models.White, PieceType: models.King}] = bitboards.WhiteKings
+
+	bbMap[models.PieceKey{Side: models.Black, PieceType: models.Pawn}] = bitboards.BlackPawns
+	bbMap[models.PieceKey{Side: models.Black, PieceType: models.Knight}] = bitboards.BlackKnights
+	bbMap[models.PieceKey{Side: models.Black, PieceType: models.Bishop}] = bitboards.BlackBishops
+	bbMap[models.PieceKey{Side: models.Black, PieceType: models.Rook}] = bitboards.BlackRooks
+	bbMap[models.PieceKey{Side: models.Black, PieceType: models.Queen}] = bitboards.BlackQueens
+	bbMap[models.PieceKey{Side: models.Black, PieceType: models.King}] = bitboards.BlackKings
+
+	occupancies := make(map[models.Side]uint64)
+	occupancies[models.White] = bitboards.WhitePawns | bitboards.WhiteKnights | bitboards.WhiteBishops | bitboards.WhiteRooks | bitboards.WhiteQueens | bitboards.WhiteKings
+	occupancies[models.Black] = bitboards.BlackPawns | bitboards.BlackKnights | bitboards.BlackBishops | bitboards.BlackRooks | bitboards.BlackQueens | bitboards.BlackKings
+	combinedOccupancy := occupancies[models.White] | occupancies[models.Black]
+
+	utils := models.NewBitboardUtils()
+
+	// Default to white's turn. Note: Ideally parsed from FEN or GameHistory state.
+	sideToMove := models.White
+
+	isValidMoveLocally := models.ValidateMove(bbMap, occupancies, combinedOccupancy, utils, sideToMove, msg.From, msg.To)
+	log.Printf("[Game: %s] Local move validation result for %s -> %s: %v", gameID, msg.From, msg.To, isValidMoveLocally)
+
+	if !isValidMoveLocally {
+		log.Printf("[Game: %s] Warning: Move rejected by local validation logic.", gameID)
+		// We can return a rejected payload here, but we will let it proceed to show integration for now.
 	}
 
 	predictedMoveUci, err := services.PredictMove(context.Background(), gameID, bitboards)

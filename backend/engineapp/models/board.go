@@ -450,3 +450,79 @@ func clearPieceBit(board Board, side Side, index int) {
 func getPieceBit(board Board, side Side, index int) bool {
 	return (board.bitboards[side]>>index)&1 == 1
 }
+
+// ParseSquare converts a square string like "e2" to a square index 0-63.
+func ParseSquare(sq string) (int, bool) {
+	if len(sq) != 2 {
+		return 0, false
+	}
+	file := int(sq[0]) - 'a'
+	rank := int(sq[1]) - '1'
+	if file < 0 || file > 7 || rank < 0 || rank > 7 {
+		return 0, false
+	}
+	return rank*8 + file, true
+}
+
+// ValidateMove generates pseudo-legal moves for the starting square and checks if the destination is included.
+func ValidateMove(
+	bitboards map[PieceKey]uint64,
+	occupancies map[Side]uint64,
+	combinedOccupancy uint64,
+	utils *BitboardUtils,
+	sideToMove Side,
+	fromStr string,
+	toStr string,
+) bool {
+	fromIdx, ok1 := ParseSquare(fromStr)
+	toIdx, ok2 := ParseSquare(toStr)
+	if !ok1 || !ok2 {
+		return false
+	}
+
+	enemySide := Black
+	if sideToMove == Black {
+		enemySide = White
+	}
+
+	var pType PieceType
+	pieceFound := false
+	for _, pt := range []PieceType{Pawn, Knight, Bishop, Rook, Queen, King} {
+		key := PieceKey{Side: sideToMove, PieceType: pt}
+		if GetBit(bitboards[key], fromIdx) {
+			pType = pt
+			pieceFound = true
+			break
+		}
+	}
+
+	if !pieceFound {
+		return false
+	}
+
+	var validMoves []Movement
+	pieceBB := uint64(1) << fromIdx
+	ownOccupancy := occupancies[sideToMove]
+	enemyOccupancy := occupancies[enemySide]
+
+	switch pType {
+	case Pawn:
+		validMoves = GetPawnMoves(sideToMove, pieceBB, combinedOccupancy, enemyOccupancy, utils)
+	case Knight:
+		validMoves = GetKnightMoves(pieceBB, ownOccupancy, utils)
+	case King:
+		validMoves = GetKingMoves(pieceBB, ownOccupancy, utils)
+	case Rook, Bishop, Queen:
+		validMoves = GetSlidingMoves(pType, pieceBB, combinedOccupancy, ownOccupancy)
+	}
+
+	toPos := BitIndexToPosition(toIdx)
+	for _, m := range validMoves {
+		if m.To.File == toPos.File && m.To.Rank == toPos.Rank {
+			// ToDo: Make a deep copy, apply move, and check if it leaves our King in check using IsSquareAttacked
+			return true
+		}
+	}
+
+	return false
+}

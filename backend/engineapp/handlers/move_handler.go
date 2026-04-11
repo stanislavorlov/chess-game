@@ -7,7 +7,6 @@ import (
 
 	"engineapp/database"
 	"engineapp/handlers/ws"
-	"engineapp/models"
 	"engineapp/services"
 )
 
@@ -22,98 +21,135 @@ func NewMoveHandler(repo *database.MongoRepository) *MoveHandler {
 }
 
 // HandleMove processes an incoming move message for a given game
-func (h *MoveHandler) HandleMove(gameID string, message []byte) []byte {
-	var msg ws.MoveMessage
+func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte)) {
+	var msg ws.GameRequest
 	if err := json.Unmarshal(message, &msg); err != nil {
 		log.Printf("Error parsing move JSON: %v", err)
-		return nil
+		return
 	}
 
 	log.Printf("[Game: %s] Parsed move: %+v", gameID, msg)
 
-	gameState, err := h.Repo.GetGameState(context.Background(), gameID)
+	game, err := h.Repo.GetGame(context.Background(), gameID)
 	if err != nil {
-		log.Printf("[Game: %s] Failed to get GameState: %v", gameID, err)
-		return nil
+		log.Printf("[Game: %s] Failed to get Game: %v", gameID, err)
+		return
 	}
 
-	if gameState.GameStatus != "active" {
-		log.Printf("[Game: %s] Game is not active", gameID)
-		return nil
+	moveValidationResult := game.MovePiece(msg)
+	log.Printf("[Game: %s] Local move validation result for %s -> %s: %v", gameID, msg.From, msg.To, moveValidationResult.Valid)
+
+	// If validation fails, restore the pre-move state and publish it back
+
+	/*var state uint8
+	if game.IsCheck() {
+		state |= 1 // bit 0: check
 	}
-
-	history, err := h.Repo.GetGameHistory(context.Background(), gameID)
-	if err != nil {
-		log.Printf("[Game: %s] Failed to get GameHistory: %v", gameID, err)
-		return nil
+	if game.IsCheckmate() {
+		state |= 1 << 1 // bit 1: checkmate
 	}
-
-	if len(history) == 0 {
-		log.Printf("[Game: %s] No history found for game", gameID)
-		return nil
+	if game.IsStalemate() {
+		state |= 1 << 2 // bit 2: stalemate
 	}
-
-	// Get the last history entry (latest bitboard)
-	latestEntry := &history[len(history)-1]
-
-	bitboards, err := services.FENToBitboards(latestEntry.BoardFen)
-	if err != nil {
-		log.Printf("Failed to convert FEN to bitboards: %v", err)
-		return nil
+	if game.IsDraw() {
+		state |= 1 << 3 // bit 3: draw
 	}
+	if game.Turn() == "b" {
+		state |= 1 << 4 // bit 4: turn (0=w, 1=b)
+	}
+	if game.Winner() == "b" {
+		state |= 1 << 5 // bit 5: winner is black
+	} else if game.Winner() == "w" {
+		state |= 1 << 6 // bit 6: winner is white
+	}*/
+	var state uint8 = PackGameState(game)
 
-	bbMap := make(map[models.PieceKey]uint64)
-	bbMap[models.PieceKey{Side: models.White, PieceType: models.Pawn}] = bitboards.WhitePawns
-	bbMap[models.PieceKey{Side: models.White, PieceType: models.Knight}] = bitboards.WhiteKnights
-	bbMap[models.PieceKey{Side: models.White, PieceType: models.Bishop}] = bitboards.WhiteBishops
-	bbMap[models.PieceKey{Side: models.White, PieceType: models.Rook}] = bitboards.WhiteRooks
-	bbMap[models.PieceKey{Side: models.White, PieceType: models.Queen}] = bitboards.WhiteQueens
-	bbMap[models.PieceKey{Side: models.White, PieceType: models.King}] = bitboards.WhiteKings
-
-	bbMap[models.PieceKey{Side: models.Black, PieceType: models.Pawn}] = bitboards.BlackPawns
-	bbMap[models.PieceKey{Side: models.Black, PieceType: models.Knight}] = bitboards.BlackKnights
-	bbMap[models.PieceKey{Side: models.Black, PieceType: models.Bishop}] = bitboards.BlackBishops
-	bbMap[models.PieceKey{Side: models.Black, PieceType: models.Rook}] = bitboards.BlackRooks
-	bbMap[models.PieceKey{Side: models.Black, PieceType: models.Queen}] = bitboards.BlackQueens
-	bbMap[models.PieceKey{Side: models.Black, PieceType: models.King}] = bitboards.BlackKings
-
-	occupancies := make(map[models.Side]uint64)
-	occupancies[models.White] = bitboards.WhitePawns | bitboards.WhiteKnights | bitboards.WhiteBishops | bitboards.WhiteRooks | bitboards.WhiteQueens | bitboards.WhiteKings
-	occupancies[models.Black] = bitboards.BlackPawns | bitboards.BlackKnights | bitboards.BlackBishops | bitboards.BlackRooks | bitboards.BlackQueens | bitboards.BlackKings
-	combinedOccupancy := occupancies[models.White] | occupancies[models.Black]
-
-	utils := models.NewBitboardUtils()
-
-	// Default to white's turn. Note: Ideally parsed from FEN or GameHistory state.
-	sideToMove := models.White
-
-	isValidMoveLocally := models.ValidateMove(bbMap, occupancies, combinedOccupancy, utils, sideToMove, msg.From, msg.To)
-	log.Printf("[Game: %s] Local move validation result for %s -> %s: %v", gameID, msg.From, msg.To, isValidMoveLocally)
-
-	if !isValidMoveLocally {
+	if !moveValidationResult.Valid {
 		log.Printf("[Game: %s] Warning: Move rejected by local validation logic.", gameID)
-		// We can return a rejected payload here, but we will let it proceed to show integration for now.
+
+		/*resp := ws.GameResponse{
+			Fen:        EncodeFENTo34Bytes(game.FEN()),
+			LastMove:   msg.From + "-" + msg.To,
+			LegalMoves: game.LegalMoves(),
+			Turn:       game.Turn(),
+			State: ws.GameState{
+				IsCheck:     game.IsCheck(),
+				IsCheckmate: game.IsCheckmate(),
+				IsStalemate: game.IsStalemate(),
+				IsDraw:      game.IsDraw(),
+			},
+		}*/
+
+		game_update := ws.GameUpdate{
+			GameID:    gameID,
+			EventType: "game_update",
+			Data: ws.GameUpdateData{
+				Fen:      PackFenToBytes(game.FEN()),
+				LastMove: msg.From + msg.To,
+				State:    state,
+			},
+		}
+
+		/*{
+		"event": "game_update",
+		"data": {
+			"fen": "r1bqkbnr/pppp1Qpp/2n5/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+			"last_move": "f7f7",
+			"state": 111111  //in_check,is_checkmate,is_stalemate,is_draw,turn,winner
+		}
+		} */
+
+		if responseBytes, err := json.Marshal(game_update); err == nil {
+			send(responseBytes)
+		} else {
+			log.Printf("Error marshaling move response: %v", err)
+		}
+		return
 	}
 
-	predictedMoveUci, err := services.PredictMove(context.Background(), gameID, bitboards)
-	if err != nil {
-		log.Printf("Failed to get predicted move: %v", err)
+	// Apply AI move, update the state and publish it back
+
+	game_update := ws.GameUpdate{
+		GameID:    gameID,
+		EventType: "game_update",
+		Data: ws.GameUpdateData{
+			Fen:      PackFenToBytes(game.FEN()),
+			LastMove: msg.From + msg.To,
+			State:    state,
+		},
 	}
 
-	// Create mock response
-	resp := ws.MoveResponse{
-		Type:    "move_validation",
-		IsValid: true,
-		Move:    predictedMoveUci, // e.g. "e2e4"
-		From:    msg.From,
-		To:      msg.To,
-	}
+	/*resp := ws.GameResponse{
+		Fen:        EncodeFENTo34Bytes(game.FEN()),
+		LastMove:   msg.From + "-" + msg.To,
+		LegalMoves: game.LegalMoves(),
+		Turn:       game.Turn(),
+		State: ws.GameState{
+			IsCheck:     game.IsCheck(),
+			IsCheckmate: game.IsCheckmate(),
+			IsStalemate: game.IsStalemate(),
+			IsDraw:      game.IsDraw(),
+		},
+	}*/
 
-	responseBytes, err := json.Marshal(resp)
-	if err != nil {
-		log.Printf("Error marshaling move response: %v", err)
-		return nil
-	}
+	// 1. Synchronously publish the move validation result
+	resp1Bytes, _ := json.Marshal(game_update)
+	send(resp1Bytes)
 
-	return responseBytes
+	// 2. Asynchronously request AI prediction and publish it
+	go func() {
+		predictedMoveUci, err := services.PredictMove(context.Background(), gameID, game.Bitboards)
+		if err != nil {
+			log.Printf("Failed to get predicted move: %v", err)
+			return
+		}
+
+		// Publish AI move prediction
+		resp2Bytes, _ := json.Marshal(ws.AIPredictedMove{
+			GameID:          gameID,
+			PredictedAiMove: predictedMoveUci,
+			EventType:       "ai-predicted-move",
+		})
+		send(resp2Bytes)
+	}()
 }

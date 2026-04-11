@@ -6,13 +6,14 @@ import (
 	"log"
 	"os"
 
+	"engineapp/models"
 	pb "engineapp/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func PredictMove(ctx context.Context, gameID string, bitboards Bitboards) (string, error) {
+func PredictMove(ctx context.Context, gameID string, bitboards models.Bitboards) (string, error) {
 	// Call Python chessapp via gRPC for AI move
 	grpcHost := os.Getenv("CHESSAPP_GRPC_HOST")
 	if grpcHost == "" {

@@ -1,81 +1,49 @@
 package ws
 
-type Side struct {
-	Value string `json:"_value"`
+type Piece struct {
+	Side      string `json:"_side"`
+	PieceType string `json:"_type"`
 }
 
-type PieceType struct {
-	Type string `json:"_type"`
+// GameRequest represents an incoming chess move payload
+type GameRequest struct {
+	GameID        string `json:"game_id"`
+	CapturedPiece Piece  `json:"capturedPiece"`
+	Piece         Piece  `json:"piece"`
+	From          string `json:"from"`
+	To            string `json:"to"`
 }
 
-type MovePiece struct {
-	Side      Side      `json:"_side"`
-	PieceType PieceType `json:"_type"`
-}
-
-// MoveMessage represents an incoming chess move payload
-type MoveMessage struct {
-	GameID        string    `json:"game_id"`
-	CapturedPiece MovePiece `json:"capturedPiece"`
-	Piece         MovePiece `json:"piece"`
-	From          string    `json:"from"`
-	To            string    `json:"to"`
-}
-
-type PieceMoved struct {
-	GameID string    `json:"game_id"`
-	From   string    `json:"from"`
-	To     string    `json:"to"`
-	Piece  MovePiece `json:"piece"`
-}
-
-type PieceMoveFailed struct {
-	GameID    string    `json:"game_id"`
-	From      string    `json:"from"`
-	To        string    `json:"to"`
-	Piece     MovePiece `json:"piece"`
-	Reason    string    `json:"reason"`
-	EventType string    `json:"event_type"`
-}
-
-type KingCastled struct {
-	GameID   string `json:"game_id"`
-	Side     Side   `json:"side"`
-	KingFrom string `json:"king_from"`
-	KingTo   string `json:"king_to"`
-	RookFrom string `json:"rook_from"`
-	RookTo   string `json:"rook_to"`
-	KingSide bool   `json:"is_kingside"` // "true" or "false"
-}
-
-type PieceCaptured struct {
-	GameID string    `json:"game_id"`
-	From   string    `json:"from"`
-	To     string    `json:"to"`
-	Piece  MovePiece `json:"piece"`
-}
-
-type KingChecked struct {
-	GameID   string `json:"game_id"`
-	Side     Side   `json:"side"`
-	Position string `json:"position"`
-}
-
-type KingCheckMated struct {
-	GameID   string `json:"game_id"`
-	Side     Side   `json:"side"`
-	Position string `json:"position"`
-}
-
-type SyncedState struct {
-	GameID     string   `json:"game_id"`
-	Turn       Side     `json:"turn"`
-	FEN        string   `json:"fen"`
-	LegalMoves []string `json:"legal_moves"`
+type GameState struct {
+	IsCheck     bool `json:"is_check"`
+	IsCheckmate bool `json:"is_checkmate"`
+	IsStalemate bool `json:"is_stalemate"`
+	IsDraw      bool `json:"is_draw"`
 }
 
 type AIPredictedMove struct {
 	GameID          string `json:"game_id"`
 	PredictedAiMove string `json:"predicted_ai_move"`
 	EventType       string `json:"event_type"`
+}
+
+// GameResponse represents a game state after a move
+type GameResponse struct {
+	Fen        []byte    `json:"fen"`
+	LastMove   string    `json:"last_move"`
+	LegalMoves []string  `json:"legal_moves"`
+	Turn       string    `json:"turn"`
+	State      GameState `json:"state"`
+}
+
+type GameUpdate struct {
+	GameID    string         `json:"game_id"`
+	EventType string         `json:"event_type"`
+	Data      GameUpdateData `json:"data"`
+}
+
+type GameUpdateData struct {
+	Fen      []byte `json:"fen"`
+	LastMove string `json:"last_move"`
+	State    uint8  `json:"state"`
 }

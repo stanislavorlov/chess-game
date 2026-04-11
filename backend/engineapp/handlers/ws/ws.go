@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -19,11 +20,12 @@ var upgrader = websocket.Upgrader{
 type Client struct {
 	conn *websocket.Conn
 	send chan []byte
+	mu   sync.Mutex
 }
 
 var clients = make(map[*Client]bool)
 
-func HandleConnections(moveHandler func(gameID string, message []byte) []byte) http.HandlerFunc {
+func HandleConnections(moveHandler func(gameID string, message []byte, send func([]byte))) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Extract game_id from path: /ws/{game_id}
 		path := r.URL.Path
@@ -45,6 +47,15 @@ func HandleConnections(moveHandler func(gameID string, message []byte) []byte) h
 		clients[client] = true
 		log.Printf("New WebSocket client connected to game %s", gameID)
 
+		sendMsg := func(msg []byte) {
+			client.mu.Lock()
+			defer client.mu.Unlock()
+			// if err := client.conn.WriteMessage(websocket.BinaryMessage, binaryPayload); err != nil {
+			if err := client.conn.WriteMessage(websocket.TextMessage, msg); err != nil {
+				log.Printf("Error writing socket message: %v", err)
+			}
+		}
+
 		for {
 			_, message, err := wsConn.ReadMessage()
 			if err != nil {
@@ -54,14 +65,7 @@ func HandleConnections(moveHandler func(gameID string, message []byte) []byte) h
 			}
 
 			// Route message to appropriate handler
-			responseBytes := moveHandler(gameID, message)
-
-			if len(responseBytes) > 0 {
-				if err := client.conn.WriteMessage(websocket.TextMessage, responseBytes); err != nil {
-					log.Printf("Error writing move response: %v", err)
-					// Usually client disconnections are handled by the main read loop
-				}
-			}
+			moveHandler(gameID, message, sendMsg)
 		}
 	}
 }

@@ -464,16 +464,62 @@ func ParseSquare(sq string) (int, bool) {
 	return rank*8 + file, true
 }
 
+// SquareIndexToString converts a 0-63 index to a square string like "e2"
+func SquareIndexToString(index int) string {
+	file := index % 8
+	rank := index / 8
+	return string(rune('a'+file)) + string(rune('1'+rank))
+}
+
+// CloneAndApplyMove clones the bitboards and applies a move
+func CloneAndApplyMove(bb Bitboards, fromIdx, toIdx int) Bitboards {
+	newBB := bb
+	fromMask := uint64(1) << fromIdx
+	toMask := uint64(1) << toIdx
+	clearMask := ^toMask
+
+	// Clear destination square if it has a piece (capture)
+	newBB.WhitePawns &= clearMask
+	newBB.WhiteKnights &= clearMask
+	newBB.WhiteBishops &= clearMask
+	newBB.WhiteRooks &= clearMask
+	newBB.WhiteQueens &= clearMask
+	newBB.WhiteKings &= clearMask
+	newBB.BlackPawns &= clearMask
+	newBB.BlackKnights &= clearMask
+	newBB.BlackBishops &= clearMask
+	newBB.BlackRooks &= clearMask
+	newBB.BlackQueens &= clearMask
+	newBB.BlackKings &= clearMask
+
+	// Move the piece by clearing fromIdx and setting toIdx
+	if (newBB.WhitePawns & fromMask) != 0 { newBB.WhitePawns &= ^fromMask; newBB.WhitePawns |= toMask }
+	if (newBB.WhiteKnights & fromMask) != 0 { newBB.WhiteKnights &= ^fromMask; newBB.WhiteKnights |= toMask }
+	if (newBB.WhiteBishops & fromMask) != 0 { newBB.WhiteBishops &= ^fromMask; newBB.WhiteBishops |= toMask }
+	if (newBB.WhiteRooks & fromMask) != 0 { newBB.WhiteRooks &= ^fromMask; newBB.WhiteRooks |= toMask }
+	if (newBB.WhiteQueens & fromMask) != 0 { newBB.WhiteQueens &= ^fromMask; newBB.WhiteQueens |= toMask }
+	if (newBB.WhiteKings & fromMask) != 0 { newBB.WhiteKings &= ^fromMask; newBB.WhiteKings |= toMask }
+	
+	if (newBB.BlackPawns & fromMask) != 0 { newBB.BlackPawns &= ^fromMask; newBB.BlackPawns |= toMask }
+	if (newBB.BlackKnights & fromMask) != 0 { newBB.BlackKnights &= ^fromMask; newBB.BlackKnights |= toMask }
+	if (newBB.BlackBishops & fromMask) != 0 { newBB.BlackBishops &= ^fromMask; newBB.BlackBishops |= toMask }
+	if (newBB.BlackRooks & fromMask) != 0 { newBB.BlackRooks &= ^fromMask; newBB.BlackRooks |= toMask }
+	if (newBB.BlackQueens & fromMask) != 0 { newBB.BlackQueens &= ^fromMask; newBB.BlackQueens |= toMask }
+	if (newBB.BlackKings & fromMask) != 0 { newBB.BlackKings &= ^fromMask; newBB.BlackKings |= toMask }
+
+	return newBB
+}
+
 // ValidateMove generates pseudo-legal moves for the starting square and checks if the destination is included.
 func ValidateMove(
-	bitboards map[PieceKey]uint64,
-	occupancies map[Side]uint64,
-	combinedOccupancy uint64,
+	bb Bitboards,
 	utils *BitboardUtils,
 	sideToMove Side,
 	fromStr string,
 	toStr string,
 ) bool {
+    bitboards, occupancies, combinedOccupancy := bb.GenerateMaps()
+
 	fromIdx, ok1 := ParseSquare(fromStr)
 	toIdx, ok2 := ParseSquare(toStr)
 	if !ok1 || !ok2 {
@@ -519,8 +565,20 @@ func ValidateMove(
 	toPos := BitIndexToPosition(toIdx)
 	for _, m := range validMoves {
 		if m.To.File == toPos.File && m.To.Rank == toPos.Rank {
-			// ToDo: Make a deep copy, apply move, and check if it leaves our King in check using IsSquareAttacked
-			return true
+			// Apply move to clone
+			newBB := CloneAndApplyMove(bb, fromIdx, toIdx)
+			newMap, _, checkCombined := newBB.GenerateMaps()
+			
+			// Find king's new position
+			kingBB := newMap[PieceKey{Side: sideToMove, PieceType: King}]
+			kingIdx := GetLsbIndex(kingBB)
+			if kingIdx == -1 {
+			    return false // King captured, shouldn't happen but safe guard
+			}
+			
+			// Check if king is attacked
+			inCheck := IsSquareAttacked(kingIdx, enemySide, newMap, checkCombined, utils)
+			return !inCheck
 		}
 	}
 

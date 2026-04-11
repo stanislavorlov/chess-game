@@ -30,7 +30,7 @@ func (h *GameHandler) GetGame(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "gameId is required", http.StatusBadRequest)
 		return
 	}
-	game, err := h.Repo.GetGameState(r.Context(), gameID)
+	game, err := h.Repo.GetGame(r.Context(), gameID)
 	log.Printf("Game: %v", game)
 	if err != nil {
 		log.Printf("Failed to fetch game by Id: %s", gameID)

@@ -36,52 +36,16 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 		return
 	}
 
-	moveValidationResult := game.MovePiece(msg)
-	log.Printf("[Game: %s] Local move validation result for %s -> %s: %v", gameID, msg.From, msg.To, moveValidationResult.Valid)
+	movePieceResult := game.MovePiece(msg)
+	log.Printf("[Game: %s] Local move validation result for %s -> %s: %v", gameID, msg.From, msg.To, movePieceResult.Valid)
 
 	// If validation fails, restore the pre-move state and publish it back
-
-	/*var state uint8
-	if game.IsCheck() {
-		state |= 1 // bit 0: check
-	}
-	if game.IsCheckmate() {
-		state |= 1 << 1 // bit 1: checkmate
-	}
-	if game.IsStalemate() {
-		state |= 1 << 2 // bit 2: stalemate
-	}
-	if game.IsDraw() {
-		state |= 1 << 3 // bit 3: draw
-	}
-	if game.Turn() == "b" {
-		state |= 1 << 4 // bit 4: turn (0=w, 1=b)
-	}
-	if game.Winner() == "b" {
-		state |= 1 << 5 // bit 5: winner is black
-	} else if game.Winner() == "w" {
-		state |= 1 << 6 // bit 6: winner is white
-	}*/
 	var state uint8 = PackGameState(game)
 
-	if !moveValidationResult.Valid {
+	if !movePieceResult.Valid {
 		log.Printf("[Game: %s] Warning: Move rejected by local validation logic.", gameID)
 
-		/*resp := ws.GameResponse{
-			Fen:        EncodeFENTo34Bytes(game.FEN()),
-			LastMove:   msg.From + "-" + msg.To,
-			LegalMoves: game.LegalMoves(),
-			Turn:       game.Turn(),
-			State: ws.GameState{
-				IsCheck:     game.IsCheck(),
-				IsCheckmate: game.IsCheckmate(),
-				IsStalemate: game.IsStalemate(),
-				IsDraw:      game.IsDraw(),
-			},
-		}*/
-
 		game_update := ws.GameUpdate{
-			GameID:    gameID,
 			EventType: "game_update",
 			Data: ws.GameUpdateData{
 				Fen:      PackFenToBytes(game.FEN()),
@@ -89,15 +53,6 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 				State:    state,
 			},
 		}
-
-		/*{
-		"event": "game_update",
-		"data": {
-			"fen": "r1bqkbnr/pppp1Qpp/2n5/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
-			"last_move": "f7f7",
-			"state": 111111  //in_check,is_checkmate,is_stalemate,is_draw,turn,winner
-		}
-		} */
 
 		if responseBytes, err := json.Marshal(game_update); err == nil {
 			send(responseBytes)
@@ -110,7 +65,6 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 	// Apply AI move, update the state and publish it back
 
 	game_update := ws.GameUpdate{
-		GameID:    gameID,
 		EventType: "game_update",
 		Data: ws.GameUpdateData{
 			Fen:      PackFenToBytes(game.FEN()),
@@ -118,19 +72,6 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 			State:    state,
 		},
 	}
-
-	/*resp := ws.GameResponse{
-		Fen:        EncodeFENTo34Bytes(game.FEN()),
-		LastMove:   msg.From + "-" + msg.To,
-		LegalMoves: game.LegalMoves(),
-		Turn:       game.Turn(),
-		State: ws.GameState{
-			IsCheck:     game.IsCheck(),
-			IsCheckmate: game.IsCheckmate(),
-			IsStalemate: game.IsStalemate(),
-			IsDraw:      game.IsDraw(),
-		},
-	}*/
 
 	// 1. Synchronously publish the move validation result
 	resp1Bytes, _ := json.Marshal(game_update)

@@ -2,6 +2,7 @@ package models
 
 import (
 	"engineapp/handlers/ws"
+	"strings"
 )
 
 type Game struct {
@@ -164,7 +165,7 @@ func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 // FEN returns the current board state in FEN notation
 func (g *Game) FEN() string {
 	pieceMap, _, _ := g.Bitboards.GenerateMaps()
-	fen := ""
+	var fen strings.Builder
 
 	pieceChars := map[PieceType]map[Side]string{
 		Pawn:   {White: "P", Black: "p"},
@@ -177,26 +178,26 @@ func (g *Game) FEN() string {
 
 	for rank := 7; rank >= 0; rank-- {
 		emptyCount := 0
-		for file := 0; file < 8; file++ {
+		for file := range 8 {
 			sqIdx := rank*8 + file
 			found := false
 
 			for pt, sides := range pieceChars {
 				if GetBit(pieceMap[PieceKey{Side: White, PieceType: pt}], sqIdx) {
 					if emptyCount > 0 {
-						fen += string(rune('0' + emptyCount))
+						fen.WriteString(string(rune('0' + emptyCount)))
 						emptyCount = 0
 					}
-					fen += sides[White]
+					fen.WriteString(sides[White])
 					found = true
 					break
 				}
 				if GetBit(pieceMap[PieceKey{Side: Black, PieceType: pt}], sqIdx) {
 					if emptyCount > 0 {
-						fen += string(rune('0' + emptyCount))
+						fen.WriteString(string(rune('0' + emptyCount)))
 						emptyCount = 0
 					}
-					fen += sides[Black]
+					fen.WriteString(sides[Black])
 					found = true
 					break
 				}
@@ -207,10 +208,10 @@ func (g *Game) FEN() string {
 			}
 		}
 		if emptyCount > 0 {
-			fen += string(rune('0' + emptyCount))
+			fen.WriteString(string(rune('0' + emptyCount)))
 		}
 		if rank > 0 {
-			fen += "/"
+			fen.WriteString("/")
 		}
 	}
 
@@ -220,8 +221,8 @@ func (g *Game) FEN() string {
 	}
 
 	// Default castling, en passant, half and full move to initial-like values
-	fen += " " + turnStr + " - - 0 1"
-	return fen
+	fen.WriteString(" " + turnStr + " - - 0 1")
+	return fen.String()
 }
 
 // Turn returns the side to move

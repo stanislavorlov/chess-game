@@ -27,17 +27,7 @@ type AIPredictedMove struct {
 	EventType       string `json:"event_type"`
 }
 
-// GameResponse represents a game state after a move
-type GameResponse struct {
-	Fen        []byte    `json:"fen"`
-	LastMove   string    `json:"last_move"`
-	LegalMoves []string  `json:"legal_moves"`
-	Turn       string    `json:"turn"`
-	State      GameState `json:"state"`
-}
-
 type GameUpdate struct {
-	GameID    string         `json:"game_id"`
 	EventType string         `json:"event_type"`
 	Data      GameUpdateData `json:"data"`
 }

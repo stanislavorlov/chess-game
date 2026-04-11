@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"engineapp/factories"
+	"engineapp/models"
 	"fmt"
 	"log"
 
@@ -44,8 +46,8 @@ func ConnectMongo(ctx context.Context, mongoUri string) (*MongoRepository, error
 	}, nil
 }
 
-// GetGameState retrieves a game state by its game ID.
-func (r *MongoRepository) GetGameState(ctx context.Context, gameID string) (*GameState, error) {
+// GetGame retrieves a game by its game ID.
+func (r *MongoRepository) GetGame(ctx context.Context, gameID string) (*models.Game, error) {
 	var state GameState
 	coll := r.database.Collection(GameStateCollection)
 
@@ -57,7 +59,25 @@ func (r *MongoRepository) GetGameState(ctx context.Context, gameID string) (*Gam
 		return nil, fmt.Errorf("failed to fetch game state: %w", err)
 	}
 
-	return &state, nil
+	// Load just one last entry
+	var history GameHistory
+	coll = r.database.Collection(GameHistoryCollection)
+	err = coll.FindOne(ctx, bson.M{"game_id": gameID}, options.FindOne().SetSort(bson.M{"sequence": -1})).Decode(&history)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil // Return nil if not found, not an error
+		}
+		return nil, fmt.Errorf("Failed to fetch game history: %w", err)
+	}
+
+	game := factories.LoadGame(
+		state.ID,
+		models.GameStatus(state.Status),
+		models.NewGameFormat(state.Format.Name, state.Format.Minutes, state.Format.MoveIncrementMs),
+		history.BoardFen,
+		state.Result.Winner)
+
+	return game, nil
 }
 
 func (r *MongoRepository) CreateGameState(ctx context.Context, game *GameState) error {
@@ -67,26 +87,6 @@ func (r *MongoRepository) CreateGameState(ctx context.Context, game *GameState) 
 		return fmt.Errorf("failed to create game state: %w", err)
 	}
 	return nil
-}
-
-// GetGameHistory retrieves all history records for a given game ID, sorted by sequence.
-func (r *MongoRepository) GetGameHistory(ctx context.Context, gameID string) ([]GameHistory, error) {
-	coll := r.database.Collection(GameHistoryCollection)
-
-	// Use Find to get all documents, sorted by sequence
-	opts := options.Find().SetSort(bson.M{"sequence": 1})
-	cursor, err := coll.Find(ctx, bson.M{"game_id": gameID}, opts)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch game history: %w", err)
-	}
-	defer cursor.Close(ctx)
-
-	var history []GameHistory
-	if err := cursor.All(ctx, &history); err != nil {
-		return nil, fmt.Errorf("failed to decode game history: %w", err)
-	}
-
-	return history, nil
 }
 
 // Disconnect closes the MongoDB connection.

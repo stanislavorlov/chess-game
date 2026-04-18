@@ -1,16 +1,45 @@
 basePath: /
 definitions:
+  database.GameFormat:
+    properties:
+      minutes:
+        type: integer
+      moveIncrementMs:
+        type: integer
+      name:
+        type: string
+    type: object
+  database.GamePlayers:
+    properties:
+      darkPlayerId:
+        type: string
+      lightPlayerId:
+        type: string
+    type: object
+  database.GameResult:
+    properties:
+      reason:
+        type: string
+      winner:
+        type: string
+    type: object
   database.GameState:
     properties:
       createdAt:
         type: string
       finishedAt:
         type: string
-      gameStatus:
-        type: string
+      format:
+        $ref: '#/definitions/database.GameFormat'
       id:
         type: string
+      players:
+        $ref: '#/definitions/database.GamePlayers'
+      result:
+        $ref: '#/definitions/database.GameResult'
       startedAt:
+        type: string
+      status:
         type: string
     type: object
   health.HealthResponse:
@@ -19,6 +48,51 @@ definitions:
         type: string
       status:
         type: string
+    type: object
+  models.RequestComputerGame:
+    properties:
+      baseTime:
+        description: Starting time in seconds
+        type: integer
+      color:
+        description: white, black, random
+        type: string
+      difficulty:
+        description: engine strength level
+        type: string
+      format:
+        description: blitz, rapid, classical, bullet
+        type: string
+      increment:
+        description: Increment in seconds per move
+        type: integer
+      startingFen:
+        description: 'Optional: custom starting position'
+        type: string
+    type: object
+  models.RequestOnlineGame:
+    properties:
+      baseTime:
+        description: Starting time in seconds
+        type: integer
+      colorPreference:
+        description: white, black, random
+        type: string
+      culture:
+        description: en, es, fr, de, etc.
+        type: string
+      format:
+        description: blitz, rapid, classical, bullet
+        type: string
+      increment:
+        description: Increment in seconds per move
+        type: integer
+      opponentId:
+        description: 'Optional: direct challenge'
+        type: string
+      rated:
+        description: Is the game affecting ELO?
+        type: boolean
     type: object
 host: localhost:8082
 info:
@@ -75,6 +149,58 @@ paths:
           schema:
             type: string
       summary: Get game state
+      tags:
+      - games
+  /game/computer:
+    post:
+      consumes:
+      - application/json
+      description: creates a new chess game state in the database
+      parameters:
+      - description: Game State
+        in: body
+        name: game
+        required: true
+        schema:
+          $ref: '#/definitions/models.RequestComputerGame'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/database.GameState'
+        "400":
+          description: Failed to decode or create game
+          schema:
+            type: string
+      summary: Create computer game state
+      tags:
+      - games
+  /game/online:
+    post:
+      consumes:
+      - application/json
+      description: requests a new online game
+      parameters:
+      - description: Game State
+        in: body
+        name: game
+        required: true
+        schema:
+          $ref: '#/definitions/models.RequestOnlineGame'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/database.GameState'
+        "400":
+          description: Failed to decode or create game
+          schema:
+            type: string
+      summary: Create a record in the Matching queue
       tags:
       - games
   /health/live:

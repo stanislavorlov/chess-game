@@ -73,6 +73,8 @@ func main() {
 
 	http.HandleFunc("GET /game/{gameId}", gameHandler.GetGame)
 	http.HandleFunc("POST /game", gameHandler.RequestGame)
+	http.HandleFunc("POST /game/computer", gameHandler.RequestComputerGame)
+	http.HandleFunc("POST /game/online", gameHandler.RequestOnlineGame)
 
 	log.Printf("Engine HTTP Service running on port %s", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {

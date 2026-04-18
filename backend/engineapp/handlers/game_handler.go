@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"engineapp/database"
+	"engineapp/models"
 	"log"
 	"net/http"
 )
@@ -77,4 +78,48 @@ func (h *GameHandler) RequestGame(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(game); err != nil {
 		log.Printf("Failed to encode game JSON: %v", err)
 	}
+}
+
+// RequestComputerGame creates a new computer game state.
+// @Summary Create computer game state
+// @Description creates a new chess game state in the database
+// @Tags games
+// @Accept json
+// @Produce json
+// @Param game body models.RequestComputerGame true "Game State"
+// @Success 200 {object} database.GameState
+// @Failure 400 {string} string "Failed to decode or create game"
+// @Router /game/computer [post]
+func (h *GameHandler) RequestComputerGame(w http.ResponseWriter, r *http.Request) {
+	var gameRequest models.RequestComputerGame
+	if err := json.NewDecoder(r.Body).Decode(&gameRequest); err != nil {
+		log.Printf("Failed to decode game JSON: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Failed to decode game"))
+		return
+	}
+
+	// ToDo: create a computer game & store in DB
+}
+
+// RequestOnlineGame creates a new online game state.
+// @Summary Create a record in the Matching queue
+// @Description requests a new online game
+// @Tags games
+// @Accept json
+// @Produce json
+// @Param game body models.RequestOnlineGame true "Game State"
+// @Success 200 {object} database.GameState
+// @Failure 400 {string} string "Failed to decode or create game"
+// @Router /game/online [post]
+func (h *GameHandler) RequestOnlineGame(w http.ResponseWriter, r *http.Request) {
+	var gameRequest models.RequestOnlineGame
+	if err := json.NewDecoder(r.Body).Decode(&gameRequest); err != nil {
+		log.Printf("Failed to decode game JSON: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Failed to decode game"))
+		return
+	}
+
+	// ToDo: create a record in the Matching queue, wait for another player to accept
 }

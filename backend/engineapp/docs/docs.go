@@ -55,6 +55,86 @@ const docTemplate = `{
                 }
             }
         },
+        "/game/computer": {
+            "post": {
+                "description": "creates a new chess game state in the database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "games"
+                ],
+                "summary": "Create computer game state",
+                "parameters": [
+                    {
+                        "description": "Game State",
+                        "name": "game",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RequestComputerGame"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/database.GameState"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to decode or create game",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/game/online": {
+            "post": {
+                "description": "requests a new online game",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "games"
+                ],
+                "summary": "Create a record in the Matching queue",
+                "parameters": [
+                    {
+                        "description": "Game State",
+                        "name": "game",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RequestOnlineGame"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/database.GameState"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to decode or create game",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/game/{gameId}": {
             "get": {
                 "description": "retrieves the current state of a chess game from the database",
@@ -112,6 +192,42 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "database.GameFormat": {
+            "type": "object",
+            "properties": {
+                "minutes": {
+                    "type": "integer"
+                },
+                "moveIncrementMs": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.GamePlayers": {
+            "type": "object",
+            "properties": {
+                "darkPlayerId": {
+                    "type": "string"
+                },
+                "lightPlayerId": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.GameResult": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "winner": {
+                    "type": "string"
+                }
+            }
+        },
         "database.GameState": {
             "type": "object",
             "properties": {
@@ -121,13 +237,22 @@ const docTemplate = `{
                 "finishedAt": {
                     "type": "string"
                 },
-                "gameStatus": {
-                    "type": "string"
+                "format": {
+                    "$ref": "#/definitions/database.GameFormat"
                 },
                 "id": {
                     "type": "string"
                 },
+                "players": {
+                    "$ref": "#/definitions/database.GamePlayers"
+                },
+                "result": {
+                    "$ref": "#/definitions/database.GameResult"
+                },
                 "startedAt": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 }
             }
@@ -140,6 +265,68 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "models.RequestComputerGame": {
+            "type": "object",
+            "properties": {
+                "baseTime": {
+                    "description": "Starting time in seconds",
+                    "type": "integer"
+                },
+                "color": {
+                    "description": "white, black, random",
+                    "type": "string"
+                },
+                "difficulty": {
+                    "description": "engine strength level",
+                    "type": "string"
+                },
+                "format": {
+                    "description": "blitz, rapid, classical, bullet",
+                    "type": "string"
+                },
+                "increment": {
+                    "description": "Increment in seconds per move",
+                    "type": "integer"
+                },
+                "startingFen": {
+                    "description": "Optional: custom starting position",
+                    "type": "string"
+                }
+            }
+        },
+        "models.RequestOnlineGame": {
+            "type": "object",
+            "properties": {
+                "baseTime": {
+                    "description": "Starting time in seconds",
+                    "type": "integer"
+                },
+                "colorPreference": {
+                    "description": "white, black, random",
+                    "type": "string"
+                },
+                "culture": {
+                    "description": "en, es, fr, de, etc.",
+                    "type": "string"
+                },
+                "format": {
+                    "description": "blitz, rapid, classical, bullet",
+                    "type": "string"
+                },
+                "increment": {
+                    "description": "Increment in seconds per move",
+                    "type": "integer"
+                },
+                "opponentId": {
+                    "description": "Optional: direct challenge",
+                    "type": "string"
+                },
+                "rated": {
+                    "description": "Is the game affecting ELO?",
+                    "type": "boolean"
                 }
             }
         }

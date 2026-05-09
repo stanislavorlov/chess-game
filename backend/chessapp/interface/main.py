@@ -6,8 +6,9 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from chessapp.ai.alpha_beta import get_best_move
 from chessapp.ai.bitboards import Bitboards, Side
+from chessapp.ai.keras_model import ChessZeroModel
+from chessapp.ai.mcts import MonteCarloTreeSearch
 from chessapp.interface.rpc import chessai_pb2_grpc, chessai_pb2
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -19,6 +20,13 @@ def index_to_square(index: int) -> str:
     return chr(ord('a') + file) + str(rank + 1)
 
 class AiService(chessai_pb2_grpc.AiServiceServicer):
+    def __init__(self):
+        logger.info("Initializing ChessZero Keras Model...")
+        # Since Tensorflow can be heavy, we instantiate once on startup
+        self.model = ChessZeroModel()
+        self.mcts = MonteCarloTreeSearch(self.model, c_puct=1.0)
+        logger.info("MCTS initialized.")
+
     async def GetPredictedMove(self, request, context):
         logger.info(f"Predicting move. is_white={request.is_white_turn}")
         
@@ -40,8 +48,10 @@ class AiService(chessai_pb2_grpc.AiServiceServicer):
         
         turn = Side.White if request.is_white_turn else Side.Black
         
-        depth = int(os.getenv("ENGINE_DEPTH", "3"))
-        best_move = get_best_move(bb, depth=depth, turn=turn)
+        num_simulations = int(os.getenv("ENGINE_SIMULATIONS", "50"))
+        logger.info(f"Running MCTS with {num_simulations} simulations...")
+        
+        best_move = self.mcts.search(initial_bb=bb, turn=turn, num_simulations=num_simulations)
         
         if not best_move:
             logger.warning("No legal moves found! Returning empty UCI.")

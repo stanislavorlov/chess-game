@@ -17,7 +17,7 @@ export class ChessService {
   }
 
   startGame(game: CreateGame) {
-    return this.httpClient.post<ChessGameDto>('/api/game/create_board/', game, {});
+    return this.httpClient.post<ChessGameDto>('/api/game/computer', game, {});
   }
 
   newGame() {

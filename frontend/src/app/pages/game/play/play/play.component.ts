@@ -209,10 +209,11 @@ export class PlayComponent implements OnInit, OnDestroy {
 
   startGame(): void {
     const new_game = new CreateGame();
-    new_game.increment = this.selectedTimeOption?.incrementPerMove || '';
+    new_game.increment = parseInt(this.selectedTimeOption?.incrementPerMove || '0', 10);
     new_game.format = this.selectedFormat;
-    new_game.name = this.game.name;
-    new_game.time = this.selectedTimeOption?.baseTime || '';
+    new_game.baseTime = parseInt(this.selectedTimeOption?.baseTime || '0', 10);
+    new_game.color = "random";
+    new_game.difficulty = "1";
 
     this.chessService.startGame(new_game).subscribe((data: ChessGameDto) => {
       let gameId = data.game_id;
@@ -240,6 +241,7 @@ export class PlayComponent implements OnInit, OnDestroy {
   }
 
   clickBoard(square: Cell): void {
+    debugger;
     if (!this.gameInitialized()) return;
 
     if (!!this.selectedSquare) {

@@ -126,7 +126,7 @@ func TestPawnMoves(t *testing.T) {
 	var combined uint64 = pawns
 	var opponent uint64 = 0
 
-	moves := GetPawnMoves(White, pawns, combined, opponent, utils)
+	moves := GetPawnMoves(White, pawns, combined, opponent, utils, "-")
 	if len(moves) != 2 {
 		t.Errorf("White pawn at A2 should have 2 moves, got %d", len(moves))
 	}
@@ -134,7 +134,7 @@ func TestPawnMoves(t *testing.T) {
 	// Opponent at B3 (index 17) -> capture right
 	opponent = (1 << 17)
 	combined |= opponent
-	moves = GetPawnMoves(White, pawns, combined, opponent, utils)
+	moves = GetPawnMoves(White, pawns, combined, opponent, utils, "-")
 	if len(moves) != 3 {
 		t.Errorf("White pawn at A2 with opponent at B3 should have 3 moves, got %d", len(moves))
 	}

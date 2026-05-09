@@ -71,10 +71,9 @@ func main() {
 	http.HandleFunc("/ws/", ws.HandleConnections(moveHandler.HandleMove))
 	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 
-	http.HandleFunc("GET /game/{gameId}", gameHandler.GetGame)
-	http.HandleFunc("POST /game", gameHandler.RequestGame)
-	http.HandleFunc("POST /game/computer", gameHandler.RequestComputerGame)
-	http.HandleFunc("POST /game/online", gameHandler.RequestOnlineGame)
+	http.HandleFunc("GET /api/game/board/{gameId}", gameHandler.GetGame)
+	http.HandleFunc("POST /api/game/computer", gameHandler.RequestComputerGame)
+	http.HandleFunc("POST /api/game/online", gameHandler.RequestOnlineGame)
 
 	log.Printf("Engine HTTP Service running on port %s", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {

@@ -15,7 +15,8 @@ export class Board {
 
     public fromFen(fen: string) {
         this._pieceMap.clear();
-        const rows = fen.split('/');
+        const boardPart = fen.split(' ')[0];
+        const rows = boardPart.split('/');
 
         for (let rankIdx = 0; rankIdx < 8; rankIdx++) {
             const rank = 8 - rankIdx;

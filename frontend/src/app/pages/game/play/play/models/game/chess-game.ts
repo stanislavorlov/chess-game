@@ -178,7 +178,7 @@ export class ChessGame {
         this._turn = turn;
         if (legal_moves) {
             // legal_moves is "e2e4 e7e5..."
-            const moveList = legal_moves.split(' ').filter(m => m.length >= 4);
+            const moveList = legal_moves.split(',').filter(m => m.length >= 4);
             this._selectableSquares = new Set(moveList.map(m => m.substring(0, 2)));
         }
     }

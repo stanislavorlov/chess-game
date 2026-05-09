@@ -3,11 +3,12 @@ package factories
 import (
 	"engineapp/models"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 )
 
-func LoadGame(game_id string, status models.GameStatus, format models.GameFormat, fen string, result string) *models.Game {
+func LoadGame(game_id string, status models.GameStatus, format models.GameFormat, fen string, history []string, result string) *models.Game {
 	bitboards, err := FENToBitboards(fen)
 	if err != nil {
 		log.Printf("Failed to convert FEN to bitboards: %v", err)
@@ -15,12 +16,29 @@ func LoadGame(game_id string, status models.GameStatus, format models.GameFormat
 	}
 
 	turn := models.White
+	castling := "-"
+	enPassant := "-"
+	halfMove := 0
+	fullMove := 1
+
 	parts := strings.Split(fen, " ")
 	if len(parts) > 1 {
 		turn = models.ToSide(parts[1])
 	}
+	if len(parts) > 2 {
+		castling = parts[2]
+	}
+	if len(parts) > 3 {
+		enPassant = parts[3]
+	}
+	if len(parts) > 4 {
+		fmt.Sscanf(parts[4], "%d", &halfMove)
+	}
+	if len(parts) > 5 {
+		fmt.Sscanf(parts[5], "%d", &fullMove)
+	}
 
-	game := models.LoadGame(game_id, status, format, bitboards, turn, result)
+	game := models.LoadGame(game_id, status, format, bitboards, turn, history, result, castling, enPassant, halfMove, fullMove)
 	return &game
 }
 

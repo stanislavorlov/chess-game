@@ -4,9 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
 
 	"engineapp/database"
 	"engineapp/handlers/ws"
+	"engineapp/models"
 	"engineapp/services"
 )
 
@@ -39,22 +44,18 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 	movePieceResult := game.MovePiece(msg)
 	log.Printf("[Game: %s] Local move validation result for %s -> %s: %v", gameID, msg.From, msg.To, movePieceResult.Valid)
 
-	// If validation fails, restore the pre-move state and publish it back
-	var state uint8 = PackGameState(game)
-
 	if !movePieceResult.Valid {
 		log.Printf("[Game: %s] Warning: Move rejected by local validation logic.", gameID)
 
-		game_update := ws.GameUpdate{
-			EventType: "game_update",
-			Data: ws.GameUpdateData{
-				Fen:      PackFenToBytes(game.FEN()),
-				LastMove: msg.From + msg.To,
-				State:    state,
-			},
+		failedEvent := ws.PieceMoveFailedEvent{
+			EventType: "piece-move-failed",
+			GameID:    gameID,
+			Reason:    movePieceResult.Error,
+			From:      msg.From,
+			To:        msg.To,
 		}
 
-		if responseBytes, err := json.Marshal(game_update); err == nil {
+		if responseBytes, err := json.Marshal(failedEvent); err == nil {
 			send(responseBytes)
 		} else {
 			log.Printf("Error marshaling move response: %v", err)
@@ -62,20 +63,54 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 		return
 	}
 
-	// Apply AI move, update the state and publish it back
-
-	game_update := ws.GameUpdate{
-		EventType: "game_update",
-		Data: ws.GameUpdateData{
-			Fen:      PackFenToBytes(game.FEN()),
-			LastMove: msg.From + msg.To,
-			State:    state,
-		},
+	// Save the move to history
+	historyEntry := database.GameHistory{
+		ID:         uuid.New().String(),
+		GameID:     gameID,
+		OccurredAt: time.Now(),
+		Sequence:   game.HistoryCount(),
+		BoardFen:   game.FEN(),
+		SanMove:    msg.From + msg.To,
+	}
+	if err := h.Repo.CreateGameHistory(context.Background(), &historyEntry); err != nil {
+		log.Printf("[Game: %s] Failed to save move to history: %v", gameID, err)
 	}
 
-	// 1. Synchronously publish the move validation result
-	resp1Bytes, _ := json.Marshal(game_update)
+	syncedEvent := ws.SyncedStateEvent{
+		EventType:  "synced-state",
+		GameID:     gameID,
+		Turn:       game.Turn(),
+		LegalMoves: strings.Join(game.LegalMoves(), ","),
+	}
+	resp1Bytes, _ := json.Marshal(syncedEvent)
 	send(resp1Bytes)
+
+	if game.IsCheck() {
+		pos := game.CheckPosition()
+		if pos != nil {
+			checkEvent := ws.KingCheckedEvent{
+				EventType: "king-checked",
+				GameID:    gameID,
+				Side:      game.Turn(),
+				Position:  *pos,
+			}
+			if respBytes, err := json.Marshal(checkEvent); err == nil {
+				send(respBytes)
+			}
+		}
+	}
+
+	if game.Status() == models.Finished {
+		finishedEvent := ws.GameFinishedEvent{
+			EventType:    "game-finished",
+			GameID:       gameID,
+			Result:       game.Result(),
+			FinishedDate: time.Now().Format(time.RFC3339),
+		}
+		if respBytes, err := json.Marshal(finishedEvent); err == nil {
+			send(respBytes)
+		}
+	}
 
 	// 2. Asynchronously request AI prediction and publish it
 	go func() {

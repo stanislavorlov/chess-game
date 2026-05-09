@@ -2,16 +2,22 @@ package models
 
 import (
 	"engineapp/handlers/ws"
+	"fmt"
 	"strings"
 )
 
 type Game struct {
-	game_id   string
-	status    GameStatus
-	format    GameFormat
-	Bitboards Bitboards
-	turn      Side
-	result    string
+	game_id         string
+	status          GameStatus
+	format          GameFormat
+	Bitboards       Bitboards
+	turn            Side
+	history         []string
+	result          string
+	CastlingRights  string
+	EnPassantTarget string
+	HalfmoveClock   int
+	FullmoveNumber  int
 }
 
 type GameFormat struct {
@@ -64,14 +70,19 @@ type MoveValidationResult struct {
 	Error string
 }
 
-func LoadGame(game_id string, status GameStatus, format GameFormat, bitboards Bitboards, turn Side, result string) Game {
+func LoadGame(game_id string, status GameStatus, format GameFormat, bitboards Bitboards, turn Side, history []string, result string, castlingRights string, enPassantTarget string, halfmoveClock int, fullmoveNumber int) Game {
 	return Game{
-		game_id:   game_id,
-		status:    status,
-		format:    format,
-		Bitboards: bitboards,
-		turn:      turn,
-		result:    result,
+		game_id:         game_id,
+		status:          status,
+		format:          format,
+		Bitboards:       bitboards,
+		turn:            turn,
+		history:         history,
+		result:          result,
+		CastlingRights:  castlingRights,
+		EnPassantTarget: enPassantTarget,
+		HalfmoveClock:   halfmoveClock,
+		FullmoveNumber:  fullmoveNumber,
 	}
 }
 
@@ -93,6 +104,56 @@ func (g *Game) FinishGame() {
 
 func (g *Game) IsActive() bool {
 	return g.status == Started
+}
+
+func (g *Game) ID() string {
+	return g.game_id
+}
+
+func (g *Game) Status() GameStatus {
+	return g.status
+}
+
+func (g *Game) Format() GameFormat {
+	return g.format
+}
+
+func (g *Game) FormatName() string {
+	return g.format.name
+}
+
+func (g *Game) FormatMinutes() int {
+	return g.format.minutes
+}
+
+func (g *Game) FormatIncrement() int {
+	return g.format.move_increment_ms
+}
+
+func (g *Game) Result() string {
+	return g.result
+}
+
+func (g *Game) History() string {
+	return strings.Join(g.history, ",")
+}
+
+func (g *Game) HistoryCount() int {
+	return len(g.history)
+}
+
+func (g *Game) CheckPosition() *string {
+	if !g.IsCheck() {
+		return nil
+	}
+	bbMap, _, _ := g.Bitboards.GenerateMaps()
+	kingBB := bbMap[PieceKey{Side: g.turn, PieceType: King}]
+	kingIdx := GetLsbIndex(kingBB)
+	if kingIdx == -1 {
+		return nil
+	}
+	pos := SquareIndexToString(kingIdx)
+	return &pos
 }
 
 func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
@@ -154,10 +215,78 @@ func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 	}
 
 	// check move is legal
-	isValid := ValidateMove(g.Bitboards, utils, sideToMove, move.From, move.To)
+	isValid := ValidateMove(g.Bitboards, utils, sideToMove, move.From, move.To, "q", g.EnPassantTarget, g.CastlingRights)
 	if !isValid {
 		return MoveValidationResult{Valid: false, Error: "Illegal move"}
 	}
+
+	// Apply the move
+	g.Bitboards = CloneAndApplyMove(g.Bitboards, fromIdx, toIdx, "q")
+
+	// Toggle Turn
+	if g.turn == White {
+		g.turn = Black
+	} else {
+		g.turn = White
+		g.FullmoveNumber++
+	}
+
+	// Update HalfmoveClock (reset on pawn move or capture)
+	enemySide := Black
+	if sideToMove == Black {
+		enemySide = White
+	}
+	isCapture := GetBit(occupancies[enemySide], toIdx)
+	if fromPieceType == Pawn || isCapture {
+		g.HalfmoveClock = 0
+	} else {
+		g.HalfmoveClock++
+	}
+
+	// Update EnPassantTarget
+	g.EnPassantTarget = "-"
+	if fromPieceType == Pawn {
+		if sideToMove == White && toIdx-fromIdx == 16 {
+			g.EnPassantTarget = SquareIndexToString(fromIdx + 8)
+		} else if sideToMove == Black && fromIdx-toIdx == 16 {
+			g.EnPassantTarget = SquareIndexToString(fromIdx - 8)
+		}
+	}
+
+	// Update CastlingRights
+	if g.CastlingRights != "-" {
+		switch fromPieceType {
+		case King:
+			if sideToMove == White {
+				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "K", "")
+				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "Q", "")
+			} else {
+				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "k", "")
+				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "q", "")
+			}
+		case Rook:
+			if sideToMove == White {
+				if fromIdx == 7 {
+					g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "K", "")
+				} // h1
+				if fromIdx == 0 {
+					g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "Q", "")
+				} // a1
+			} else {
+				if fromIdx == 63 {
+					g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "k", "")
+				} // h8
+				if fromIdx == 56 {
+					g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "q", "")
+				} // a8
+			}
+		}
+		if g.CastlingRights == "" {
+			g.CastlingRights = "-"
+		}
+	}
+
+	g.history = append(g.history, move.From+move.To)
 
 	return MoveValidationResult{Valid: true}
 }
@@ -220,8 +349,7 @@ func (g *Game) FEN() string {
 		turnStr = "b"
 	}
 
-	// Default castling, en passant, half and full move to initial-like values
-	fen.WriteString(" " + turnStr + " - - 0 1")
+	fen.WriteString(fmt.Sprintf(" %s %s %s %d %d", turnStr, g.CastlingRights, g.EnPassantTarget, g.HalfmoveClock, g.FullmoveNumber))
 	return fen.String()
 }
 
@@ -271,7 +399,7 @@ func (g *Game) LegalMoves() []string {
 		var pseudoMoves []Movement
 		switch pType {
 		case Pawn:
-			pseudoMoves = GetPawnMoves(g.turn, pieceBB, combinedOccupancy, enemyOccupancy, utils)
+			pseudoMoves = GetPawnMoves(g.turn, pieceBB, combinedOccupancy, enemyOccupancy, utils, g.EnPassantTarget)
 		case Knight:
 			pseudoMoves = GetKnightMoves(pieceBB, ownOccupancy, utils)
 		case King:
@@ -285,7 +413,7 @@ func (g *Game) LegalMoves() []string {
 			toIdx := ToBitIndex(m.To)
 			toStr := SquareIndexToString(toIdx)
 			// Apply move to clone
-			newBB := CloneAndApplyMove(g.Bitboards, i, toIdx)
+			newBB := CloneAndApplyMove(g.Bitboards, i, toIdx, "q")
 			newMap, _, checkCombined := newBB.GenerateMaps()
 
 			kingBB := newMap[PieceKey{Side: g.turn, PieceType: King}]

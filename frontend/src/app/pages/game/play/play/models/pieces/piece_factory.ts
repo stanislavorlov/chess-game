@@ -59,7 +59,8 @@ export class PieceFactory {
             case 'k':
                 return new King(side);
             default:
-                throw Error(`Un-recognized piece char: ${char}`);
+                console.log(`Un-recognized piece char: ${char}`);
+                return null;
         }
     }
 }

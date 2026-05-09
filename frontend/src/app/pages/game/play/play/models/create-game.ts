@@ -1,6 +1,8 @@
 export class CreateGame {
-    name: string;
     format: string;
-    time: string;
-    increment: string
+    baseTime: number;
+    increment: number;
+    color?: string;
+    difficulty?: string;
+    startingFen?: string;
 }

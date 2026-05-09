@@ -1,275 +1,72 @@
 import asyncio
-import json
 import logging
-import os
-import time
 import grpc
-from contextlib import asynccontextmanager
-from typing import Annotated
-from ..interface.grpc import chessai_pb2, chessai_pb2_grpc, gamestate_pb2, gamestate_pb2_grpc
-from ..domain.services.fen_service import FenService
-from beanie import PydanticObjectId, init_beanie
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.params import Depends
-from motor.motor_asyncio import AsyncIOMotorClient
-from ..application.commands.move_piece_command import MovePieceCommand
-from ..domain.chessboard.position import Position
-from ..domain.events.piece_move_failed import PieceMoveFailed
-from ..domain.pieces.piece_factory import PieceFactory
-from ..domain.pieces.piece_type import PieceType
-from ..domain.value_objects.game_id import ChessGameId
-from ..domain.value_objects.side import Side
-from ..infrastructure import models
-from ..infrastructure.config.config import Settings
-from ..infrastructure.mediator.container import get_mediator, get_connection_manager, get_repository, get_logger, \
-    get_kafka_service
-from ..infrastructure.services.kafka_service import KafkaService
-from ..infrastructure.services.redis_service import RedisService
-from ..infrastructure import constants
-from ..interface.api.routes import game_api
-from ..interface.api.websockets.managers import ConnectionManager
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-from opentelemetry import trace
+import os
+import sys
 
-# Initialize OpenTelemetry
-provider = TracerProvider()
-try:
-    # Use appending mode to keep all traces across restarts
-    trace_file = open("/Users/stanislavorlov/PycharmProjects/chess-game/backend/traces.json", "a")
-    processor = BatchSpanProcessor(ConsoleSpanExporter(out=trace_file))
-    provider.add_span_processor(processor)
-    trace.set_tracer_provider(provider)
-except Exception as e:
-    logging.error(f"Failed to setup OTEL File Exporter: {e}")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    force=True,
-)
+from chessapp.ai.alpha_beta import get_best_move
+from chessapp.ai.bitboards import Bitboards, Side
+from chessapp.interface.rpc import chessai_pb2_grpc, chessai_pb2
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("chessapp")
 
-# Silence noisy third-party logs
-logging.getLogger("pymongo").setLevel(logging.WARNING)
-logging.getLogger("motor").setLevel(logging.WARNING)
-logging.getLogger("aiokafka").setLevel(logging.WARNING)
+def index_to_square(index: int) -> str:
+    file = index % 8
+    rank = index // 8
+    return chr(ord('a') + file) + str(rank + 1)
 
 class AiService(chessai_pb2_grpc.AiServiceServicer):
     async def GetPredictedMove(self, request, context):
-        logger.info(f"Predicting move for bitboards_state={request.bitboards_state}, is_white={request.is_white_turn}")
+        logger.info(f"Predicting move. is_white={request.is_white_turn}")
         
-        # TODO: Call actual AI model
-        predicted_move = "e2e4" 
+        state = request.bitboards_state
+        bb = Bitboards(
+            white_pawns=state.white_pawns,
+            white_knights=state.white_knights,
+            white_bishops=state.white_bishops,
+            white_rooks=state.white_rooks,
+            white_queens=state.white_queens,
+            white_kings=state.white_kings,
+            black_pawns=state.black_pawns,
+            black_knights=state.black_knights,
+            black_bishops=state.black_bishops,
+            black_rooks=state.black_rooks,
+            black_queens=state.black_queens,
+            black_kings=state.black_kings
+        )
+        
+        turn = Side.White if request.is_white_turn else Side.Black
+        
+        depth = int(os.getenv("ENGINE_DEPTH", "3"))
+        best_move = get_best_move(bb, depth=depth, turn=turn)
+        
+        if not best_move:
+            logger.warning("No legal moves found! Returning empty UCI.")
+            return chessai_pb2.PredictedMoveResponse(uci_move="")
+            
+        from_sq = index_to_square(best_move[0])
+        to_sq = index_to_square(best_move[1])
+        uci_move = f"{from_sq}{to_sq}"
+        
+        logger.info(f"Predicted move: {uci_move}")
         
         return chessai_pb2.PredictedMoveResponse(
-            uci_move=predicted_move
+            uci_move=uci_move
         )
 
-
-class GameStateServicer(gamestate_pb2_grpc.GameStateServicer):
-    async def GetState(self, request, context):
-        logger.info(f"Retrieving game state for game_id={request.game_id}")
-        try:
-            game_id = PydanticObjectId(request.game_id)
-            repo = get_repository()
-            game = await repo.find(game_id)
-            if not game:
-                context.set_code(grpc.StatusCode.NOT_FOUND)
-                context.set_details(f"Game {request.game_id} not found")
-                return gamestate_pb2.GameStateResponse()
-
-            fen = FenService.generate(game.get_board())
-            # Add side to move and other FEN details if needed, 
-            # but FenService currently only generates piece placement.
-            # Let's adjust it to be a full FEN if possible.
-            turn = "w" if game.game_state.turn == Side.white() else "b"
-            full_fen = f"{fen} {turn} - - 0 1"
-
-            return gamestate_pb2.GameStateResponse(fen=full_fen)
-        except Exception as e:
-            logger.error(f"Error retrieving game state: {e}")
-            context.set_code(grpc.StatusCode.INTERNAL)
-            context.set_details(str(e))
-            return gamestate_pb2.GameStateResponse()
-
-
-async def consume_kafka_commands(_app: FastAPI):
-    try:
-        kafka_service: KafkaService = _app.state.kafka
-        
-        # Manually get dependencies since we're outside a request context
-        repo = get_repository()
-        settings = Settings()
-        redis = RedisService(settings)
-        logger_ = get_logger()
-        mediator = get_mediator(repo, redis, logger_)
-
-        async for command_data in kafka_service.consume_messages(
-            constants.KAFKA_CHESS_COMMANDS_TOPIC, 
-            group_id=constants.KAFKA_CHESS_COMMANDS_GROUP_ID
-        ):
-            try:
-                # Command data now only needs game_id, from, to
-                piece_dict = command_data['piece']
-                captured_dict = command_data['capturedPiece']
-                command = MovePieceCommand(
-                    game_id=ChessGameId(PydanticObjectId(command_data['game_id'])),
-                    from_=Position.parse(command_data['from']),
-                    to=Position.parse(command_data['to']),
-                    piece=PieceFactory.create(Side(piece_dict['_side']['_value']), PieceType.value_of(piece_dict['_type'])),
-                    captured=PieceFactory.create(Side(captured_dict['_side']['_value']), PieceType.value_of(captured_dict['_type'])) if captured_dict else None,
-                )
-                logger.info(f"Consuming command from Kafka: {command}")
-                await mediator.handle_command(command)
-            except Exception as e:
-                logger.exception(f"Error processing Kafka command: {e}")
-                # Report failure back to client via Redis
-                try:
-                    game_id_str = command_data.get('gameId')
-                    if game_id_str:
-                        failure_event = PieceMoveFailed(
-                            game_id=ChessGameId(PydanticObjectId(game_id_str)),
-                            piece=None,
-                            from_=Position.parse(command_data['from']),
-                            to=Position.parse(command_data['to']),
-                            reason=str(e)
-                        )
-                        await redis.publish(f"{constants.REDIS_CHESS_NOTIFICATIONS_CHANNEL_PREFIX}{game_id_str}", json.dumps(failure_event.to_dict()))
-                except Exception as redis_err:
-                    logger.error(f"Failed to publish error to Redis: {redis_err}")
-    except asyncio.CancelledError:
-        logger.info("Kafka consumer task cancelled")
-    except Exception as e:
-        logger.error(f"Kafka consumer crashed: {e}")
-
-async def subscribe_redis_notifications(_app: FastAPI):
-    redis_service: RedisService = _app.state.redis
-    connection_manager = get_connection_manager()
-
-    try:
-        async for message in redis_service.subscribe(constants.REDIS_CHESS_NOTIFICATIONS_PATTERN):
-            try:
-                # message is a JSON string
-                data = json.loads(message)
-                game_id = data.get('game_id')
-                if game_id:
-                    await connection_manager.send_all(str(game_id), message)
-            except Exception as e:
-                logger.error(f"Error processing Redis notification: {e}")
-    except asyncio.CancelledError:
-        logger.info("Redis subscriber task cancelled")
-    except Exception as e:
-        logger.error(f"Redis subscriber crashed: {e}")
-
-@asynccontextmanager
-async def lifespan(_app: FastAPI):
-    settings = Settings()
-    client = AsyncIOMotorClient(settings.MONGO_HOST)
+async def serve():
+    server = grpc.aio.server()
+    chessai_pb2_grpc.add_AiServiceServicer_to_server(AiService(), server)
     
-    try:
-        await init_beanie(
-            database=client.get_database(settings.MONGO_DB),
-            document_models=models.__all__
-        )
-    except Exception as e:
-        raise
-
-    _app.state.redis = RedisService(settings)
-    _app.state.kafka = KafkaService(settings)
+    port = os.getenv("CHESSAPP_GRPC_PORT", "50053")
+    server.add_insecure_port(f'[::]:{port}')
     
-    # Start background tasks
-    kafka_task = asyncio.create_task(consume_kafka_commands(_app))
-    redis_task = asyncio.create_task(subscribe_redis_notifications(_app))
+    logger.info(f"Starting chessapp AI gRPC server on port {port}")
+    await server.start()
+    await server.wait_for_termination()
 
-    # Start built-in gRPC Server
-    grpc_server = grpc.aio.server()
-    chessai_pb2_grpc.add_AiServiceServicer_to_server(AiService(), grpc_server)
-    gamestate_pb2_grpc.add_GameStateServicer_to_server(GameStateServicer(), grpc_server)
-    
-    grpc_port = os.getenv('CHESSAPP_GRPC_PORT', '50052')
-    grpc_server.add_insecure_port(f'[::]:{grpc_port}')
-    await grpc_server.start()
-    logger.info(f"Python gRPC Server started on port {grpc_port}")
-
-    yield
-
-    # Cancellation of background tasks
-    kafka_task.cancel()
-    redis_task.cancel()
-    
-    # Wait for tasks to clean up
-    await asyncio.gather(kafka_task, redis_task, return_exceptions=True)
-    
-    await _app.state.kafka.stop_all()
-    await _app.state.redis.disconnect()
-    await grpc_server.stop(0)
-    client.close()
-
-
-def create_app() -> FastAPI:
-    _app = FastAPI(lifespan=lifespan)
-
-    _app.include_router(game_api.router)
-
-    _app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-    @_app.middleware("http")
-    async def add_process_time_header(request, call_next):
-        start_time = time.time()
-        response = await call_next(request)
-        process_time = time.time() - start_time
-        logger.info(f"HTTP {request.method} {request.url.path} processed in {process_time:.4f}s")
-        response.headers["X-Process-Time"] = str(process_time)
-        return response
-
-    return _app
-
-app = create_app()
-
-@app.websocket("/ws/{game_id}")
-async def websocket_endpoint(
-        game_id: str,
-        websocket: WebSocket,
-        connection_manager: Annotated[ConnectionManager, Depends(get_connection_manager)],
-        kafka_service: Annotated[KafkaService, Depends(get_kafka_service)]
-):
-    await connection_manager.accept_connection(websocket=websocket, key=game_id)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            logger.info(f"Websocket message received for game {game_id}: {data}")
-            
-            message_data = json.loads(data)
-            message_data['game_id'] = game_id # Ensure game_id is present
-            
-            try:
-                msg_start = time.time()
-                # Produce to Kafka for durable processing
-                await kafka_service.send_message(constants.KAFKA_CHESS_COMMANDS_TOPIC, message_data)
-                msg_duration = time.time() - msg_start
-                logger.info(f"Command produced to Kafka successfully in {msg_duration:.4f}s")
-            except Exception as e:
-                logger.error(f"Failed to produce to Kafka: {e}")
-                # Immediate feedback if local production fails
-
-                await websocket.send_text(json.dumps(PieceMoveFailed(
-                    game_id=ChessGameId(PydanticObjectId(game_id)),
-                    piece=None,
-                    from_=Position.parse(message_data['from']),
-                    to=Position.parse(message_data['to']),
-                    reason="Connection error: Failed to queue move"
-                ).to_dict()))
-
-    except WebSocketDisconnect:
-        await connection_manager.remove_connection(websocket, game_id)
-    except Exception as e:
-        logger.error(f"WebSocket error in {game_id}: {e}")
-        await connection_manager.remove_connection(websocket, game_id)
+if __name__ == '__main__':
+    asyncio.run(serve())

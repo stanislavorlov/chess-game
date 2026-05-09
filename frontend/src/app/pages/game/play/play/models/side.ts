@@ -17,9 +17,10 @@ export class Side {
     }
 
     static parse(value: string) {
-        if (value == this.white.value)
+        const upperValue = value.toUpperCase();
+        if (upperValue == this.white.value)
             return Side.white;
-        else if (value == this.black.value)
+        else if (upperValue == this.black.value)
             return Side.black;
         else {
             throw new Error('Un-supported Side value for parsing provided');

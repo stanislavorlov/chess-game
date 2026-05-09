@@ -1,7 +1,11 @@
 package ws
 
+type Side struct {
+	Value string `json:"_value"`
+}
+
 type Piece struct {
-	Side      string `json:"_side"`
+	Side      Side   `json:"_side"`
 	PieceType string `json:"_type"`
 }
 
@@ -36,4 +40,33 @@ type GameUpdateData struct {
 	Fen      []byte `json:"fen"`
 	LastMove string `json:"last_move"`
 	State    uint8  `json:"state"`
+}
+
+type SyncedStateEvent struct {
+	EventType  string `json:"event_type"`
+	GameID     string `json:"game_id"`
+	Turn       string `json:"turn"`
+	LegalMoves string `json:"legal_moves"`
+}
+
+type PieceMoveFailedEvent struct {
+	EventType string `json:"event_type"`
+	GameID    string `json:"game_id"`
+	Reason    string `json:"reason"`
+	From      string `json:"from_"`
+	To        string `json:"to"`
+}
+
+type KingCheckedEvent struct {
+	EventType string `json:"event_type"`
+	GameID    string `json:"game_id"`
+	Side      string `json:"side"`
+	Position  string `json:"position"`
+}
+
+type GameFinishedEvent struct {
+	EventType    string `json:"event_type"`
+	GameID       string `json:"game_id"`
+	Result       string `json:"result"`
+	FinishedDate string `json:"finished_date"`
 }

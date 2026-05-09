@@ -51,7 +51,7 @@ func (r *MongoRepository) GetGame(ctx context.Context, gameID string) (*models.G
 	var state GameState
 	coll := r.database.Collection(GameStateCollection)
 
-	err := coll.FindOne(ctx, bson.M{"game_id": gameID}).Decode(&state)
+	err := coll.FindOne(ctx, bson.M{"_id": gameID}).Decode(&state)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil // Return nil if not found, not an error
@@ -59,22 +59,36 @@ func (r *MongoRepository) GetGame(ctx context.Context, gameID string) (*models.G
 		return nil, fmt.Errorf("failed to fetch game state: %w", err)
 	}
 
-	// Load just one last entry
-	var history GameHistory
+	// Load all history entries
+	var histories []GameHistory
 	coll = r.database.Collection(GameHistoryCollection)
-	err = coll.FindOne(ctx, bson.M{"game_id": gameID}, options.FindOne().SetSort(bson.M{"sequence": -1})).Decode(&history)
+	cursor, err := coll.Find(ctx, bson.M{"game_id": gameID}, options.Find().SetSort(bson.M{"sequence": 1}))
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, nil // Return nil if not found, not an error
+		return nil, fmt.Errorf("failed to fetch game histories: %w", err)
+	}
+	defer cursor.Close(ctx)
+	if err := cursor.All(ctx, &histories); err != nil {
+		return nil, fmt.Errorf("failed to decode game histories: %w", err)
+	}
+
+	if len(histories) == 0 {
+		return nil, nil // Return nil if not found
+	}
+
+	lastFen := histories[len(histories)-1].BoardFen
+	var sanMoves []string
+	for _, h := range histories {
+		if h.SanMove != "" {
+			sanMoves = append(sanMoves, h.SanMove)
 		}
-		return nil, fmt.Errorf("Failed to fetch game history: %w", err)
 	}
 
 	game := factories.LoadGame(
 		state.ID,
 		models.GameStatus(state.Status),
 		models.NewGameFormat(state.Format.Name, state.Format.Minutes, state.Format.MoveIncrementMs),
-		history.BoardFen,
+		lastFen,
+		sanMoves,
 		state.Result.Winner)
 
 	return game, nil
@@ -85,6 +99,15 @@ func (r *MongoRepository) CreateGameState(ctx context.Context, game *GameState) 
 	_, err := coll.InsertOne(ctx, game)
 	if err != nil {
 		return fmt.Errorf("failed to create game state: %w", err)
+	}
+	return nil
+}
+
+func (r *MongoRepository) CreateGameHistory(ctx context.Context, history *GameHistory) error {
+	coll := r.database.Collection(GameHistoryCollection)
+	_, err := coll.InsertOne(ctx, history)
+	if err != nil {
+		return fmt.Errorf("failed to create game history: %w", err)
 	}
 	return nil
 }

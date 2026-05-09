@@ -53,6 +53,12 @@ export class SyncedStateEvent extends GameEvent {
     }
 }
 
+export class AiPredictedMoveEvent extends GameEvent {
+    constructor(game_id: string, public readonly predicted_ai_move: string) {
+        super(game_id, 'ai-predicted-move');
+    }
+}
+
 export class GameEventFactory {
     static fromRaw(data: any): GameEvent | null {
         switch (data.event_type) {
@@ -72,6 +78,8 @@ export class GameEventFactory {
                 return new SyncedStateEvent(data.game_id, Side.parse(data.turn), data.legal_moves || "");
             case 'game-finished':
                 return new GameFinishedEvent(data.game_id, data.result, data.finished_date);
+            case 'ai-predicted-move':
+                return new AiPredictedMoveEvent(data.game_id, data.predicted_ai_move);
             default:
                 return null;
         }

@@ -112,20 +112,27 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 		}
 	}
 
-	// 2. Asynchronously request AI prediction and publish it
-	go func() {
-		predictedMoveUci, err := services.PredictMove(context.Background(), gameID, game.Bitboards)
-		if err != nil {
-			log.Printf("Failed to get predicted move: %v", err)
-			return
-		}
+	if game.Mode() == "bot" {
+		isWhiteTurn := game.Turn() == "w"
+		isBotTurn := (isWhiteTurn && game.LightPlayer() == "computer") || (!isWhiteTurn && game.DarkPlayer() == "computer")
 
-		// Publish AI move prediction
-		resp2Bytes, _ := json.Marshal(ws.AIPredictedMove{
-			GameID:          gameID,
-			PredictedAiMove: predictedMoveUci,
-			EventType:       "ai-predicted-move",
-		})
-		send(resp2Bytes)
-	}()
+		if isBotTurn {
+			// 2. Asynchronously request AI prediction and publish it
+			go func() {
+				predictedMoveUci, err := services.PredictMove(context.Background(), gameID, game.Bitboards, isWhiteTurn)
+				if err != nil {
+					log.Printf("Failed to get predicted move: %v", err)
+					return
+				}
+
+				// Publish AI move prediction
+				resp2Bytes, _ := json.Marshal(ws.AIPredictedMove{
+					GameID:          gameID,
+					PredictedAiMove: predictedMoveUci,
+					EventType:       "ai-predicted-move",
+				})
+				send(resp2Bytes)
+			}()
+		}
+	}
 }

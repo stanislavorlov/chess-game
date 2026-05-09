@@ -147,7 +147,7 @@ def get_pawn_moves(side: Side, pawns: int, occupancy_combined: int, occupancy_op
         capture_right = (pawns << 9) & occupancy_opponent & ~utils.FILE_A
     else:
         single_push = (pawns >> 8) & empty_squares
-        double_push = ((pawns & utils.RANK_7) >> 8 & emptySquares) >> 8 & emptySquares
+        double_push = ((pawns & utils.RANK_7) >> 8 & empty_squares) >> 8 & empty_squares
         capture_left = (pawns >> 9) & occupancy_opponent & ~utils.FILE_H
         capture_right = (pawns >> 7) & occupancy_opponent & ~utils.FILE_A
 

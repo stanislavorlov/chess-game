@@ -11,6 +11,8 @@ type Game struct {
 	status          GameStatus
 	format          GameFormat
 	mode            string
+	lightPlayer     string
+	darkPlayer      string
 	Bitboards       Bitboards
 	turn            Side
 	history         []string
@@ -71,12 +73,14 @@ type MoveValidationResult struct {
 	Error string
 }
 
-func LoadGame(game_id string, status GameStatus, format GameFormat, mode string, bitboards Bitboards, turn Side, history []string, result string, castlingRights string, enPassantTarget string, halfmoveClock int, fullmoveNumber int) Game {
+func LoadGame(game_id string, status GameStatus, format GameFormat, mode string, lightPlayer string, darkPlayer string, bitboards Bitboards, turn Side, history []string, result string, castlingRights string, enPassantTarget string, halfmoveClock int, fullmoveNumber int) Game {
 	return Game{
 		game_id:         game_id,
 		status:          status,
 		format:          format,
 		mode:            mode,
+		lightPlayer:     lightPlayer,
+		darkPlayer:      darkPlayer,
 		Bitboards:       bitboards,
 		turn:            turn,
 		history:         history,
@@ -130,6 +134,14 @@ func (g *Game) FormatMinutes() int {
 
 func (g *Game) Mode() string {
 	return g.mode
+}
+
+func (g *Game) LightPlayer() string {
+	return g.lightPlayer
+}
+
+func (g *Game) DarkPlayer() string {
+	return g.darkPlayer
 }
 
 func (g *Game) FormatIncrement() int {

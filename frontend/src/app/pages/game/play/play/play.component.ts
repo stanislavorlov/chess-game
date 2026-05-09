@@ -183,6 +183,21 @@ export class PlayComponent implements OnInit, OnDestroy {
             } else if (event instanceof DomainEvents.SyncedStateEvent) {
               console.log('SyncedState received, turn:', event.turn.name);
               this.game.syncState(event.turn, event.legal_moves);
+            } else if (event instanceof DomainEvents.AiPredictedMoveEvent) {
+              console.log('AI predicted move:', event.predicted_ai_move);
+              const uci = event.predicted_ai_move;
+              if (uci && uci.length >= 4) {
+                const fromSq = uci.substring(0, 2);
+                const toSq = uci.substring(2, 4);
+                const fromCell = this.game.board.cells.find(c => c.id === fromSq);
+                const toCell = this.game.board.cells.find(c => c.id === toSq);
+                if (fromCell && toCell) {
+                  if (this.game.movePiece(fromCell, toCell)) {
+                    let historyEntry = this.game.history.at(-1);
+                    this.playService.sendMessage(historyEntry);
+                  }
+                }
+              }
             } else if (event instanceof DomainEvents.GameFinishedEvent) {
               console.log('Game finished:', event.result);
               this.dialog.open(GameOverDialogComponent, {

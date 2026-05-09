@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func LoadGame(game_id string, status models.GameStatus, format models.GameFormat, fen string, history []string, result string) *models.Game {
+func LoadGame(game_id string, status models.GameStatus, format models.GameFormat, mode string, fen string, history []string, result string) *models.Game {
 	bitboards, err := FENToBitboards(fen)
 	if err != nil {
 		log.Printf("Failed to convert FEN to bitboards: %v", err)
@@ -38,7 +38,7 @@ func LoadGame(game_id string, status models.GameStatus, format models.GameFormat
 		fmt.Sscanf(parts[5], "%d", &fullMove)
 	}
 
-	game := models.LoadGame(game_id, status, format, bitboards, turn, history, result, castling, enPassant, halfMove, fullMove)
+	game := models.LoadGame(game_id, status, format, mode, bitboards, turn, history, result, castling, enPassant, halfMove, fullMove)
 	return &game
 }
 

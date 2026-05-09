@@ -128,19 +128,37 @@ func (h *GameHandler) RequestComputerGame(w http.ResponseWriter, r *http.Request
 
 	gameId := uuid.New().String()
 
+	lightPlayer := "guest"
+	darkPlayer := "computer"
+
+	color := strings.ToLower(gameRequest.Color)
+	if color == "random" {
+		if time.Now().UnixNano()%2 == 0 {
+			color = "black"
+		} else {
+			color = "white"
+		}
+	}
+
+	if color == "black" {
+		lightPlayer = "computer"
+		darkPlayer = "guest"
+	}
+
 	game := database.GameState{
 		ID:         gameId,
 		Status:     "started",
 		CreatedAt:  time.Now(),
 		StartedAt:  time.Now(),
+		Mode:       "bot",
 		Format: database.GameFormat{
 			Name:            gameRequest.Format,
 			Minutes:         gameRequest.BaseTime,
 			MoveIncrementMs: gameRequest.Increment,
 		},
 		Players: database.GamePlayers{
-			LightPlayerId: "computer",
-			DarkPlayerId:  "computer",
+			LightPlayerId: lightPlayer,
+			DarkPlayerId:  darkPlayer,
 		},
 	}
 

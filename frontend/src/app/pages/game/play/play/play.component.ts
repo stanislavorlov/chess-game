@@ -54,6 +54,8 @@ export class PlayComponent implements OnInit, OnDestroy {
   public formats: string[];
   public selectedFormat = '';
   public selectedTimeOption: TimeControlOption | null = null;
+  public selectedMode = 'bot';
+  public selectedSide = 'random';
   public game: ChessGame;
   public isFlipped = false;
 
@@ -212,14 +214,20 @@ export class PlayComponent implements OnInit, OnDestroy {
     new_game.increment = parseInt(this.selectedTimeOption?.incrementPerMove || '0', 10);
     new_game.format = this.selectedFormat;
     new_game.baseTime = parseInt(this.selectedTimeOption?.baseTime || '0', 10);
-    new_game.color = "random";
-    new_game.difficulty = "1";
 
-    this.chessService.startGame(new_game).subscribe((data: ChessGameDto) => {
-      let gameId = data.game_id;
+    if (this.selectedMode === 'bot') {
+      new_game.color = this.selectedSide;
+      new_game.difficulty = "1";
 
-      this.router.navigate(['/play', gameId])
-    });
+      this.chessService.startGame(new_game).subscribe((data: ChessGameDto) => {
+        let gameId = data.game_id;
+        this.router.navigate(['/play', gameId])
+      });
+    } else {
+      this.chessService.startOnlineGame(new_game).subscribe((data: any) => {
+        this.snackBar.open("Searching for opponent...", "Close", { duration: 3000 });
+      });
+    }
   }
 
   selectTime(option: TimeControlOption): void {

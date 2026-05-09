@@ -20,6 +20,10 @@ export class ChessService {
     return this.httpClient.post<ChessGameDto>('/api/game/computer', game, {});
   }
 
+  startOnlineGame(game: CreateGame) {
+    return this.httpClient.post('/api/game/online', game, {});
+  }
+
   newGame() {
     let board = new Board('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
 

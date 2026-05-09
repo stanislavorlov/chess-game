@@ -27,6 +27,7 @@ type GameState struct {
 	Result     GameResult  `bson:"result"`
 	Format     GameFormat  `bson:"format"`
 	Players    GamePlayers `bson:"players"`
+	Mode       string      `bson:"mode"`
 }
 
 type GameHistory struct {

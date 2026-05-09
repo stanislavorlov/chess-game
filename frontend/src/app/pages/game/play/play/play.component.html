@@ -57,6 +57,21 @@
             </div>
             <div class="col-lg-4">
                 <div *ngIf="!gameInitialized()">
+                    <mat-label class="f-w-600 m-b-8 d-block">Game Mode</mat-label>
+                    <mat-radio-group [(ngModel)]="selectedMode" class="d-block m-b-16">
+                        <mat-radio-button value="bot" class="m-r-8">Play Bots</mat-radio-button>
+                        <mat-radio-button value="online">Play Online</mat-radio-button>
+                    </mat-radio-group>
+
+                    <div *ngIf="selectedMode === 'bot'" class="m-b-16">
+                        <mat-label class="f-w-600 m-b-8 d-block">Side</mat-label>
+                        <mat-radio-group [(ngModel)]="selectedSide">
+                            <mat-radio-button value="white" class="m-r-8">White</mat-radio-button>
+                            <mat-radio-button value="black" class="m-r-8">Black</mat-radio-button>
+                            <mat-radio-button value="random">Random</mat-radio-button>
+                        </mat-radio-group>
+                    </div>
+
                     <mat-label class="f-w-600 m-b-8 d-block">Time selector</mat-label>
                     <mat-form-field appearance="outline" class="w-100">
                         <mat-select [(value)]="selectedFormat">

@@ -124,6 +124,10 @@ type MatchingQueue struct {
 	Rated           bool      `bson:"rated"`            // Is the game affecting ELO?
 	Culture         string    `bson:"culture"`          // en, es, fr, de, etc.
 	OpponentID      string    `bson:"opponent_id"`      // Optional: direct challenge
+	Region          string    `bson:"region"`
+	RD              int       `bson:"rd"`
+	Ping            int       `bson:"ping"`
+	Ranking         int       `bson:"ranking"`
 	CreatedAt       time.Time `bson:"created_at"`
 	ExpiresAt       time.Time `bson:"expires_at"`
 	Status          string    `bson:"status"`          // open, matched, cancelled

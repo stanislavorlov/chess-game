@@ -113,6 +113,15 @@ func (r *MongoRepository) CreateGameHistory(ctx context.Context, history *GameHi
 	return nil
 }
 
+func (r *MongoRepository) CreateMatchingQueue(ctx context.Context, queueItem *MatchingQueue) error {
+	coll := r.database.Collection("matching_queues") // or whatever collection name is appropriate
+	_, err := coll.InsertOne(ctx, queueItem)
+	if err != nil {
+		return fmt.Errorf("failed to create matching queue: %w", err)
+	}
+	return nil
+}
+
 // Disconnect closes the MongoDB connection.
 func (r *MongoRepository) Disconnect(ctx context.Context) error {
 	if r.client != nil {

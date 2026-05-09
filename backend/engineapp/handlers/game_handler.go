@@ -216,5 +216,34 @@ func (h *GameHandler) RequestOnlineGame(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// ToDo: create a record in the Matching queue, wait for another player to accept
+	queueItem := database.MatchingQueue{
+		ID:              uuid.New().String(),
+		PlayerID:        "guest", // ToDo: Get from auth context
+		ProfileID:       "guest",
+		GameFormat:      gameRequest.Format,
+		BaseTime:        gameRequest.BaseTime,
+		Increment:       gameRequest.Increment,
+		ColorPreference: gameRequest.ColorPreference,
+		Rated:           gameRequest.Rated,
+		Culture:         gameRequest.Culture,
+		OpponentID:      gameRequest.OpponentID,
+		Region:          "unknown", // ToDo: resolve from request
+		RD:              0,
+		Ping:            0,
+		Ranking:         1200,
+		CreatedAt:       time.Now(),
+		ExpiresAt:       time.Now().Add(5 * time.Minute),
+		Status:          "open",
+	}
+
+	if err := h.Repo.CreateMatchingQueue(r.Context(), &queueItem); err != nil {
+		log.Printf("Failed to create matching queue: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Failed to create matching queue"))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(queueItem)
 }

@@ -1,10 +1,10 @@
 name: chess-compose
 services:
-  main-app:
+  predict-app:
     build:
       context: ..
       dockerfile: predictapp/Dockerfile
-    container_name: main-app
+    container_name: predict-app
     ports:
       - "${PREDICTAPP_HTTP_PORT:-8000}:${PREDICTAPP_HTTP_PORT:-8000}"
       - "${PREDICTAPP_GRPC_PORT:-50052}:${PREDICTAPP_GRPC_PORT:-50052}"

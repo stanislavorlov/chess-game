@@ -14,15 +14,15 @@ import (
 )
 
 func PredictMove(ctx context.Context, gameID string, bitboards models.Bitboards, isWhiteTurn bool) (string, error) {
-	// Call Python chessapp via gRPC for AI move
-	grpcHost := os.Getenv("CHESSAPP_GRPC_HOST")
+	// Call Python predictapp via gRPC for AI move
+	grpcHost := os.Getenv("PREDICTAPP_GRPC_HOST")
 	if grpcHost == "" {
-		return "", errors.New("CHESSAPP_GRPC_HOST not set")
+		return "", errors.New("PREDICTAPP_GRPC_HOST not set")
 	}
 
 	conn, err := grpc.NewClient(grpcHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return "", errors.New("Failed to get predicted move from chessapp")
+		return "", errors.New("Failed to get predicted move from predictapp")
 	} else {
 		defer conn.Close()
 		client := pb.NewAiServiceClient(conn)
@@ -56,5 +56,5 @@ func PredictMove(ctx context.Context, gameID string, bitboards models.Bitboards,
 		}
 	}
 
-	return "", errors.New("Failed to get predicted move from chessapp")
+	return "", errors.New("Failed to get predicted move from predictapp")
 }

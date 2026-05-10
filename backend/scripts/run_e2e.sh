@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Starting FastAPI server in the background..."
-uvicorn chessapp.interface.main:app &
+uvicorn predictapp.interface.main:app &
 UVICORN_PID=$!
 
 echo "Starting Angular frontend in the background..."
@@ -14,7 +14,7 @@ sleep 10 # Give Node and Python both some time to start up
 cd ../backend
 
 echo "Running integration tests..."
-PYTHONPATH=. pytest chessapp/tests/integration/test_game_e2e.py
+PYTHONPATH=. pytest predictapp/tests/integration/test_game_e2e.py
 TEST_EXIT_CODE=$?
 
 echo "Stopping Angular frontend (PID: $ANGULAR_PID)..."

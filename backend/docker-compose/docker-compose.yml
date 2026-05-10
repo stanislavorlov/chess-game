@@ -3,12 +3,12 @@ services:
   main-app:
     build:
       context: ..
-      dockerfile: chessapp/Dockerfile
+      dockerfile: predictapp/Dockerfile
     container_name: main-app
     ports:
-      - "${CHESSAPP_HTTP_PORT:-8000}:${CHESSAPP_HTTP_PORT:-8000}"
-      - "${CHESSAPP_GRPC_PORT:-50052}:${CHESSAPP_GRPC_PORT:-50052}"
-    command: "uvicorn --factory chessapp.interface.main:create_app --reload --timeout-graceful-shutdown 2 --host 0.0.0.0 --port ${CHESSAPP_HTTP_PORT:-8000}"
+      - "${PREDICTAPP_HTTP_PORT:-8000}:${PREDICTAPP_HTTP_PORT:-8000}"
+      - "${PREDICTAPP_GRPC_PORT:-50052}:${PREDICTAPP_GRPC_PORT:-50052}"
+    command: "uvicorn --factory predictapp.interface.main:create_app --reload --timeout-graceful-shutdown 2 --host 0.0.0.0 --port ${PREDICTAPP_HTTP_PORT:-8000}"
     env_file:
       - ../.env
     volumes:

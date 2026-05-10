@@ -1,0 +1,314 @@
+import unittest
+from datetime import datetime
+from predictapp.domain.game.chess_game import ChessGame
+from predictapp.domain.value_objects.game_id import ChessGameId
+from predictapp.domain.players.players import Players
+from predictapp.domain.value_objects.game_information import GameInformation
+from predictapp.domain.value_objects.game_format import GameFormat
+from predictapp.domain.chessboard.position import Position
+from predictapp.domain.chessboard.file import File
+from predictapp.domain.chessboard.rank import Rank
+from predictapp.domain.value_objects.side import Side
+from predictapp.domain.pieces.piece_factory import PieceFactory
+from predictapp.domain.pieces.piece_type import PieceType
+from predictapp.domain.value_objects.game_status import GameStatus
+from predictapp.domain.events.piece_moved import PieceMoved
+from predictapp.domain.events.piece_captured import PieceCaptured
+from predictapp.domain.events.game_created import GameCreated
+from predictapp.domain.events.game_started import GameStarted
+from predictapp.domain.events.game_finished import GameFinished
+from predictapp.domain.events.king_castled import KingCastled
+from predictapp.domain.events.pawn_promoted import PawnPromoted
+from predictapp.domain.events.king_checked import KingChecked
+from predictapp.domain.events.king_checkmated import KingCheckMated
+from predictapp.domain.events.synced_state import SyncedState
+from predictapp.domain.events.piece_move_failed import PieceMoveFailed
+from predictapp.domain.game.history_entry import ChessGameHistoryEntry
+from predictapp.domain.game.game_history import ChessGameHistory
+from predictapp.domain.value_objects.history_entry_id import HistoryEntryId
+
+class TestChessGame(unittest.TestCase):
+    def setUp(self):
+        self.game_id = ChessGameId.generate_id()
+        self.players = Players("white_id", "black_id")
+        # Need to use specific format that is supported by validation
+        game_format = GameFormat.parse_string("rapid", "10", "0")
+        self.info = GameInformation(game_format, datetime.now(), "Test Game")
+        self.game = ChessGame.create(self.game_id, self.players, self.info)
+        self.game.start()
+
+    def test_move_enforcement(self):
+        # White to move first
+        from_pos = Position(File.e(), Rank.r2())
+        to_pos = Position(File.e(), Rank.r4())
+        piece = self.game.get_board()[from_pos].piece
+        
+        # valid move
+        self.game.move_piece(from_pos, to_pos, piece, None)
+        self.assertEqual(self.game.game_state.turn, Side.black())
+
+
+    def test_moves_count(self):
+        # Initial moves count is 0
+        self.assertEqual(self.game.history.moves_count(), 0)
+        
+        # Make a move
+        from_pos = Position.parse("e2")
+        to_pos = Position.parse("e4")
+        piece = self.game.get_board()[from_pos].piece
+        self.game.move_piece(from_pos, to_pos, piece, None)
+        
+        # Moves count should be 1
+        self.assertEqual(self.game.history.moves_count(), 1)
+        
+        # Emit a non-move event (e.g. KingChecked)
+        from predictapp.domain.events.king_checked import KingChecked
+        self.game.history.record(KingChecked(game_id=self.game_id, side=Side.black(), position=Position.parse("e8")))
+        
+        # Moves count should still be 1 (PieceMoved only)
+        self.assertEqual(self.game.history.moves_count(), 1)
+        # Total history: GameCreated, GameStarted, PieceMoved, KingChecked (manual)
+        self.assertEqual(self.game.history.count(), 4)
+
+    def test_apply_event_game_created(self):
+        event = GameCreated(game_id=self.game_id)
+        self.game.apply_event(event)
+        self.assertEqual(self.game.game_state.status, GameStatus.created())
+        self.assertEqual(self.game.game_state.turn, Side.white())
+
+    def test_apply_event_game_started(self):
+        event = GameStarted(game_id=self.game_id, started_date=datetime.now())
+        self.game.apply_event(event)
+        self.assertEqual(self.game.game_state.status, GameStatus.started())
+
+    def test_apply_event_game_finished(self):
+        event = GameFinished(game_id=self.game_id, result="Resignation", finished_date=datetime.now())
+        self.game.apply_event(event)
+        self.assertEqual(self.game.game_state.status, GameStatus.finished())
+
+    def test_apply_event_piece_moved(self):
+        from_pos = Position.parse("e2")
+        to_pos = Position.parse("e4")
+        piece = self.game.get_board()[from_pos].piece
+        event = PieceMoved(game_id=self.game_id, from_=from_pos, to=to_pos, piece=piece)
+        
+        self.game.apply_event(event)
+        self.assertIsNone(self.game.get_board()[from_pos].piece)
+        self.assertEqual(self.game.get_board()[to_pos].piece, piece)
+
+    def test_apply_event_piece_captured(self):
+        from_pos = Position.parse("d2")
+        to_pos = Position.parse("d4")
+        pawn = self.game.get_board()[from_pos].piece
+        event = PieceCaptured(game_id=self.game_id, from_=from_pos, to=to_pos, piece=pawn)
+        self.game.apply_event(event)
+        self.assertIsNone(self.game.get_board()[to_pos].piece)
+
+    def test_apply_event_king_castled(self):
+        # Setup castling event manually
+        king_from = Position.parse("e1")
+        king_to = Position.parse("g1")
+        rook_from = Position.parse("h1")
+        rook_to = Position.parse("f1")
+        
+        event = KingCastled(
+            game_id=self.game_id,
+            side=Side.white(),
+            king_from=king_from,
+            king_to=king_to,
+            rook_from=rook_from,
+            rook_to=rook_to,
+            is_kingside=True
+        )
+        
+        self.game.apply_event(event)
+        
+        # Verify King and Rook moved
+        self.assertEqual(self.game.get_board()[king_to].piece.get_piece_type(), PieceType.King)
+        self.assertEqual(self.game.get_board()[rook_to].piece.get_piece_type(), PieceType.Rook)
+        self.assertIsNone(self.game.get_board()[king_from].piece)
+        self.assertIsNone(self.game.get_board()[rook_from].piece)
+
+    def test_apply_event_pawn_promoted(self):
+         # Place a pawn on a7 manually for simulation if needed, but apply_event just sets it
+        to_pos = Position.parse("a8")
+        event = PawnPromoted(game_id=self.game_id, side=Side.white(), to=to_pos, promoted_to=PieceType.Queen)
+        self.game.apply_event(event)
+        
+        self.assertEqual(self.game.get_board()[to_pos].piece.get_piece_type(), PieceType.Queen)
+        self.assertEqual(self.game.get_board()[to_pos].piece.get_side(), Side.white())
+
+    def test_apply_event_king_checked(self):
+        event = KingChecked(game_id=self.game_id, side=Side.black(), position=Position.parse("e8"))
+        self.game.apply_event(event)
+        self.assertEqual(self.game.game_state.check_state.side_checked, Side.black())
+
+    def test_apply_event_king_checkmated(self):
+        event = KingCheckMated(game_id=self.game_id, side=Side.white(), position=Position.parse("e1"))
+        self.game.apply_event(event)
+        # Check if it marks something? Actually apply_event for KingCheckMated might not do anything specific to state yet
+        # depends on implementation. But we test it executes.
+        pass
+
+    def test_apply_event_synced_state(self):
+        event = SyncedState(game_id=self.game_id, turn=Side.black(), legal_moves=[])
+        self.game.apply_event(event)
+        self.assertEqual(self.game.game_state.turn, Side.black())
+
+    def test_move_piece_guard_not_started(self):
+        game2 = ChessGame.create(self.game_id, self.players, self.info)
+        from_pos = Position.parse("e2")
+        to_pos = Position.parse("e4")
+        piece2 = game2.get_board()[from_pos].piece
+        game2.move_piece(from_pos, to_pos, piece2, None)
+        failed_event = next(e for e in game2.domain_events if isinstance(e, PieceMoveFailed))
+        self.assertEqual(failed_event.reason.code, "GAME_NOT_STARTED")
+
+    def test_move_piece_guard_finished(self):
+        self.game.finish("Draw")
+        from_pos = Position.parse("e2")
+        to_pos = Position.parse("e4")
+        piece = self.game.get_board()[from_pos].piece
+        self.game.move_piece(from_pos, to_pos, piece, None)
+        failed_event = [e for e in self.game.domain_events if isinstance(e, PieceMoveFailed)][-1]
+        self.assertEqual(failed_event.reason.code, "GAME_FINISHED")
+
+    def test_move_piece_guard_not_your_turn(self):
+        black_from = Position.parse("e7")
+        black_to = Position.parse("e5")
+        black_piece = self.game.get_board()[black_from].piece
+        self.game.move_piece(black_from, black_to, black_piece, None)
+        failed_event = [e for e in self.game.domain_events if isinstance(e, PieceMoveFailed)][-1]
+        self.assertEqual(failed_event.reason.code, "NOT_YOUR_TURN")
+
+    def test_move_piece_guard_piece_mismatch(self):
+        from_pos = Position.parse("e2")
+        to_pos = Position.parse("e4")
+        wrong_piece = PieceFactory.create(PieceType.Rook, Side.white())
+        self.game.move_piece(from_pos, to_pos, wrong_piece, None)
+        failed_event = [e for e in self.game.domain_events if isinstance(e, PieceMoveFailed)][-1]
+        self.assertEqual(failed_event.reason.code, "STATE_MISMATCH")
+
+    def test_move_piece_guard_illegal_move(self):
+        from_pos = Position.parse("e2")
+        illegal_to = Position.parse("e1")
+        piece = self.game.get_board()[from_pos].piece
+        self.game.move_piece(from_pos, illegal_to, piece, None)
+        failed_event = [e for e in self.game.domain_events if isinstance(e, PieceMoveFailed)][-1]
+        self.assertEqual(failed_event.reason.code, "ILLEGAL_MOVE")
+
+    def test_move_piece_success_and_effects(self):
+        # 1. Capture success
+        # Setup: e4 d5
+        self.game.move_piece(Position.parse("e2"), Position.parse("e4"), self.game.get_board()[Position.parse("e2")].piece, None)
+        self.game.move_piece(Position.parse("d7"), Position.parse("d5"), self.game.get_board()[Position.parse("d7")].piece, None)
+        
+        # exd5
+        white_pawn = self.game.get_board()[Position.parse("e4")].piece
+        black_pawn = self.game.get_board()[Position.parse("d5")].piece
+        self.game.move_piece(Position.parse("e4"), Position.parse("d5"), white_pawn, black_pawn)
+        
+        self.assertTrue(any(isinstance(e, PieceCaptured) for e in self.game.domain_events))
+        self.assertEqual(self.game.get_board()[Position.parse("d5")].piece, white_pawn)
+        
+        # 2. Checkmate effect
+        # Scholar's mate: 1. e4 e5 2. Bc4 Nc6 3. Qh5 Nf6 4. Qxf7#
+        self.setUp()
+        def move(f, t):
+            fp = Position.parse(f)
+            tp = Position.parse(t)
+            p = self.game.get_board()[fp].piece
+            target = self.game.get_board()[tp].piece
+            self.game.move_piece(fp, tp, p, target)
+
+        move("e2", "e4") # 1. e4
+        move("e7", "e5") # 1... e5
+        move("f1", "c4") # 2. Bc4
+        move("b8", "c6") # 2... Nc6
+        move("d1", "h5") # 3. Qh5
+        move("g8", "f6") # 3... Nf6
+        
+        # 4. Qxf7#
+        q_from = Position.parse("h5")
+        q_to = Position.parse("f7")
+        queen = self.game.get_board()[q_from].piece
+        target = self.game.get_board()[q_to].piece
+        
+        self.game.move_piece(q_from, q_to, queen, target)
+        
+        self.assertTrue(self.game.game_state.is_finished)
+        self.assertTrue(any(isinstance(e, KingCheckMated) for e in self.game.domain_events))
+        self.assertEqual(self.game.game_state.status, GameStatus.finished())
+
+    def test_timer_reconstitution(self):
+        # Setup: 10m rapid game
+        game_format = GameFormat.parse_string("rapid", "10", "0")
+        start_date = datetime(2023, 1, 1, 12, 0, 0)
+        info = GameInformation(game_format, start_date, "Test Reconstitution")
+        
+        # Manually create history
+        h_id = ChessGameId.generate_id()
+        move1_date = datetime(2023, 1, 1, 12, 0, 10) # 10s later
+        move2_date = datetime(2023, 1, 1, 12, 0, 25) # 15s later
+        
+        events = [
+            GameCreated(game_id=h_id),
+            GameStarted(game_id=h_id, started_date=start_date),
+            PieceMoved(game_id=h_id, from_=Position.parse("e2"), to=Position.parse("e4"), piece=PieceFactory.create(Side.white(), PieceType.Pawn)),
+            PieceMoved(game_id=h_id, from_=Position.parse("e7"), to=Position.parse("e5"), piece=PieceFactory.create(Side.black(), PieceType.Pawn))
+        ]
+        
+        history_entries = [
+            ChessGameHistoryEntry(HistoryEntryId.generate_id(), 1, events[0], start_date, time_taken=0.0),
+            ChessGameHistoryEntry(HistoryEntryId.generate_id(), 2, events[1], start_date, time_taken=0.0),
+            ChessGameHistoryEntry(HistoryEntryId.generate_id(), 3, events[2], move1_date, time_taken=10.0),
+            ChessGameHistoryEntry(HistoryEntryId.generate_id(), 4, events[3], move2_date, time_taken=15.0)
+        ]
+        
+        history = ChessGameHistory(history_entries)
+        
+        # Reconstitute
+        reconstituted_game = ChessGame(h_id, info, self.players, history)
+        
+        # White spent 10s (start_date to move1_date) and got 0s increment
+        # Black spent 15s (move1_date to move2_date) and got 0s increment
+        self.assertEqual(reconstituted_game.white_timer, 590.0) # 600 - 10
+        self.assertEqual(reconstituted_game.black_timer, 585.0) # 600 - 15
+
+    def test_timer_increment(self):
+        # Setup: 15m rapid game with 10s increment (valid control)
+        game_format = GameFormat.parse_string("rapid", "15", "10")
+        start_date = datetime(2023, 1, 1, 12, 0, 0)
+        info = GameInformation(game_format, start_date, "Test Increment")
+        
+        from unittest.mock import patch
+        with patch('predictapp.domain.game.chess_game.datetime') as mock_game_dt, \
+             patch('predictapp.domain.game.game_history.datetime') as mock_hist_dt:
+             
+            mock_game_dt.now.return_value = start_date
+            mock_hist_dt.now.return_value = start_date
+            
+            game = ChessGame.create(self.game_id, self.players, info)
+            game.start()
+            
+            # Initial timers: 15m = 900s
+            self.assertEqual(game.white_timer, 900.0)
+            self.assertEqual(game.black_timer, 900.0)
+            
+            # Make a move by White at 12:00:10 (10s elapsed)
+            move_date = datetime(2023, 1, 1, 12, 0, 10)
+            from_pos = Position.parse("e2")
+            to_pos = Position.parse("e4")
+            piece = game.get_board()[from_pos].piece
+            
+            mock_game_dt.now.return_value = move_date
+            mock_hist_dt.now.return_value = move_date
+            game.move_piece(from_pos, to_pos, piece, None)
+            
+        # White spent 10s and gained 10s increment
+        # 900 - 10 + 10 = 900
+        self.assertEqual(game.white_timer, 900.0)
+        self.assertEqual(game.black_timer, 900.0)
+
+if __name__ == '__main__':
+    unittest.main()

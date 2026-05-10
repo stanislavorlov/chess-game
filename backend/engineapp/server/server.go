@@ -5,7 +5,7 @@ import (
     // pb "engineapp/proto"
 )
 
-// ChessEngineServer implements the gRPC server (currently empty as AI logic moved to chessapp)
+// ChessEngineServer implements the gRPC server (currently empty as AI logic moved to predictapp)
 type ChessEngineServer struct {
 }
 

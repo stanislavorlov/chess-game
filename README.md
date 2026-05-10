@@ -12,9 +12,9 @@
 2. Activate virtual environment:
    `source .venv/bin/activate`
 3. Run the application:
-   `uvicorn chessapp.interface.main:app --reload`
+   `uvicorn predictapp.interface.main:app --reload`
 4. Run unit tests:
-   `python3 -m unittest discover chessapp/tests`
+   `python3 -m unittest discover predictapp/tests`
 5. Run integration tests:
    `./scripts/run_e2e.sh`
 

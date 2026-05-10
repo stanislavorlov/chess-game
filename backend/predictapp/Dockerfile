@@ -5,14 +5,17 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /predictapp
 
-RUN apt update -y && \
-    apt install -y python3-dev \
+# Install build dependencies, then clean up
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    python3-dev \
     gcc \
-    musl-dev
+    musl-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY predictapp/requirements.txt /predictapp/requirements.txt
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 COPY predictapp/ /predictapp/predictapp/
 # Reference to chessengine removed as per user instruction; integrated into predictapp

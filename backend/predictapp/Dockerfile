@@ -15,4 +15,6 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 COPY predictapp/ /predictapp/predictapp/
-COPY chessengine/ /predictapp/chessengine/
+# Reference to chessengine removed as per user instruction; integrated into predictapp
+
+CMD ["python3", "predictapp/interface/main.py"]

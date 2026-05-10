@@ -34,7 +34,7 @@ func main() {
 
 	err := godotenv.Load("../.env")
 	if err != nil {
-		log.Fatalf("No ../.env file found; assuming variables are provided by the environment.")
+		log.Printf("No ../.env file found; assuming variables are provided by the environment.")
 	}
 
 	redisURL := os.Getenv("REDIS_URL")

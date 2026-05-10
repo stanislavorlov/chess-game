@@ -7,7 +7,7 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.5.1
 	github.com/swaggo/http-swagger v1.3.4
-	github.com/swaggo/swag v1.8.1
+	github.com/swaggo/swag v1.16.4
 	go.mongodb.org/mongo-driver v1.17.6
 	google.golang.org/grpc v1.79.2
 	google.golang.org/protobuf v1.36.11

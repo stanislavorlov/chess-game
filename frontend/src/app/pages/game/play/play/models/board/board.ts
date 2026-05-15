@@ -28,7 +28,7 @@ export class Board {
 
                 if (isNaN(parseInt(char))) {
                     const file = this._files[fileIdx];
-                    const color = (rank + fileIdx) % 2 === 0 ? 'B' : 'W';
+                    const color = (rank + fileIdx) % 2 === 0 ? 'W' : 'B';
                     const cell = new Cell(file, rank, color, false, '');
                     const piece = PieceFactory.getPieceFromChar(char);
 
@@ -38,7 +38,7 @@ export class Board {
                     const emptyCount = parseInt(char);
                     for (let i = 0; i < emptyCount; i++) {
                         const file = this._files[fileIdx];
-                        const color = (rank + fileIdx) % 2 === 0 ? 'B' : 'W';
+                        const color = (rank + fileIdx) % 2 === 0 ? 'W' : 'B';
                         const cell = new Cell(file, rank, color, false, '');
 
                         this._pieceMap.set(cell, null);

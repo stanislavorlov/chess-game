@@ -6,6 +6,7 @@ import (
 	"engineapp/models"
 	"fmt"
 	"log"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -102,6 +103,22 @@ func (r *MongoRepository) CreateGameState(ctx context.Context, game *GameState) 
 	_, err := coll.InsertOne(ctx, game)
 	if err != nil {
 		return fmt.Errorf("failed to create game state: %w", err)
+	}
+	return nil
+}
+
+func (r *MongoRepository) UpdateGameStatus(ctx context.Context, gameID string, status models.GameStatus, result string) error {
+	coll := r.database.Collection(GameStateCollection)
+	update := bson.M{
+		"$set": bson.M{
+			"status":      string(status),
+			"result.winner": result,
+			"finished_at": time.Now(),
+		},
+	}
+	_, err := coll.UpdateOne(ctx, bson.M{"_id": gameID}, update)
+	if err != nil {
+		return fmt.Errorf("failed to update game status: %w", err)
 	}
 	return nil
 }

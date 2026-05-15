@@ -70,3 +70,36 @@ type GameFinishedEvent struct {
 	Result       string `json:"result"`
 	FinishedDate string `json:"finished_date"`
 }
+
+type KingCastledEvent struct {
+	EventType  string `json:"event_type"`
+	GameID     string `json:"game_id"`
+	Side       string `json:"side"`
+	KingFrom   string `json:"king_from"`
+	KingTo     string `json:"king_to"`
+	RookFrom   string `json:"rook_from"`
+	RookTo     string `json:"rook_to"`
+	IsKingside bool   `json:"is_kingside"`
+}
+
+type PieceMovedEvent struct {
+	EventType string `json:"event_type"`
+	GameID    string `json:"game_id"`
+	From      string `json:"from"`
+	To        string `json:"to"`
+}
+
+type PieceCapturedEvent struct {
+	EventType string `json:"event_type"`
+	GameID    string `json:"game_id"`
+	From      string `json:"from"`
+	To        string `json:"to"`
+	Captured  string `json:"captured"`
+}
+
+type KingCheckmatedEvent struct {
+	EventType string `json:"event_type"`
+	GameID    string `json:"game_id"`
+	Side      string `json:"side"`
+	Position  string `json:"position"`
+}

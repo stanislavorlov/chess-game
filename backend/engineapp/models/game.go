@@ -69,8 +69,14 @@ const (
 )
 
 type MoveValidationResult struct {
-	Valid bool
-	Error string
+	Valid          bool
+	Error          string
+	IsCastling     bool
+	IsKingside     bool
+	CastlingRookFrom string
+	CastlingRookTo   string
+	IsCapture        bool
+	CapturedPiece    string
 }
 
 func LoadGame(game_id string, status GameStatus, format GameFormat, mode string, lightPlayer string, darkPlayer string, bitboards Bitboards, turn Side, history []string, result string, castlingRights string, enPassantTarget string, halfmoveClock int, fullmoveNumber int) Game {
@@ -106,6 +112,10 @@ func (g *Game) StartGame() {
 
 func (g *Game) FinishGame() {
 	g.status = Finished
+}
+
+func (g *Game) SetResult(result string) {
+	g.result = result
 }
 
 func (g *Game) IsActive() bool {
@@ -238,6 +248,42 @@ func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 		return MoveValidationResult{Valid: false, Error: "Illegal move"}
 	}
 
+	isCastling := false
+	isKingside := false
+	var rookFrom, rookTo string
+
+	if fromPieceType == King {
+		fmt.Printf("[Backend] King move detected at %d -> %d\n", fromIdx, toIdx)
+		if sideToMove == White {
+			if fromIdx == 4 && toIdx == 6 {
+				isCastling = true
+				isKingside = true
+				rookFrom = "h1"
+				rookTo = "f1"
+			} else if fromIdx == 4 && toIdx == 2 {
+				isCastling = true
+				isKingside = false
+				rookFrom = "a1"
+				rookTo = "d1"
+			}
+		} else {
+			if fromIdx == 60 && toIdx == 62 {
+				isCastling = true
+				isKingside = true
+				rookFrom = "h8"
+				rookTo = "f8"
+			} else if fromIdx == 60 && toIdx == 58 {
+				isCastling = true
+				isKingside = false
+				rookFrom = "a8"
+				rookTo = "d8"
+			}
+		}
+		if isCastling {
+			fmt.Printf("[Backend] Castling detected! Kingside: %v, Rook: %s -> %s\n", isKingside, rookFrom, rookTo)
+		}
+	}
+
 	// Apply the move
 	g.Bitboards = CloneAndApplyMove(g.Bitboards, fromIdx, toIdx, "q")
 
@@ -306,7 +352,26 @@ func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 
 	g.history = append(g.history, move.From+move.To)
 
-	return MoveValidationResult{Valid: true}
+	capturedPieceStr := ""
+	if isCapture {
+		// Identify the captured piece
+		for _, pt := range []PieceType{Pawn, Knight, Bishop, Rook, Queen, King} {
+			if GetBit(bbMap[PieceKey{Side: enemySide, PieceType: pt}], toIdx) {
+				capturedPieceStr = string(enemySide) + string(pt)
+				break
+			}
+		}
+	}
+
+	return MoveValidationResult{
+		Valid:            true,
+		IsCastling:       isCastling,
+		IsKingside:       isKingside,
+		CastlingRookFrom: rookFrom,
+		CastlingRookTo:   rookTo,
+		IsCapture:        isCapture,
+		CapturedPiece:    capturedPieceStr,
+	}
 }
 
 // FEN returns the current board state in FEN notation
@@ -422,6 +487,36 @@ func (g *Game) LegalMoves() []string {
 			pseudoMoves = GetKnightMoves(pieceBB, ownOccupancy, utils)
 		case King:
 			pseudoMoves = GetKingMoves(pieceBB, ownOccupancy, utils)
+			
+			fromPos := BitIndexToPosition(i)
+			isCheck := IsSquareAttacked(i, enemySide, bbMap, combinedOccupancy, utils)
+			
+			var rookHUnmoved, rookAUnmoved bool
+			if g.turn == White {
+				rookHUnmoved = strings.Contains(g.CastlingRights, "K")
+				rookAUnmoved = strings.Contains(g.CastlingRights, "Q")
+			} else {
+				rookHUnmoved = strings.Contains(g.CastlingRights, "k")
+				rookAUnmoved = strings.Contains(g.CastlingRights, "q")
+			}
+			
+			castlingMoves := GetCastlingMoves(
+				g.turn,
+				&fromPos,
+				false,
+				isCheck,
+				rookHUnmoved,
+				rookAUnmoved,
+				func(pos Position) bool {
+					idx := ToBitIndex(pos)
+					return GetBit(combinedOccupancy, idx)
+				},
+				func(pos Position, side Side) bool {
+					idx := ToBitIndex(pos)
+					return IsSquareAttacked(idx, side, bbMap, combinedOccupancy, utils)
+				},
+			)
+			pseudoMoves = append(pseudoMoves, castlingMoves...)
 		case Rook, Bishop, Queen:
 			pseudoMoves = GetSlidingMoves(pType, pieceBB, combinedOccupancy, ownOccupancy)
 		}

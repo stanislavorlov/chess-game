@@ -23,8 +23,6 @@ export class King extends Piece {
 
     private commonValidate(from: Cell, to: Cell): boolean {
         const [delta_file, delta_rank] = this.calculateMoveDeltas(from, to);
-        const isNormalMove = Math.abs(delta_file) <= 1 && Math.abs(delta_rank) <= 1;
-        const isCastlingMove = Math.abs(delta_file) === 2 && delta_rank === 0;
-        return isNormalMove || isCastlingMove;
+        return Math.abs(delta_file) <= 1 && Math.abs(delta_rank) <= 1;
     }
 }

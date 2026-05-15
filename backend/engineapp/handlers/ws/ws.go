@@ -23,9 +23,12 @@ type Client struct {
 	mu   sync.Mutex
 }
 
-var clients = make(map[*Client]bool)
+var (
+	clients   = make(map[string]map[*Client]bool)
+	clientsMu sync.Mutex
+)
 
-func HandleConnections(moveHandler func(gameID string, message []byte, send func([]byte))) http.HandlerFunc {
+func HandleConnections(moveHandler func(gameID string, message []byte, send func([]byte), broadcast func([]byte))) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Extract game_id from path: /ws/{game_id}
 		path := r.URL.Path
@@ -44,15 +47,33 @@ func HandleConnections(moveHandler func(gameID string, message []byte, send func
 		defer wsConn.Close()
 
 		client := &Client{conn: wsConn, send: make(chan []byte, 256)}
-		clients[client] = true
+
+		clientsMu.Lock()
+		if _, ok := clients[gameID]; !ok {
+			clients[gameID] = make(map[*Client]bool)
+		}
+		clients[gameID][client] = true
+		clientsMu.Unlock()
+
 		log.Printf("New WebSocket client connected to game %s", gameID)
 
 		sendMsg := func(msg []byte) {
 			client.mu.Lock()
 			defer client.mu.Unlock()
-			// if err := client.conn.WriteMessage(websocket.BinaryMessage, binaryPayload); err != nil {
 			if err := client.conn.WriteMessage(websocket.TextMessage, msg); err != nil {
 				log.Printf("Error writing socket message: %v", err)
+			}
+		}
+
+		broadcastMsg := func(msg []byte) {
+			clientsMu.Lock()
+			defer clientsMu.Unlock()
+			for c := range clients[gameID] {
+				c.mu.Lock()
+				if err := c.conn.WriteMessage(websocket.TextMessage, msg); err != nil {
+					log.Printf("Error broadcasting socket message: %v", err)
+				}
+				c.mu.Unlock()
 			}
 		}
 
@@ -60,12 +81,17 @@ func HandleConnections(moveHandler func(gameID string, message []byte, send func
 			_, message, err := wsConn.ReadMessage()
 			if err != nil {
 				log.Printf("WebSocket client disconnected or error: %v", err)
-				delete(clients, client)
+				clientsMu.Lock()
+				delete(clients[gameID], client)
+				if len(clients[gameID]) == 0 {
+					delete(clients, gameID)
+				}
+				clientsMu.Unlock()
 				break
 			}
 
 			// Route message to appropriate handler
-			moveHandler(gameID, message, sendMsg)
+			moveHandler(gameID, message, sendMsg, broadcastMsg)
 		}
 	}
 }

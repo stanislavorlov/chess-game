@@ -3,6 +3,7 @@ import { Movement, SquareMovement } from "src/app/services/models/movement";
 import { Cell } from "../board/ cell";
 import { Side } from "../side";
 import { KingCastledEvent } from "../events/game-event";
+import { PieceType } from "../pieces/piece_type";
 
 export class ChessGame {
 
@@ -144,17 +145,33 @@ export class ChessGame {
         const rookTo = this._board.getCell(event.rook_to);
 
         if (kingFrom && kingTo && rookFrom && rookTo) {
-            this._board.movePiece(kingFrom, kingTo);
-            this._board.movePiece(rookFrom, rookTo);
+            const side = Side.parse(event.side);
 
-            // Record king's move on castling, rook's move is implicit in the move entry
-            const piece = this._board.getPiece(kingTo);
-            if (piece) {
-                const entry = SquareMovement.create(this.id, piece, kingFrom.id, kingTo.id);
-                this.history.push(entry);
+            // Only move pieces if they aren't already in their target positions
+            // This prevents double-moving pieces for the player who initiated the move locally
+            const kingAtFrom = this._board.getPiece(kingFrom);
+            if (kingAtFrom && kingAtFrom.type === PieceType.King) {
+                this._board.movePiece(kingFrom, kingTo);
+                this._board.movePiece(rookFrom, rookTo);
+
+                // Record move in history if not already there
+                const lastHistory = this.history.length > 0 ? this.history[this.history.length - 1] : null;
+                const isAlreadyInHistory = lastHistory instanceof SquareMovement && lastHistory.from === kingFrom.id && lastHistory.to === kingTo.id;
+
+                if (!isAlreadyInHistory) {
+                    const piece = this._board.getPiece(kingTo);
+                    if (piece) {
+                        const entry = SquareMovement.create(this.id, piece, kingFrom.id, kingTo.id);
+                        this.history.push(entry);
+                    }
+                }
             }
 
-            this.switchTurn();
+            // Only switch turn if it's currently the turn of the side that castled
+            // If the turn was already switched locally, this._turn.value will be the other side
+            if (this._turn.value === side.value) {
+                this.switchTurn();
+            }
         }
     }
 

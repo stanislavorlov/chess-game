@@ -69,10 +69,10 @@ const (
 )
 
 type MoveValidationResult struct {
-	Valid          bool
-	Error          string
-	IsCastling     bool
-	IsKingside     bool
+	Valid            bool
+	Error            string
+	IsCastling       bool
+	IsKingside       bool
 	CastlingRookFrom string
 	CastlingRookTo   string
 	IsCapture        bool
@@ -98,13 +98,6 @@ func LoadGame(game_id string, status GameStatus, format GameFormat, mode string,
 	}
 }
 
-/*func NewGame() Game {
-	return Game{
-		game_id:   uuid.New().String(),
-		status:    Created,
-		bitboards: NewBitboards(),
-	}
-}*/
 
 func (g *Game) StartGame() {
 	g.status = Started
@@ -184,6 +177,25 @@ func (g *Game) CheckPosition() *string {
 	return &pos
 }
 
+func (g *Game) opponentTurn() Side {
+	if g.turn == White {
+		return Black
+	}
+	return White
+}
+
+func (g *Game) identifyPieceAt(idx int, bbMap map[PieceKey]uint64) (Side, PieceType, bool) {
+	for _, pt := range []PieceType{Pawn, Knight, Bishop, Rook, Queen, King} {
+		if GetBit(bbMap[PieceKey{Side: White, PieceType: pt}], idx) {
+			return White, pt, true
+		}
+		if GetBit(bbMap[PieceKey{Side: Black, PieceType: pt}], idx) {
+			return Black, pt, true
+		}
+	}
+	return "", "", false
+}
+
 func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 	if !g.IsActive() {
 		return MoveValidationResult{Valid: false, Error: "Game has not started"}
@@ -200,24 +212,7 @@ func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 		return MoveValidationResult{Valid: false, Error: "Invalid square"}
 	}
 
-	var fromSide Side
-	var fromPieceType PieceType
-	pieceFound := false
-
-	for _, pt := range []PieceType{Pawn, Knight, Bishop, Rook, Queen, King} {
-		if GetBit(bbMap[PieceKey{Side: White, PieceType: pt}], fromIdx) {
-			fromSide = White
-			fromPieceType = pt
-			pieceFound = true
-			break
-		}
-		if GetBit(bbMap[PieceKey{Side: Black, PieceType: pt}], fromIdx) {
-			fromSide = Black
-			fromPieceType = pt
-			pieceFound = true
-			break
-		}
-	}
+	fromSide, fromPieceType, pieceFound := g.identifyPieceAt(fromIdx, bbMap)
 
 	// check move.From's piece exists
 	if !pieceFound {
@@ -243,49 +238,26 @@ func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 	}
 
 	// check move is legal
-	isValid := ValidateMove(g.Bitboards, utils, sideToMove, move.From, move.To, "q", g.EnPassantTarget, g.CastlingRights)
-	if !isValid {
+	if !ValidateMove(g.Bitboards, utils, sideToMove, move.From, move.To, "q", g.EnPassantTarget, g.CastlingRights) {
 		return MoveValidationResult{Valid: false, Error: "Illegal move"}
 	}
 
-	isCastling := false
-	isKingside := false
-	var rookFrom, rookTo string
-
-	if fromPieceType == King {
-		fmt.Printf("[Backend] King move detected at %d -> %d\n", fromIdx, toIdx)
-		if sideToMove == White {
-			if fromIdx == 4 && toIdx == 6 {
-				isCastling = true
-				isKingside = true
-				rookFrom = "h1"
-				rookTo = "f1"
-			} else if fromIdx == 4 && toIdx == 2 {
-				isCastling = true
-				isKingside = false
-				rookFrom = "a1"
-				rookTo = "d1"
-			}
-		} else {
-			if fromIdx == 60 && toIdx == 62 {
-				isCastling = true
-				isKingside = true
-				rookFrom = "h8"
-				rookTo = "f8"
-			} else if fromIdx == 60 && toIdx == 58 {
-				isCastling = true
-				isKingside = false
-				rookFrom = "a8"
-				rookTo = "d8"
-			}
-		}
-		if isCastling {
-			fmt.Printf("[Backend] Castling detected! Kingside: %v, Rook: %s -> %s\n", isKingside, rookFrom, rookTo)
-		}
-	}
+	isCastling, isKingside, rookFrom, rookTo := g.detectCastling(fromPieceType, sideToMove, fromIdx, toIdx)
 
 	// Apply the move
 	g.Bitboards = CloneAndApplyMove(g.Bitboards, fromIdx, toIdx, "q")
+
+	// Update HalfmoveClock (reset on pawn move or capture)
+	enemySide := g.opponentTurn()
+	isCapture := GetBit(occupancies[enemySide], toIdx)
+	if fromPieceType == Pawn || isCapture {
+		g.HalfmoveClock = 0
+	} else {
+		g.HalfmoveClock++
+	}
+
+	g.updateGameMetadata(fromPieceType, sideToMove, fromIdx, toIdx)
+	g.history = append(g.history, move.From+move.To)
 
 	// Toggle Turn
 	if g.turn == White {
@@ -295,72 +267,10 @@ func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 		g.FullmoveNumber++
 	}
 
-	// Update HalfmoveClock (reset on pawn move or capture)
-	enemySide := Black
-	if sideToMove == Black {
-		enemySide = White
-	}
-	isCapture := GetBit(occupancies[enemySide], toIdx)
-	if fromPieceType == Pawn || isCapture {
-		g.HalfmoveClock = 0
-	} else {
-		g.HalfmoveClock++
-	}
-
-	// Update EnPassantTarget
-	g.EnPassantTarget = "-"
-	if fromPieceType == Pawn {
-		if sideToMove == White && toIdx-fromIdx == 16 {
-			g.EnPassantTarget = SquareIndexToString(fromIdx + 8)
-		} else if sideToMove == Black && fromIdx-toIdx == 16 {
-			g.EnPassantTarget = SquareIndexToString(fromIdx - 8)
-		}
-	}
-
-	// Update CastlingRights
-	if g.CastlingRights != "-" {
-		switch fromPieceType {
-		case King:
-			if sideToMove == White {
-				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "K", "")
-				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "Q", "")
-			} else {
-				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "k", "")
-				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "q", "")
-			}
-		case Rook:
-			if sideToMove == White {
-				if fromIdx == 7 {
-					g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "K", "")
-				} // h1
-				if fromIdx == 0 {
-					g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "Q", "")
-				} // a1
-			} else {
-				if fromIdx == 63 {
-					g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "k", "")
-				} // h8
-				if fromIdx == 56 {
-					g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "q", "")
-				} // a8
-			}
-		}
-		if g.CastlingRights == "" {
-			g.CastlingRights = "-"
-		}
-	}
-
-	g.history = append(g.history, move.From+move.To)
-
 	capturedPieceStr := ""
 	if isCapture {
-		// Identify the captured piece
-		for _, pt := range []PieceType{Pawn, Knight, Bishop, Rook, Queen, King} {
-			if GetBit(bbMap[PieceKey{Side: enemySide, PieceType: pt}], toIdx) {
-				capturedPieceStr = string(enemySide) + string(pt)
-				break
-			}
-		}
+		_, capType, _ := g.identifyPieceAt(toIdx, bbMap)
+		capturedPieceStr = string(enemySide) + string(capType)
 	}
 
 	return MoveValidationResult{
@@ -371,6 +281,73 @@ func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 		CastlingRookTo:   rookTo,
 		IsCapture:        isCapture,
 		CapturedPiece:    capturedPieceStr,
+	}
+}
+
+func (g *Game) detectCastling(pType PieceType, side Side, fromIdx, toIdx int) (bool, bool, string, string) {
+	if pType != King {
+		return false, false, "", ""
+	}
+
+	if side == White {
+		if fromIdx == 4 && toIdx == 6 {
+			return true, true, "h1", "f1"
+		} else if fromIdx == 4 && toIdx == 2 {
+			return true, false, "a1", "d1"
+		}
+	} else {
+		if fromIdx == 60 && toIdx == 62 {
+			return true, true, "h8", "f8"
+		} else if fromIdx == 60 && toIdx == 58 {
+			return true, false, "a8", "d8"
+		}
+	}
+	return false, false, "", ""
+}
+
+func (g *Game) updateGameMetadata(pType PieceType, side Side, fromIdx, toIdx int) {
+	// Update EnPassantTarget
+	g.EnPassantTarget = "-"
+	if pType == Pawn {
+		if side == White && toIdx-fromIdx == 16 {
+			g.EnPassantTarget = SquareIndexToString(fromIdx + 8)
+		} else if side == Black && fromIdx-toIdx == 16 {
+			g.EnPassantTarget = SquareIndexToString(fromIdx - 8)
+		}
+	}
+
+	// Update CastlingRights
+	if g.CastlingRights == "-" {
+		return
+	}
+
+	switch pType {
+	case King:
+		if side == White {
+			g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "K", "")
+			g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "Q", "")
+		} else {
+			g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "k", "")
+			g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "q", "")
+		}
+	case Rook:
+		if side == White {
+			if fromIdx == 7 {
+				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "K", "")
+			} else if fromIdx == 0 {
+				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "Q", "")
+			}
+		} else {
+			if fromIdx == 63 {
+				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "k", "")
+			} else if fromIdx == 56 {
+				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "q", "")
+			}
+		}
+	}
+
+	if g.CastlingRights == "" {
+		g.CastlingRights = "-"
 	}
 }
 
@@ -453,19 +430,24 @@ func (g *Game) LegalMoves() []string {
 	utils := NewBitboardUtils()
 	bbMap, occupancies, combinedOccupancy := g.Bitboards.GenerateMaps()
 
-	enemySide := Black
-	if g.turn == Black {
-		enemySide = White
-	}
+	sideToMove := g.turn
+	enemySide := g.opponentTurn()
+	ownOccupancy := occupancies[sideToMove]
+	enemyOccupancy := occupancies[enemySide]
 
 	var moves []string
 
+	// Iterate over each square that has a piece of the current turn
 	for i := 0; i < 64; i++ {
-		// find pieces belonging to current turn
+		if !GetBit(ownOccupancy, i) {
+			continue
+		}
+
+		// Find piece type at this square
 		var pType PieceType
 		found := false
 		for _, pt := range []PieceType{Pawn, Knight, Bishop, Rook, Queen, King} {
-			if GetBit(bbMap[PieceKey{Side: g.turn, PieceType: pt}], i) {
+			if GetBit(bbMap[PieceKey{Side: sideToMove, PieceType: pt}], i) {
 				pType = pt
 				found = true
 				break
@@ -476,32 +458,29 @@ func (g *Game) LegalMoves() []string {
 		}
 
 		pieceBB := uint64(1) << i
-		ownOccupancy := occupancies[g.turn]
-		enemyOccupancy := occupancies[enemySide]
-
 		var pseudoMoves []Movement
 		switch pType {
 		case Pawn:
-			pseudoMoves = GetPawnMoves(g.turn, pieceBB, combinedOccupancy, enemyOccupancy, utils, g.EnPassantTarget)
+			pseudoMoves = GetPawnMoves(sideToMove, pieceBB, combinedOccupancy, enemyOccupancy, utils, g.EnPassantTarget)
 		case Knight:
 			pseudoMoves = GetKnightMoves(pieceBB, ownOccupancy, utils)
 		case King:
 			pseudoMoves = GetKingMoves(pieceBB, ownOccupancy, utils)
-			
+
 			fromPos := BitIndexToPosition(i)
 			isCheck := IsSquareAttacked(i, enemySide, bbMap, combinedOccupancy, utils)
-			
+
 			var rookHUnmoved, rookAUnmoved bool
-			if g.turn == White {
+			if sideToMove == White {
 				rookHUnmoved = strings.Contains(g.CastlingRights, "K")
 				rookAUnmoved = strings.Contains(g.CastlingRights, "Q")
 			} else {
 				rookHUnmoved = strings.Contains(g.CastlingRights, "k")
 				rookAUnmoved = strings.Contains(g.CastlingRights, "q")
 			}
-			
+
 			castlingMoves := GetCastlingMoves(
-				g.turn,
+				sideToMove,
 				&fromPos,
 				false,
 				isCheck,
@@ -525,19 +504,16 @@ func (g *Game) LegalMoves() []string {
 		for _, m := range pseudoMoves {
 			toIdx := ToBitIndex(m.To)
 			toStr := SquareIndexToString(toIdx)
-			// Apply move to clone
+			// Apply move to clone and check if king is safe
 			newBB := CloneAndApplyMove(g.Bitboards, i, toIdx, "q")
 			newMap, _, checkCombined := newBB.GenerateMaps()
 
-			kingBB := newMap[PieceKey{Side: g.turn, PieceType: King}]
+			kingBB := newMap[PieceKey{Side: sideToMove, PieceType: King}]
 			kingIdx := GetLsbIndex(kingBB)
-			if kingIdx == -1 {
-				continue
-			}
-
-			inCheck := IsSquareAttacked(kingIdx, enemySide, newMap, checkCombined, utils)
-			if !inCheck {
-				moves = append(moves, fromStr+toStr)
+			if kingIdx != -1 {
+				if !IsSquareAttacked(kingIdx, enemySide, newMap, checkCombined, utils) {
+					moves = append(moves, fromStr+toStr)
+				}
 			}
 		}
 	}
@@ -556,12 +532,7 @@ func (g *Game) IsCheck() bool {
 		return false
 	}
 
-	enemySide := Black
-	if g.turn == Black {
-		enemySide = White
-	}
-
-	return IsSquareAttacked(kingIdx, enemySide, bbMap, combinedOccupancy, utils)
+	return IsSquareAttacked(kingIdx, g.opponentTurn(), bbMap, combinedOccupancy, utils)
 }
 
 // IsCheckmate returns true if in check and no legal moves exist

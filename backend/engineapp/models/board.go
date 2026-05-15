@@ -141,10 +141,18 @@ func NewBitboardUtils() *BitboardUtils {
 	u.Rank6 = u.Rank1 << 40
 	u.Rank7 = u.Rank1 << 48
 	u.Rank8 = u.Rank1 << 56
-
 	u.initMasks()
 	return u
 }
+
+const (
+	WhiteKingStart     = uint64(1) << 4
+	BlackKingStart     = uint64(1) << 60
+	WhiteKingSideDest  = uint64(1) << 6
+	WhiteQueenSideDest = uint64(1) << 2
+	BlackKingSideDest  = uint64(1) << 62
+	BlackQueenSideDest = uint64(1) << 58
+)
 
 func (u *BitboardUtils) initMasks() {
 	for i := range 64 {

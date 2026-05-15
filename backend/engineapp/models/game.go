@@ -183,13 +183,20 @@ func (g *Game) opponentTurn() Side {
 	return White
 }
 
-func (g *Game) identifyPieceAt(idx int, bbMap map[PieceKey]uint64) (Side, PieceType, bool) {
+func (g *Game) identifyPieceAt(idx int, bbMap map[PieceKey]uint64, occupancies map[Side]uint64) (Side, PieceType, bool) {
+	mask := uint64(1) << idx
+	var side Side
+	if (occupancies[White] & mask) != 0 {
+		side = White
+	} else if (occupancies[Black] & mask) != 0 {
+		side = Black
+	} else {
+		return "", "", false
+	}
+
 	for _, pt := range AllPieceTypes {
-		if GetBit(bbMap[PieceKey{Side: White, PieceType: pt}], idx) {
-			return White, pt, true
-		}
-		if GetBit(bbMap[PieceKey{Side: Black, PieceType: pt}], idx) {
-			return Black, pt, true
+		if (bbMap[PieceKey{Side: side, PieceType: pt}] & mask) != 0 {
+			return side, pt, true
 		}
 	}
 	return "", "", false
@@ -211,7 +218,7 @@ func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 		return MoveValidationResult{Valid: false, Error: "Invalid square"}
 	}
 
-	fromSide, fromPieceType, pieceFound := g.identifyPieceAt(fromIdx, bbMap)
+	fromSide, fromPieceType, pieceFound := g.identifyPieceAt(fromIdx, bbMap, occupancies)
 
 	// check move.From's piece exists
 	if !pieceFound {
@@ -248,7 +255,8 @@ func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 
 	// Update HalfmoveClock (reset on pawn move or capture)
 	enemySide := g.opponentTurn()
-	isCapture := GetBit(occupancies[enemySide], toIdx)
+	toMask := uint64(1) << toIdx
+	isCapture := (occupancies[enemySide] & toMask) != 0
 	if fromPieceType == Pawn || isCapture {
 		g.HalfmoveClock = 0
 	} else {
@@ -268,7 +276,7 @@ func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 
 	capturedPieceStr := ""
 	if isCapture {
-		_, capType, _ := g.identifyPieceAt(toIdx, bbMap)
+		_, capType, _ := g.identifyPieceAt(toIdx, bbMap, occupancies)
 		capturedPieceStr = string(enemySide) + string(capType)
 	}
 
@@ -288,30 +296,47 @@ func (g *Game) detectCastling(pType PieceType, side Side, fromIdx, toIdx int) (b
 		return false, false, "", ""
 	}
 
+	fromMask := uint64(1) << fromIdx
+	toMask := uint64(1) << toIdx
+
 	if side == White {
-		if fromIdx == 4 && toIdx == 6 {
-			return true, true, "h1", "f1"
-		} else if fromIdx == 4 && toIdx == 2 {
-			return true, false, "a1", "d1"
+		if fromMask == WhiteKingStart {
+			switch toMask {
+			case WhiteKingSideDest:
+				return true, true, "h1", "f1"
+			case WhiteQueenSideDest:
+				return true, false, "a1", "d1"
+			}
 		}
 	} else {
-		if fromIdx == 60 && toIdx == 62 {
-			return true, true, "h8", "f8"
-		} else if fromIdx == 60 && toIdx == 58 {
-			return true, false, "a8", "d8"
+		if fromMask == BlackKingStart {
+			switch toMask {
+			case BlackKingSideDest:
+				return true, true, "h8", "f8"
+			case BlackQueenSideDest:
+				return true, false, "a8", "d8"
+			}
 		}
 	}
 	return false, false, "", ""
 }
 
 func (g *Game) updateGameMetadata(pType PieceType, side Side, fromIdx, toIdx int) {
+	utils := NewBitboardUtils()
+	fromMask := uint64(1) << fromIdx
+	toMask := uint64(1) << toIdx
+
 	// Update EnPassantTarget
 	g.EnPassantTarget = "-"
 	if pType == Pawn {
-		if side == White && toIdx-fromIdx == 16 {
-			g.EnPassantTarget = SquareIndexToString(fromIdx + 8)
-		} else if side == Black && fromIdx-toIdx == 16 {
-			g.EnPassantTarget = SquareIndexToString(fromIdx - 8)
+		if side == White {
+			if (fromMask&utils.Rank2) != 0 && (toMask&utils.Rank4) != 0 {
+				g.EnPassantTarget = SquareIndexToString(fromIdx + 8)
+			}
+		} else {
+			if (fromMask&utils.Rank7) != 0 && (toMask&utils.Rank5) != 0 {
+				g.EnPassantTarget = SquareIndexToString(fromIdx - 8)
+			}
 		}
 	}
 

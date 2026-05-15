@@ -1,5 +1,7 @@
 package models
 
+import "strings"
+
 type PieceType string
 
 const (
@@ -11,7 +13,16 @@ const (
 	Pawn   PieceType = "P"
 )
 
+var AllPieceTypes = []PieceType{Pawn, Knight, Bishop, Rook, Queen, King}
+
 type PieceKey struct {
 	Side      Side
 	PieceType PieceType
+}
+
+func (pt PieceType) Symbol(side Side) string {
+	if side == White {
+		return string(pt)
+	}
+	return strings.ToLower(string(pt))
 }

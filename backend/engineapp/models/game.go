@@ -98,7 +98,6 @@ func LoadGame(game_id string, status GameStatus, format GameFormat, mode string,
 	}
 }
 
-
 func (g *Game) StartGame() {
 	g.status = Started
 }
@@ -185,7 +184,7 @@ func (g *Game) opponentTurn() Side {
 }
 
 func (g *Game) identifyPieceAt(idx int, bbMap map[PieceKey]uint64) (Side, PieceType, bool) {
-	for _, pt := range []PieceType{Pawn, Knight, Bishop, Rook, Queen, King} {
+	for _, pt := range AllPieceTypes {
 		if GetBit(bbMap[PieceKey{Side: White, PieceType: pt}], idx) {
 			return White, pt, true
 		}
@@ -332,15 +331,17 @@ func (g *Game) updateGameMetadata(pType PieceType, side Side, fromIdx, toIdx int
 		}
 	case Rook:
 		if side == White {
-			if fromIdx == 7 {
+			switch fromIdx {
+			case 7:
 				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "K", "")
-			} else if fromIdx == 0 {
+			case 0:
 				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "Q", "")
 			}
 		} else {
-			if fromIdx == 63 {
+			switch fromIdx {
+			case 63:
 				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "k", "")
-			} else if fromIdx == 56 {
+			case 56:
 				g.CastlingRights = strings.ReplaceAll(g.CastlingRights, "q", "")
 			}
 		}
@@ -356,28 +357,19 @@ func (g *Game) FEN() string {
 	pieceMap, _, _ := g.Bitboards.GenerateMaps()
 	var fen strings.Builder
 
-	pieceChars := map[PieceType]map[Side]string{
-		Pawn:   {White: "P", Black: "p"},
-		Knight: {White: "N", Black: "n"},
-		Bishop: {White: "B", Black: "b"},
-		Rook:   {White: "R", Black: "r"},
-		Queen:  {White: "Q", Black: "q"},
-		King:   {White: "K", Black: "k"},
-	}
-
 	for rank := 7; rank >= 0; rank-- {
 		emptyCount := 0
 		for file := range 8 {
 			sqIdx := rank*8 + file
 			found := false
 
-			for pt, sides := range pieceChars {
+			for _, pt := range AllPieceTypes {
 				if GetBit(pieceMap[PieceKey{Side: White, PieceType: pt}], sqIdx) {
 					if emptyCount > 0 {
 						fen.WriteString(string(rune('0' + emptyCount)))
 						emptyCount = 0
 					}
-					fen.WriteString(sides[White])
+					fen.WriteString(pt.Symbol(White))
 					found = true
 					break
 				}
@@ -386,7 +378,7 @@ func (g *Game) FEN() string {
 						fen.WriteString(string(rune('0' + emptyCount)))
 						emptyCount = 0
 					}
-					fen.WriteString(sides[Black])
+					fen.WriteString(pt.Symbol(Black))
 					found = true
 					break
 				}
@@ -404,21 +396,13 @@ func (g *Game) FEN() string {
 		}
 	}
 
-	turnStr := "w"
-	if g.turn == Black {
-		turnStr = "b"
-	}
-
-	fen.WriteString(fmt.Sprintf(" %s %s %s %d %d", turnStr, g.CastlingRights, g.EnPassantTarget, g.HalfmoveClock, g.FullmoveNumber))
+	fmt.Fprintf(&fen, " %s %s %s %d %d", g.Turn(), g.CastlingRights, g.EnPassantTarget, g.HalfmoveClock, g.FullmoveNumber)
 	return fen.String()
 }
 
 // Turn returns the side to move
 func (g *Game) Turn() string {
-	if g.turn == White {
-		return "w"
-	}
-	return "b"
+	return string(g.turn)
 }
 
 func (g *Game) Winner() string {
@@ -446,7 +430,7 @@ func (g *Game) LegalMoves() []string {
 		// Find piece type at this square
 		var pType PieceType
 		found := false
-		for _, pt := range []PieceType{Pawn, Knight, Bishop, Rook, Queen, King} {
+		for _, pt := range AllPieceTypes {
 			if GetBit(bbMap[PieceKey{Side: sideToMove, PieceType: pt}], i) {
 				pType = pt
 				found = true

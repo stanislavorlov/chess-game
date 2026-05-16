@@ -284,4 +284,43 @@ export class Board {
             this._pieceMap.set(toCell, capturedPiece || null);
         }
     }
+
+    public getCapturedPieces(side: Side): string[] {
+        // Return pieces captured BY `side`. This means we count the pieces of the OPPONENT.
+        const opponentSide = side.value === Side.white.value ? Side.black : Side.white;
+        
+        const standardCounts: Record<string, number> = {
+            [PieceType.Queen]: 1,
+            [PieceType.Rook]: 2,
+            [PieceType.Bishop]: 2,
+            [PieceType.Knight]: 2,
+            [PieceType.Pawn]: 8,
+        };
+        
+        const currentCounts: Record<string, number> = {
+            [PieceType.Queen]: 0,
+            [PieceType.Rook]: 0,
+            [PieceType.Bishop]: 0,
+            [PieceType.Knight]: 0,
+            [PieceType.Pawn]: 0,
+        };
+
+        for (const piece of this._pieceMap.values()) {
+            if (piece && piece.side.value === opponentSide.value && piece.type !== PieceType.King) {
+                currentCounts[piece.type] = (currentCounts[piece.type] || 0) + 1;
+            }
+        }
+
+        const captured: string[] = [];
+        // We iterate in order of value (Queen, Rook, Bishop, Knight, Pawn) so they display nicely
+        const order = [PieceType.Queen, PieceType.Rook, PieceType.Bishop, PieceType.Knight, PieceType.Pawn];
+        for (const type of order) {
+            const missing = standardCounts[type] - currentCounts[type];
+            for (let i = 0; i < Math.max(0, missing); i++) {
+                captured.push(`${opponentSide.value}${type}`.toLowerCase());
+            }
+        }
+
+        return captured;
+    }
 }

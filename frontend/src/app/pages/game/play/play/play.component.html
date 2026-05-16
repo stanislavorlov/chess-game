@@ -9,12 +9,19 @@
             <div class="col-lg-7">
                 <div class="row player-indicator" [ngClass]="{'active': currentTurn === getTopPlayer().side.value}"
                     [attr.data-testid]="'player-top'" *ngIf="game">
-                    <div style="font-weight: bold;">{{getTopPlayer().label}}</div>
-                    <div style="margin-left: 10px;">
-                        <span>{{ formatSeconds(getTopPlayer().side.value === 'W' ? game.whiteTimer : game.blackTimer)
-                            }}</span>
+                    <div class="player-info-top">
+                        <div style="font-weight: bold;">{{getTopPlayer().label}}</div>
+                        <div style="margin-left: 10px;">
+                            <span>{{ formatSeconds(getTopPlayer().side.value === 'W' ? game.whiteTimer :
+                                game.blackTimer)
+                                }}</span>
+                        </div>
+                        <div *ngIf="currentTurn === getTopPlayer().side.value" class="turn-badge">YOUR TURN</div>
                     </div>
-                    <div *ngIf="currentTurn === getTopPlayer().side.value" class="turn-badge">YOUR TURN</div>
+                    <div class="captured-pieces" *ngIf="game">
+                        <img *ngFor="let abbr of game.getCapturedPieces(getTopPlayer().side)"
+                            src="assets/images/pieces/{{abbr}}.png" class="captured-piece-img">
+                    </div>
                 </div>
                 <div class="row" *ngIf="game">
                     <div class="board-grid">
@@ -47,12 +54,19 @@
                 </div>
                 <div class="row player-indicator" [ngClass]="{'active': currentTurn === getBottomPlayer().side.value}"
                     [attr.data-testid]="'player-bottom'" *ngIf="game">
-                    <div style="font-weight: bold;">{{getBottomPlayer().label}}</div>
-                    <div style="margin-left: 10px;">
-                        <span>{{ formatSeconds(getBottomPlayer().side.value === 'W' ? game.whiteTimer : game.blackTimer)
-                            }}</span>
+                    <div class="player-info-top">
+                        <div style="font-weight: bold;">{{getBottomPlayer().label}}</div>
+                        <div style="margin-left: 10px;">
+                            <span>{{ formatSeconds(getBottomPlayer().side.value === 'W' ? game.whiteTimer :
+                                game.blackTimer)
+                                }}</span>
+                        </div>
+                        <div *ngIf="currentTurn === getBottomPlayer().side.value" class="turn-badge">YOUR TURN</div>
                     </div>
-                    <div *ngIf="currentTurn === getBottomPlayer().side.value" class="turn-badge">YOUR TURN</div>
+                    <div class="captured-pieces" *ngIf="game">
+                        <img *ngFor="let abbr of game.getCapturedPieces(getBottomPlayer().side)"
+                            src="assets/images/pieces/{{abbr}}.png" class="captured-piece-img">
+                    </div>
                 </div>
             </div>
             <div class="col-lg-4">

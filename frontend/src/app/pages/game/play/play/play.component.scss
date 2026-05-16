@@ -145,11 +145,18 @@
 
 .player-indicator {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   margin: 10px 0;
   padding: 8px 12px;
   border-radius: 8px;
   transition: all 0.3s ease;
+
+  .player-info-top {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
 
   &.active {
     background-color: rgba(67, 160, 71, 0.1);
@@ -165,6 +172,26 @@
       font-size: 0.75rem;
       border-radius: 4px;
       animation: pulse 2s infinite;
+    }
+  }
+
+  .captured-pieces {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    margin-top: 5px;
+    align-items: center;
+    min-height: 20px;
+
+    .captured-piece-img {
+      width: 20px;
+      height: 20px;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 1;
+      }
     }
   }
 }

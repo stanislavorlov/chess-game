@@ -207,6 +207,10 @@ export class ChessGame {
     private switchTurn() {
         this._turn = (this._turn == Side.black) ? Side.white : Side.black;
     }
+
+    public getCapturedPieces(side: Side): string[] {
+        return this._board.getCapturedPieces(side);
+    }
 }
 
 export class GameInformation {

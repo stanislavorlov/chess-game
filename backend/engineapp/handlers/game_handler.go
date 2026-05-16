@@ -36,7 +36,7 @@ func mapGameToDto(game *models.Game) models.ChessGameDto {
 	var checkSide *string
 	var checkPos *string
 	if game.IsCheck() {
-		side := game.Turn()
+		side := string(game.Turn())
 		checkSide = &side
 		checkPos = game.CheckPosition()
 	}
@@ -47,7 +47,7 @@ func mapGameToDto(game *models.Game) models.ChessGameDto {
 		Date:       time.Now(),
 		Name:       string(game.FormatName()),
 		State: models.GameStateDto{
-			Turn:          game.Turn(),
+			Turn:          string(game.Turn()),
 			Started:       game.Status() == models.Started,
 			Finished:      game.Status() == models.Finished,
 			CheckSide:     checkSide,
@@ -61,8 +61,8 @@ func mapGameToDto(game *models.Game) models.ChessGameDto {
 			MoveIncrement:      game.FormatIncrement(),
 		},
 		Players: models.PlayersDto{
-			WhiteID: "computer",
-			BlackID: "computer",
+			WhiteID: string(models.PlayerComputer),
+			BlackID: string(models.PlayerComputer),
 		},
 		Board:   game.FEN(),
 		History: game.History(),
@@ -128,8 +128,8 @@ func (h *GameHandler) RequestComputerGame(w http.ResponseWriter, r *http.Request
 
 	gameId := uuid.New().String()
 
-	lightPlayer := "guest"
-	darkPlayer := "computer"
+	lightPlayer := string(models.PlayerGuest)
+	darkPlayer := string(models.PlayerComputer)
 
 	color := strings.ToLower(gameRequest.Color)
 	if color == "random" {
@@ -141,8 +141,8 @@ func (h *GameHandler) RequestComputerGame(w http.ResponseWriter, r *http.Request
 	}
 
 	if color == "black" {
-		lightPlayer = "computer"
-		darkPlayer = "guest"
+		lightPlayer = string(models.PlayerComputer)
+		darkPlayer = string(models.PlayerGuest)
 	}
 
 	game := database.GameState{
@@ -150,7 +150,7 @@ func (h *GameHandler) RequestComputerGame(w http.ResponseWriter, r *http.Request
 		Status:     "started",
 		CreatedAt:  time.Now(),
 		StartedAt:  time.Now(),
-		Mode:       "bot",
+		Mode:       string(models.ModeBot),
 		Format: database.GameFormat{
 			Name:            gameRequest.Format,
 			Minutes:         gameRequest.BaseTime,

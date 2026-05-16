@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func LoadGame(game_id string, status models.GameStatus, format models.GameFormat, mode string, lightPlayer string, darkPlayer string, fen string, history []string, result string) *models.Game {
+func LoadGame(game_id string, status models.GameStatus, format models.GameFormat, mode models.GameMode, lightPlayer models.PlayerType, darkPlayer models.PlayerType, fen string, history []string, result string) *models.Game {
 	bitboards, err := FENToBitboards(fen)
 	if err != nil {
 		log.Printf("Failed to convert FEN to bitboards: %v", err)

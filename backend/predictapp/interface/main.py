@@ -48,10 +48,10 @@ class AiService(chessai_pb2_grpc.AiServiceServicer):
         
         turn = Side.White if request.is_white_turn else Side.Black
         
-        num_simulations = int(os.getenv("ENGINE_SIMULATIONS", "50"))
-        logger.info(f"Running MCTS with {num_simulations} simulations...")
+        time_limit = float(os.getenv("ENGINE_TIME_LIMIT", "1.0"))
+        logger.info(f"Running MCTS for {time_limit} seconds...")
         
-        best_move = self.mcts.search(initial_bb=bb, turn=turn, num_simulations=num_simulations)
+        best_move = self.mcts.search(initial_bb=bb, turn=turn, time_limit=time_limit, temperature=0.1)
         
         if not best_move:
             logger.warning("No legal moves found! Returning empty UCI.")

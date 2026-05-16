@@ -10,9 +10,9 @@ type Game struct {
 	game_id         string
 	status          GameStatus
 	format          GameFormat
-	mode            string
-	lightPlayer     string
-	darkPlayer      string
+	mode            GameMode
+	lightPlayer     PlayerType
+	darkPlayer      PlayerType
 	Bitboards       Bitboards
 	turn            Side
 	history         []string
@@ -73,13 +73,13 @@ type MoveValidationResult struct {
 	Error            string
 	IsCastling       bool
 	IsKingside       bool
-	CastlingRookFrom string
-	CastlingRookTo   string
+	CastlingRookFrom Square
+	CastlingRookTo   Square
 	IsCapture        bool
 	CapturedPiece    string
 }
 
-func LoadGame(game_id string, status GameStatus, format GameFormat, mode string, lightPlayer string, darkPlayer string, bitboards Bitboards, turn Side, history []string, result string, castlingRights string, enPassantTarget string, halfmoveClock int, fullmoveNumber int) Game {
+func LoadGame(game_id string, status GameStatus, format GameFormat, mode GameMode, lightPlayer PlayerType, darkPlayer PlayerType, bitboards Bitboards, turn Side, history []string, result string, castlingRights string, enPassantTarget string, halfmoveClock int, fullmoveNumber int) Game {
 	return Game{
 		game_id:         game_id,
 		status:          status,
@@ -134,15 +134,15 @@ func (g *Game) FormatMinutes() int {
 	return g.format.minutes
 }
 
-func (g *Game) Mode() string {
+func (g *Game) Mode() GameMode {
 	return g.mode
 }
 
-func (g *Game) LightPlayer() string {
+func (g *Game) LightPlayer() PlayerType {
 	return g.lightPlayer
 }
 
-func (g *Game) DarkPlayer() string {
+func (g *Game) DarkPlayer() PlayerType {
 	return g.darkPlayer
 }
 
@@ -291,7 +291,7 @@ func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 	}
 }
 
-func (g *Game) detectCastling(pType PieceType, side Side, fromIdx, toIdx int) (bool, bool, string, string) {
+func (g *Game) detectCastling(pType PieceType, side Side, fromIdx, toIdx int) (bool, bool, Square, Square) {
 	if pType != King {
 		return false, false, "", ""
 	}
@@ -303,18 +303,18 @@ func (g *Game) detectCastling(pType PieceType, side Side, fromIdx, toIdx int) (b
 		if fromMask == WhiteKingStart {
 			switch toMask {
 			case WhiteKingSideDest:
-				return true, true, "h1", "f1"
+				return true, true, SqH1, SqF1
 			case WhiteQueenSideDest:
-				return true, false, "a1", "d1"
+				return true, false, SqA1, SqD1
 			}
 		}
 	} else {
 		if fromMask == BlackKingStart {
 			switch toMask {
 			case BlackKingSideDest:
-				return true, true, "h8", "f8"
+				return true, true, SqH8, SqF8
 			case BlackQueenSideDest:
-				return true, false, "a8", "d8"
+				return true, false, SqA8, SqD8
 			}
 		}
 	}
@@ -426,8 +426,8 @@ func (g *Game) FEN() string {
 }
 
 // Turn returns the side to move
-func (g *Game) Turn() string {
-	return string(g.turn)
+func (g *Game) Turn() Side {
+	return g.turn
 }
 
 func (g *Game) Winner() string {

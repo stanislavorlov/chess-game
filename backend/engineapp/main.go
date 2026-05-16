@@ -68,7 +68,7 @@ func main() {
 
 	http.HandleFunc("/health/live", health.Check)
 	http.HandleFunc("/health/ready", health.Check)
-	http.HandleFunc("/ws/", ws.HandleConnections(moveHandler.HandleMove))
+	http.HandleFunc("/ws/", ws.HandleConnections(moveHandler.HandleMove, moveHandler.HandleConnect))
 	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 
 	http.HandleFunc("GET /api/game/board/{gameId}", gameHandler.GetGame)

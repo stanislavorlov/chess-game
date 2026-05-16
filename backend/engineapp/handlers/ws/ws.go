@@ -28,7 +28,10 @@ var (
 	clientsMu sync.Mutex
 )
 
-func HandleConnections(moveHandler func(gameID string, message []byte, send func([]byte), broadcast func([]byte))) http.HandlerFunc {
+func HandleConnections(
+	moveHandler func(gameID string, message []byte, send func([]byte), broadcast func([]byte)),
+	connectHandler func(gameID string, send func([]byte), broadcast func([]byte)),
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Extract game_id from path: /ws/{game_id}
 		path := r.URL.Path
@@ -75,6 +78,10 @@ func HandleConnections(moveHandler func(gameID string, message []byte, send func
 				}
 				c.mu.Unlock()
 			}
+		}
+
+		if connectHandler != nil {
+			connectHandler(gameID, sendMsg, broadcastMsg)
 		}
 
 		for {

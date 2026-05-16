@@ -88,9 +88,9 @@ func (r *MongoRepository) GetGame(ctx context.Context, gameID string) (*models.G
 		state.ID,
 		models.GameStatus(state.Status),
 		models.NewGameFormat(state.Format.Name, state.Format.Minutes, state.Format.MoveIncrementMs),
-		state.Mode,
-		state.Players.LightPlayerId,
-		state.Players.DarkPlayerId,
+		models.GameMode(state.Mode),
+		models.PlayerType(state.Players.LightPlayerId),
+		models.PlayerType(state.Players.DarkPlayerId),
 		lastFen,
 		sanMoves,
 		state.Result.Winner)

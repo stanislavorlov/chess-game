@@ -1,9 +1,11 @@
 import math
+import time
+import random
 import numpy as np
 from typing import List, Optional, Tuple, Dict
 from .bitboards import Bitboards, Side
 from .bitboard_utils import BitboardUtils
-from .game_state import get_legal_moves, clone_and_apply_move
+from .game_state import get_legal_moves, clone_and_apply_move, is_in_check
 from .keras_model import ChessZeroModel
 
 class MCTSNode:
@@ -31,10 +33,17 @@ class MonteCarloTreeSearch:
         self.c_puct = c_puct
         self.utils = BitboardUtils()
 
-    def search(self, initial_bb: Bitboards, turn: Side, num_simulations: int = 100) -> Optional[Tuple[int, int]]:
+    def search(self, initial_bb: Bitboards, turn: Side, time_limit: float = 1.0, temperature: float = 1.0) -> Optional[Tuple[int, int]]:
         root = MCTSNode(initial_bb, turn)
+        
+        # Expand root immediately to apply Dirichlet noise
+        self._expand_and_evaluate(root)
+        self._add_dirichlet_noise(root)
 
-        for _ in range(num_simulations):
+        end_time = time.time() + time_limit
+        simulations = 0
+        while time.time() < end_time:
+            simulations += 1
             node = root
             
             # 1. Selection
@@ -50,19 +59,41 @@ class MonteCarloTreeSearch:
                 # Terminal state reached in selection
                 legal_moves = get_legal_moves(node.bb, node.turn, self.utils)
                 if not legal_moves:
-                    self._backpropagate(node, -1.0)
+                    if is_in_check(node.bb, node.turn, self.utils):
+                        self._backpropagate(node, -1.0) # Loss
+                    else:
+                        self._backpropagate(node, 0.0) # Stalemate
                 else:
                     self._backpropagate(node, 0.0)
 
-        best_move = None
-        best_visits = -1
+        if not root.children:
+            return None
+            
+        moves = list(root.children.keys())
+        visits = [child.visit_count for child in root.children.values()]
         
-        for move, child in root.children.items():
-            if child.visit_count > best_visits:
-                best_visits = child.visit_count
-                best_move = move
-                
-        return best_move
+        if temperature < 1e-3:
+            # Deterministic selection for temperature -> 0
+            best_idx = np.argmax(visits)
+            return moves[best_idx]
+            
+        # Temperature-based probability distribution
+        visits_pow = np.power(visits, 1.0 / temperature)
+        probs = visits_pow / np.sum(visits_pow)
+        
+        # Select move based on probabilities
+        chosen_idx = np.random.choice(len(moves), p=probs)
+        return moves[chosen_idx]
+
+    def _add_dirichlet_noise(self, node: MCTSNode, dirichlet_alpha: float = 0.3, exploration_fraction: float = 0.25):
+        if not node.children:
+            return
+            
+        num_children = len(node.children)
+        noise = np.random.dirichlet([dirichlet_alpha] * num_children)
+        
+        for i, child in enumerate(node.children.values()):
+            child.prior_prob = (1 - exploration_fraction) * child.prior_prob + exploration_fraction * noise[i]
 
     def _select_child(self, node: MCTSNode) -> MCTSNode:
         best_score = -float('inf')
@@ -85,7 +116,9 @@ class MonteCarloTreeSearch:
         if not legal_moves:
             # Terminal state
             node.is_expanded = True
-            return -1.0 # Loss for the player whose turn it is
+            if is_in_check(node.bb, node.turn, self.utils):
+                return -1.0 # Loss for the player whose turn it is
+            return 0.0 # Stalemate/Draw
 
         policy, value = self.model.predict(node.bb)
         

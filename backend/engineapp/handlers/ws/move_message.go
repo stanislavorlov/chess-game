@@ -1,5 +1,17 @@
 package ws
 
+const (
+	EventAIPredictedMove = "ai-predicted-move"
+	EventSyncedState     = "synced-state"
+	EventPieceMoveFailed = "piece-move-failed"
+	EventKingChecked     = "king-checked"
+	EventGameFinished    = "game-finished"
+	EventKingCastled     = "king-castled"
+	EventPieceMoved      = "piece-moved"
+	EventPieceCaptured   = "piece-captured"
+	EventKingCheckmated  = "king-checkmated"
+)
+
 type Side struct {
 	Value string `json:"_value"`
 }

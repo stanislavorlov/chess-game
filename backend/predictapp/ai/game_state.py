@@ -95,3 +95,15 @@ def get_legal_moves(bb: Bitboards, turn: Side, bitboard_utils: utils.BitboardUti
                 moves.append(m)
 
     return moves
+
+def is_in_check(bb: Bitboards, turn: Side, bitboard_utils: utils.BitboardUtils) -> bool:
+    bb_map, _, combined_occupancy = bb.generate_maps()
+    enemy_side = Side.Black if turn == Side.White else Side.White
+    
+    king_bb = bb_map.get((turn, PieceType.King), 0)
+    king_idx = utils.get_lsb_index(king_bb)
+    
+    if king_idx == -1:
+        return False
+        
+    return utils.is_square_attacked(king_idx, enemy_side, bb_map, combined_occupancy, bitboard_utils)

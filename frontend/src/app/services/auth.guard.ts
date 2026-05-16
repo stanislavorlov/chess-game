@@ -13,18 +13,24 @@ export class AuthGuard implements CanActivate {
     const isLoggedIn = this.authService.isLoggedIn();
     const isGuest = this.authService.isGuest;
 
-    // dashboard and play are accessible to everyone
-    if (state.url.startsWith('/dashboard') || state.url.startsWith('/play')) {
-        return true;
+    // List of routes that REQUIRE a real account
+    const restrictedRoutes = ['/stats', '/profile'];
+    const isRestricted = restrictedRoutes.some(path => state.url.startsWith(path));
+
+    if (isRestricted) {
+        if (isLoggedIn) {
+            return true;
+        }
+        this.router.navigate(['/authentication/login']);
+        return false;
     }
 
-    // Stats and Profile require real login
-    if (isLoggedIn) {
-      return true;
+    // For all other routes, allow access. 
+    // If not logged in and not guest, automatically set guest mode.
+    if (!isLoggedIn && !isGuest) {
+        this.authService.setGuestMode();
     }
-
-    // If not logged in (even if guest), redirect to login for protected routes
-    this.router.navigate(['/authentication/login']);
-    return false;
+    
+    return true;
   }
 }

@@ -5,16 +5,21 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: chess-frontend
+    networks:
+      - chess-network
     ports:
       - "4200:80"
     depends_on:
       - engine-app
+      - auth-app
 
   predict-app:
     build:
       context: ./backend
       dockerfile: predictapp/Dockerfile
     container_name: predict-app
+    networks:
+      - chess-network
     ports:
       - "${PREDICTAPP_HTTP_PORT:-8000}:${PREDICTAPP_HTTP_PORT:-8000}"
     env_file:
@@ -37,6 +42,8 @@ services:
       context: ./backend/engineapp
       dockerfile: Dockerfile
     container_name: engine-app
+    networks:
+      - chess-network
     ports:
       - "${ENGINEAPP_HTTP_PORT:-8082}:${ENGINEAPP_HTTP_PORT:-8082}"
       - "${ENGINEAPP_GRPC_PORT:-50051}:${ENGINEAPP_GRPC_PORT:-50051}"
@@ -58,14 +65,19 @@ services:
       context: ./backend/authapp
       dockerfile: Dockerfile
     container_name: auth-app
+    networks:
+      - chess-network
     ports:
       - "${AUTHAPP_PORT:-3000}:${AUTHAPP_PORT:-3000}"
     env_file:
       - backend/.env
     environment:
       - MONGO_HOST=mongodb://mongodb:27017
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
     depends_on:
       mongodb:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
 
   stats-app:
@@ -73,6 +85,8 @@ services:
       context: ./backend/statsapp
       dockerfile: Dockerfile
     container_name: stats-app
+    networks:
+      - chess-network
     ports:
       - "${STATSAPP_PORT:-8081}:${STATSAPP_PORT:-8081}"
     env_file:
@@ -89,6 +103,8 @@ services:
   redis:
     image: redis:latest
     container_name: chess-redis
+    networks:
+      - chess-network
     ports:
       - "6379:6379"
     healthcheck:
@@ -100,6 +116,8 @@ services:
   mongodb:
     image: mongo:latest
     container_name: chess-mongodb
+    networks:
+      - chess-network
     ports:
       - "27017:27017"
     volumes:
@@ -113,6 +131,8 @@ services:
   kafka:
     image: apache/kafka:latest
     container_name: chess-kafka
+    networks:
+      - chess-network
     ports:
       - "9092:9092"
     environment:
@@ -138,6 +158,8 @@ services:
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: chess-kafka-ui
+    networks:
+      - chess-network
     ports:
       - "8080:8080"
     environment:
@@ -147,6 +169,10 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+
+networks:
+  chess-network:
+    driver: bridge
 
 volumes:
   mongodb_data:

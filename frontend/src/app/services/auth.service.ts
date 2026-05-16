@@ -66,7 +66,7 @@ export class AuthService {
   }
 
   setGuestMode() {
-    this.logout();
+    this.logout(false);
     localStorage.setItem('isGuest', 'true');
   }
 
@@ -74,11 +74,13 @@ export class AuthService {
     localStorage.removeItem('isGuest');
   }
 
-  logout() {
+  logout(shouldNavigate: boolean = true) {
     localStorage.removeItem('currentUser');
     this.clearGuestMode();
     this.currentUserSubject.next(null);
-    this.router.navigate(['/authentication/login']);
+    if (shouldNavigate) {
+      this.router.navigate(['/authentication/login']);
+    }
   }
 
   getToken(): string | null {

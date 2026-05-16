@@ -34,21 +34,21 @@
             <mat-label class="f-s-14 f-w-600 m-b-12 d-block">Username</mat-label>
             <mat-form-field appearance="outline" class="w-100" color="primary">
               <input matInput formControlName="username" />
-              <mat-error *ngIf="f.username.errors?.required">Username is required</mat-error>
-              <mat-error *ngIf="f.username.errors?.minlength">Username must be at least 6 characters</mat-error>
+              <mat-error *ngIf="f.username.errors?.['required']">Username is required</mat-error>
+              <mat-error *ngIf="f.username.errors?.['minlength']">Username must be at least 6 characters</mat-error>
             </mat-form-field>
             <mat-label class="f-s-14 f-w-600 m-b-12 d-block">Email Address</mat-label>
             <mat-form-field appearance="outline" class="w-100" color="primary">
               <input matInput type="email" formControlName="email" />
-              <mat-error *ngIf="f.email.errors?.required">Email is required</mat-error>
-              <mat-error *ngIf="f.email.errors?.email">Invalid email format</mat-error>
+              <mat-error *ngIf="f.email.errors?.['required']">Email is required</mat-error>
+              <mat-error *ngIf="f.email.errors?.['email']">Invalid email format</mat-error>
             </mat-form-field>
             <!-- password -->
             <mat-label class="f-s-14 f-w-600 m-b-12 d-block">Password</mat-label>
             <mat-form-field appearance="outline" class="w-100" color="primary">
               <input matInput type="password" formControlName="password" />
-              <mat-error *ngIf="f.password.errors?.required">Password is required</mat-error>
-              <mat-error *ngIf="f.password.errors?.minlength">Password must be at least 6 characters</mat-error>
+              <mat-error *ngIf="f.password.errors?.['required']">Password is required</mat-error>
+              <mat-error *ngIf="f.password.errors?.['minlength']">Password must be at least 6 characters</mat-error>
             </mat-form-field>
 
             <div *ngIf="errorMessage" class="text-danger m-b-12">{{errorMessage}}</div>

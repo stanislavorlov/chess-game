@@ -17,6 +17,7 @@ import { SidebarComponent } from './sidebar/sidebar.component';
 import { AppNavItemComponent } from './sidebar/nav-item/nav-item.component';
 import { navItems } from './sidebar/sidebar-data';
 import { AppTopstripComponent } from './top-strip/topstrip.component';
+import { AuthService } from 'src/app/services/auth.service';
 
 
 const MOBILE_VIEW = 'screen and (max-width: 768px)';
@@ -64,6 +65,7 @@ export class FullComponent implements OnInit {
     private settings: CoreService,
     private router: Router,
     private breakpointObserver: BreakpointObserver,
+    private authService: AuthService
   ) {
     this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
@@ -88,7 +90,10 @@ export class FullComponent implements OnInit {
       });
   }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {
+    const isLoggedIn = this.authService.isLoggedIn();
+    this.navItems = navItems.filter(item => !item.authRequired || isLoggedIn);
+  }
 
   ngOnDestroy() {
     this.layoutChangesSubscription.unsubscribe();

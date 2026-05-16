@@ -5,21 +5,24 @@ import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
+import { CommonModule } from '@angular/common';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-side-register',
-  imports: [RouterModule, MaterialModule, FormsModule, ReactiveFormsModule],
+  standalone: true,
+  imports: [RouterModule, MaterialModule, FormsModule, ReactiveFormsModule, CommonModule],
   templateUrl: './side-register.component.html',
 })
 export class AppSideRegisterComponent {
-  options = this.settings.getOptions();
+  errorMessage: string = '';
 
-  constructor(private settings: CoreService, private router: Router) {}
+  constructor(private settings: CoreService, private authService: AuthService, private router: Router) { }
 
   form = new FormGroup({
-    uname: new FormControl('', [Validators.required, Validators.minLength(6)]),
-    email: new FormControl('', [Validators.required]),
-    password: new FormControl('', [Validators.required]),
+    username: new FormControl('', [Validators.required, Validators.minLength(6)]),
+    email: new FormControl('', [Validators.required, Validators.email]),
+    password: new FormControl('', [Validators.required, Validators.minLength(6)]),
   });
 
   get f() {
@@ -27,7 +30,22 @@ export class AppSideRegisterComponent {
   }
 
   submit() {
-    // console.log(this.form.value);
+    if (this.form.invalid) {
+      return;
+    }
+
+    this.authService.register(this.form.value).subscribe({
+      next: () => {
+        this.router.navigate(['/']);
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.message || 'Registration failed. Please try again.';
+      }
+    });
+  }
+
+  playAsGuest() {
+    this.authService.setGuestMode();
     this.router.navigate(['/']);
   }
 }

@@ -4,7 +4,6 @@ import {
   Input,
   OnInit,
   Output,
-  ViewChild,
 } from '@angular/core';
 import { BrandingComponent } from './branding.component';
 import { TablerIconsModule } from 'angular-tabler-icons';

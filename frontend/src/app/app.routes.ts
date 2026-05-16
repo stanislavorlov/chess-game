@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { BlankComponent } from './layouts/blank/blank.component';
 import { FullComponent } from './layouts/full/full.component';
+import { AuthGuard } from './services/auth.guard';
 
 export const routes: Routes = [
   {
@@ -19,6 +20,7 @@ export const routes: Routes = [
       },
       {
         path: 'stats',
+        canActivate: [AuthGuard],
         loadChildren: () => 
           import('./pages/stats/stats.routes').then((m) => m.StatsRoutes),
       },
@@ -29,6 +31,7 @@ export const routes: Routes = [
       },
       {
         path: 'profile',
+        canActivate: [AuthGuard],
         loadChildren: () =>
           import('./pages/profile/profile.routes').then((m) => m.ProfileRoutes),
       },

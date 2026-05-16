@@ -7,7 +7,9 @@ import {
   HttpClient,
   provideHttpClient,
   withInterceptorsFromDi,
+  HTTP_INTERCEPTORS,
 } from '@angular/common/http';
+import { AuthInterceptor } from './services/auth.interceptor';
 import { routes } from './app.routes';
 import {
   provideRouter,
@@ -42,6 +44,11 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding()
     ),
     provideHttpClient(withInterceptorsFromDi()),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    },
     provideClientHydration(),
     provideAnimationsAsync(),
     importProvidersFrom(

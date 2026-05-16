@@ -30,24 +30,35 @@
 
           <div class="or-border m-t-30">or sign up with</div>
 
-          <form class="m-t-30">
-            <mat-label class="f-s-14 f-w-600 m-b-12 d-block">Name</mat-label>
+          <form class="m-t-30" [formGroup]="form" (ngSubmit)="submit()">
+            <mat-label class="f-s-14 f-w-600 m-b-12 d-block">Username</mat-label>
             <mat-form-field appearance="outline" class="w-100" color="primary">
-              <input matInput />
+              <input matInput formControlName="username" />
+              <mat-error *ngIf="f.username.errors?.required">Username is required</mat-error>
+              <mat-error *ngIf="f.username.errors?.minlength">Username must be at least 6 characters</mat-error>
             </mat-form-field>
-            <mat-label class="f-s-14 f-w-600 m-b-12 d-block">Email Adddress</mat-label>
+            <mat-label class="f-s-14 f-w-600 m-b-12 d-block">Email Address</mat-label>
             <mat-form-field appearance="outline" class="w-100" color="primary">
-              <input matInput type="email" />
+              <input matInput type="email" formControlName="email" />
+              <mat-error *ngIf="f.email.errors?.required">Email is required</mat-error>
+              <mat-error *ngIf="f.email.errors?.email">Invalid email format</mat-error>
             </mat-form-field>
             <!-- password -->
             <mat-label class="f-s-14 f-w-600 m-b-12 d-block">Password</mat-label>
             <mat-form-field appearance="outline" class="w-100" color="primary">
-              <input matInput type="password" />
+              <input matInput type="password" formControlName="password" />
+              <mat-error *ngIf="f.password.errors?.required">Password is required</mat-error>
+              <mat-error *ngIf="f.password.errors?.minlength">Password must be at least 6 characters</mat-error>
             </mat-form-field>
 
-            <a [routerLink]="['/']" mat-flat-button color="primary" class="w-100">
+            <div *ngIf="errorMessage" class="text-danger m-b-12">{{errorMessage}}</div>
+
+            <button type="submit" mat-flat-button color="primary" class="w-100" [disabled]="form.invalid">
               Sign Up
-            </a>
+            </button>
+            <button type="button" mat-stroked-button color="primary" class="w-100 m-t-12" (click)="playAsGuest()">
+              Play as Guest
+            </button>
             <!-- input -->
           </form>
           <span class="d-block f-w-500 text-center m-t-24">Already have an Account?

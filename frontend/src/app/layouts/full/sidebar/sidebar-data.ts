@@ -17,12 +17,14 @@ export const navItems: NavItem[] = [
   {
     displayName: 'Stats',
     iconName: 'list-details',
-    route: '/stats'
+    route: '/stats',
+    authRequired: true
   },
   {
     displayName: 'Profile',
     iconName: 'user-circle',
-    route: '/profile'
+    route: '/profile',
+    authRequired: true
   },
   {
     displayName: 'Analytical',

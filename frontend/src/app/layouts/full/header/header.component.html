@@ -17,32 +17,30 @@
 
   <span class="flex-1-auto"></span>
 
-  <!-- --------------------------------------------------------------- -->
-  <!-- profile Dropdown -->
-  <!-- --------------------------------------------------------------- -->
-  <a mat-flat-button href="https://www.wrappixel.com/templates/flexy-material-angular-admin/?ref=353"
-    target="_blank" class="d-flex justify-content-center bg-success">
-    Check Pro Template
-  </a>
-  <button mat-mini-fab [matMenuTriggerFor]="profilemenu" aria-label="Notifications">
-    <img src="/assets/images/profile/user-1.jpg" class="rounded-circle object-cover d-block" width="35" />
-  </button>
-  <mat-menu #profilemenu="matMenu" class="cardWithShadow topbar-dd">
-    <button mat-menu-item>
-      <mat-icon class="d-flex align-items-center"><i-tabler name="user" class="icon-18 d-flex"></i-tabler></mat-icon>My
-      Profile
-    </button>
-    <button mat-menu-item>
-      <mat-icon class="d-flex align-items-center"><i-tabler name="mail" class="icon-18 d-flex"></i-tabler></mat-icon>My
-      Account
-    </button>
-    <button mat-menu-item>
-      <mat-icon class="d-flex align-items-center"><i-tabler name="list-check"
-          class="icon-18 d-flex"></i-tabler></mat-icon>My Task
-    </button>
+  <div *ngIf="authService.currentUser | async as user; else guestMenu" class="d-flex align-items-center">
+      <span class="m-r-8 f-w-600 f-s-14 d-none d-lg-block">{{ user.username }}</span>
+      <button mat-mini-fab [matMenuTriggerFor]="profilemenu" aria-label="Profile">
+        <img src="/assets/images/profile/user-1.jpg" class="rounded-circle object-cover d-block" width="35" />
+      </button>
+  </div>
 
-    <div class="p-x-12 m-t-12">
-      <a [routerLink]="['/authentication/login']" mat-stroked-button class="w-100">Logout</a>
+  <ng-template #guestMenu>
+    <div class="d-flex align-items-center">
+      <a [routerLink]="['/authentication/login']" mat-flat-button color="primary" class="m-r-8">Login</a>
+      <a [routerLink]="['/authentication/register']" mat-stroked-button color="primary">Register</a>
     </div>
+  </ng-template>
+
+  <mat-menu #profilemenu="matMenu" class="cardWithShadow topbar-dd">
+    <button mat-menu-item [routerLink]="['/profile']">
+      <mat-icon class="d-flex align-items-center"><i-tabler name="user" class="icon-18 d-flex"></i-tabler></mat-icon>My Profile
+    </button>
+    <button mat-menu-item [routerLink]="['/stats']">
+      <mat-icon class="d-flex align-items-center"><i-tabler name="chart-bar" class="icon-18 d-flex"></i-tabler></mat-icon>My Statistics
+    </button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="logout()">
+      <mat-icon class="d-flex align-items-center"><i-tabler name="logout" class="icon-18 d-flex"></i-tabler></mat-icon>Logout
+    </button>
   </mat-menu>
 </mat-toolbar>

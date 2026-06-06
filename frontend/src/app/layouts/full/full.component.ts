@@ -17,7 +17,7 @@ import { SidebarComponent } from './sidebar/sidebar.component';
 import { AppNavItemComponent } from './sidebar/nav-item/nav-item.component';
 import { navItems } from './sidebar/sidebar-data';
 import { AppTopstripComponent } from './top-strip/topstrip.component';
-import { AuthService } from 'src/app/services/auth.service';
+import { AuthService } from '../../services/auth.service';
 
 
 const MOBILE_VIEW = 'screen and (max-width: 768px)';
@@ -92,7 +92,11 @@ export class FullComponent implements OnInit {
 
   ngOnInit(): void {
     const isLoggedIn = this.authService.isLoggedIn();
+    // Here we need to filter out the login link if the user is logged in, and the logout link if the user is not logged in
     this.navItems = navItems.filter(item => !item.authRequired || isLoggedIn);
+    if (isLoggedIn) {
+      this.navItems = this.navItems.filter(item => !item.onlyAnonymous);
+    }
   }
 
   ngOnDestroy() {

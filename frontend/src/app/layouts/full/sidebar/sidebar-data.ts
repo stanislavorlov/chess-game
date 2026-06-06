@@ -204,7 +204,7 @@ export const navItems: NavItem[] = [
       },
     ],
   },
-  
+
   {
     displayName: 'Blog',
     iconName: 'chart-donut-3',
@@ -607,7 +607,7 @@ export const navItems: NavItem[] = [
     chipClass: 'bg-primary text-white',
     chipContent: 'PRO',
   },
-  
+
   {
     navCap: 'Tables',
   },
@@ -839,6 +839,7 @@ export const navItems: NavItem[] = [
     displayName: 'Login',
     iconName: 'login',
     route: '/authentication',
+    onlyAnonymous: true,
     children: [
       {
         displayName: 'Login',
@@ -850,7 +851,7 @@ export const navItems: NavItem[] = [
         iconName: 'point',
         external: true,
         chip: true,
-        chipClass: 'bg-primary text-white', 
+        chipClass: 'bg-primary text-white',
         chipContent: 'PRO',
         route: 'https://flexy-angular-main.netlify.app/authentication/login',
       },
@@ -860,6 +861,7 @@ export const navItems: NavItem[] = [
     displayName: 'Register',
     iconName: 'user-plus',
     route: '/authentication',
+    onlyAnonymous: true,
     children: [
       {
         displayName: 'Register',

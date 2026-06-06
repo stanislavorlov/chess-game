@@ -9,4 +9,5 @@ export interface NavItem {
     chipClass?: string;
     external?: boolean;
     authRequired?: boolean;
+    onlyAnonymous?: boolean;
 }

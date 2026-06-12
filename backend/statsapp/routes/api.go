@@ -19,6 +19,7 @@ func SetupRouter() *gin.Engine {
 		{
 			stats.POST("", controllers.CreateStat)
 			stats.GET("", controllers.GetStats)
+			stats.GET("/player/:playerId", controllers.GetPlayerStats)
 		}
 	}
 

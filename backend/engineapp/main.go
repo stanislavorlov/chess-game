@@ -11,6 +11,7 @@ import (
 	"engineapp/handlers"
 	"engineapp/handlers/health"
 	"engineapp/handlers/ws"
+	"engineapp/kafka"
 
 	httpSwagger "github.com/swaggo/http-swagger"
 
@@ -63,14 +64,33 @@ func main() {
 		log.Println("No MONGO_HOST provided, skipping Mongo connection")
 	}
 
-	moveHandler := handlers.NewMoveHandler(mongoRepo)
+	kafkaServers := os.Getenv("KAFKA_BOOTSTRAP_SERVERS")
+	if kafkaServers == "" {
+		kafkaServers = "localhost:9092"
+	}
+	var kafkaProducer *kafka.Producer
+	kp, err := kafka.NewProducer(kafkaServers)
+	if err != nil {
+		log.Printf("Failed to initialize Kafka producer: %v", err)
+	} else {
+		kafkaProducer = kp
+		defer kafkaProducer.Close()
+	}
+
+	moveHandler := handlers.NewMoveHandler(mongoRepo, kafkaProducer)
 	gameHandler := handlers.NewGameHandler(mongoRepo)
 
-	http.HandleFunc("/health/live", health.Check)
-	http.HandleFunc("/health/ready", health.Check)
-	http.HandleFunc("/ws/", ws.HandleConnections(moveHandler.HandleMove, moveHandler.HandleConnect))
-	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
+	// health check
+	http.HandleFunc("GET /health/live", health.Check)
+	http.HandleFunc("GET /health/ready", health.Check)
 
+	// swagger
+	http.HandleFunc("GET /swagger/", httpSwagger.WrapHandler)
+
+	// websocket
+	http.HandleFunc("GET /ws/", ws.HandleConnections(moveHandler.HandleMove, moveHandler.HandleConnect))
+
+	// api
 	http.HandleFunc("GET /api/game/board/{gameId}", gameHandler.GetGame)
 	http.HandleFunc("POST /api/game/computer", gameHandler.RequestComputerGame)
 	http.HandleFunc("POST /api/game/online", gameHandler.RequestOnlineGame)

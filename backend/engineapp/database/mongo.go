@@ -6,6 +6,7 @@ import (
 	"engineapp/models"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -14,7 +15,6 @@ import (
 )
 
 const (
-	DatabaseName          = "chess_db"
 	GameStateCollection   = "game_states"
 	GameHistoryCollection = "game_histories"
 )
@@ -41,9 +41,14 @@ func ConnectMongo(ctx context.Context, mongoUri string) (*MongoRepository, error
 
 	log.Println("Connected to MongoDB!")
 
+	dbName := os.Getenv("MONGO_DB")
+	if dbName == "" {
+		dbName = "chess"
+	}
+
 	return &MongoRepository{
 		client:   client,
-		database: client.Database(DatabaseName),
+		database: client.Database(dbName),
 	}, nil
 }
 
@@ -111,9 +116,9 @@ func (r *MongoRepository) UpdateGameStatus(ctx context.Context, gameID string, s
 	coll := r.database.Collection(GameStateCollection)
 	update := bson.M{
 		"$set": bson.M{
-			"status":      string(status),
+			"status":        string(status),
 			"result.winner": result,
-			"finished_at": time.Now(),
+			"finished_at":   time.Now(),
 		},
 	}
 	_, err := coll.UpdateOne(ctx, bson.M{"_id": gameID}, update)

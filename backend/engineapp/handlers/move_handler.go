@@ -11,18 +11,20 @@ import (
 
 	"engineapp/database"
 	"engineapp/handlers/ws"
+	"engineapp/kafka"
 	"engineapp/models"
 	"engineapp/services"
 )
 
 // MoveHandler manages move-related requests and their dependencies.
 type MoveHandler struct {
-	Repo *database.MongoRepository
+	Repo     *database.MongoRepository
+	Producer *kafka.Producer
 }
 
 // NewMoveHandler creates a new MoveHandler instance.
-func NewMoveHandler(repo *database.MongoRepository) *MoveHandler {
-	return &MoveHandler{Repo: repo}
+func NewMoveHandler(repo *database.MongoRepository, producer *kafka.Producer) *MoveHandler {
+	return &MoveHandler{Repo: repo, Producer: producer}
 }
 
 // HandleMove processes an incoming move message for a given game
@@ -183,6 +185,20 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 		}
 		if respBytes, err := json.Marshal(finishedEvent); err == nil {
 			broadcast(respBytes)
+		}
+
+		if h.Producer != nil {
+			kafkaEvent := map[string]interface{}{
+				"event_type": "game_finished",
+				"game_id":    gameID,
+				"result":     game.Result(),
+				"light_player": game.LightPlayer(),
+				"dark_player":  game.DarkPlayer(),
+				"format":     game.FormatName(),
+			}
+			if kb, err := json.Marshal(kafkaEvent); err == nil {
+				h.Producer.Produce("chess_events", nil, kb)
+			}
 		}
 	}
 

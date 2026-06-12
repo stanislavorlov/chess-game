@@ -44,7 +44,7 @@ func HandleChessEvent(message []byte) {
 			} else {
 				log.Println("Successfully saved game_finished stat to DB.")
 			}
-			
+
 			log.Println("Successfully saved game_finished stats to DB.")
 		}
 	}

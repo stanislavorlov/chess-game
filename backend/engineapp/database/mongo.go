@@ -89,13 +89,25 @@ func (r *MongoRepository) GetGame(ctx context.Context, gameID string) (*models.G
 		}
 	}
 
+	var lightPlayer, darkPlayer *models.Player
+	if state.Players.LightPlayerId == "bot" {
+		lightPlayer = models.NewBotPlayer()
+	} else {
+		lightPlayer = models.NewAuthenticatedPlayer(state.Players.LightPlayerId)
+	}
+	if state.Players.DarkPlayerId == "bot" {
+		darkPlayer = models.NewBotPlayer()
+	} else {
+		darkPlayer = models.NewAuthenticatedPlayer(state.Players.DarkPlayerId)
+	}
+
 	game := factories.LoadGame(
 		state.ID,
 		models.GameStatus(state.Status),
 		models.NewGameFormat(state.Format.Name, state.Format.Minutes, state.Format.MoveIncrementMs),
 		models.GameMode(state.Mode),
-		models.PlayerType(state.Players.LightPlayerId),
-		models.PlayerType(state.Players.DarkPlayerId),
+		lightPlayer,
+		darkPlayer,
 		lastFen,
 		sanMoves,
 		state.Result.Winner)

@@ -11,8 +11,8 @@ type Game struct {
 	status          GameStatus
 	format          GameFormat
 	mode            GameMode
-	lightPlayer     PlayerType
-	darkPlayer      PlayerType
+	lightPlayer     *Player
+	darkPlayer      *Player
 	Bitboards       Bitboards
 	turn            Side
 	history         []string
@@ -79,7 +79,7 @@ type MoveValidationResult struct {
 	CapturedPiece    string
 }
 
-func LoadGame(game_id string, status GameStatus, format GameFormat, mode GameMode, lightPlayer PlayerType, darkPlayer PlayerType, bitboards Bitboards, turn Side, history []string, result string, castlingRights string, enPassantTarget string, halfmoveClock int, fullmoveNumber int) Game {
+func LoadGame(game_id string, status GameStatus, format GameFormat, mode GameMode, lightPlayer *Player, darkPlayer *Player, bitboards Bitboards, turn Side, history []string, result string, castlingRights string, enPassantTarget string, halfmoveClock int, fullmoveNumber int) Game {
 	return Game{
 		game_id:         game_id,
 		status:          status,
@@ -138,11 +138,11 @@ func (g *Game) Mode() GameMode {
 	return g.mode
 }
 
-func (g *Game) LightPlayer() PlayerType {
+func (g *Game) LightPlayer() *Player {
 	return g.lightPlayer
 }
 
-func (g *Game) DarkPlayer() PlayerType {
+func (g *Game) DarkPlayer() *Player {
 	return g.darkPlayer
 }
 

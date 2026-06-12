@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -26,6 +27,24 @@ func GetIpAddress(r *http.Request) string {
 		ip = r.RemoteAddr
 	}
 	return ip
+}
+
+// extractUserId tries to parse JWT from Authorization header, fallback to X-User-ID
+func extractUserId(r *http.Request) string {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		token, _, err := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
+		if err == nil {
+			if claims, ok := token.Claims.(jwt.MapClaims); ok {
+				if sub, ok := claims["sub"].(string); ok {
+					return sub
+				}
+			}
+		}
+	}
+	// Fallback to custom header if provided
+	return r.Header.Get("X-User-ID")
 }
 
 func mapGameToDto(game *models.Game) models.ChessGameDto {
@@ -61,8 +80,8 @@ func mapGameToDto(game *models.Game) models.ChessGameDto {
 			MoveIncrement:      game.FormatIncrement(),
 		},
 		Players: models.PlayersDto{
-			WhiteID: string(models.PlayerComputer),
-			BlackID: string(models.PlayerComputer),
+			WhiteID: game.LightPlayer().ID,
+			BlackID: game.DarkPlayer().ID,
 		},
 		Board:   game.FEN(),
 		History: game.History(),
@@ -128,8 +147,14 @@ func (h *GameHandler) RequestComputerGame(w http.ResponseWriter, r *http.Request
 
 	gameId := uuid.New().String()
 
-	lightPlayer := string(models.PlayerGuest)
-	darkPlayer := string(models.PlayerComputer)
+	userId := extractUserId(r)
+	var lightPlayerId, darkPlayerId string
+	if userId != "" {
+		lightPlayerId = userId
+	} else {
+		lightPlayerId = uuid.New().String()
+	}
+	darkPlayerId = "bot"
 
 	color := strings.ToLower(gameRequest.Color)
 	if color == "random" {
@@ -141,8 +166,7 @@ func (h *GameHandler) RequestComputerGame(w http.ResponseWriter, r *http.Request
 	}
 
 	if color == "black" {
-		lightPlayer = string(models.PlayerComputer)
-		darkPlayer = string(models.PlayerGuest)
+		lightPlayerId, darkPlayerId = darkPlayerId, lightPlayerId
 	}
 
 	game := database.GameState{
@@ -157,8 +181,8 @@ func (h *GameHandler) RequestComputerGame(w http.ResponseWriter, r *http.Request
 			MoveIncrementMs: gameRequest.Increment,
 		},
 		Players: database.GamePlayers{
-			LightPlayerId: lightPlayer,
-			DarkPlayerId:  darkPlayer,
+			LightPlayerId: lightPlayerId,
+			DarkPlayerId:  darkPlayerId,
 		},
 	}
 
@@ -216,9 +240,14 @@ func (h *GameHandler) RequestOnlineGame(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	userId := extractUserId(r)
+	if userId == "" {
+		userId = uuid.New().String()
+	}
+
 	queueItem := database.MatchingQueue{
 		ID:              uuid.New().String(),
-		PlayerID:        "guest", // ToDo: Get from auth context
+		PlayerID:        userId,
 		ProfileID:       "guest",
 		GameFormat:      gameRequest.Format,
 		BaseTime:        gameRequest.BaseTime,

@@ -192,8 +192,8 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 				"event_type": "game_finished",
 				"game_id":    gameID,
 				"result":     game.Result(),
-				"light_player": game.LightPlayer(),
-				"dark_player":  game.DarkPlayer(),
+				"light_player": game.LightPlayer().ID,
+				"dark_player":  game.DarkPlayer().ID,
 				"format":     game.FormatName(),
 			}
 			if kb, err := json.Marshal(kafkaEvent); err == nil {
@@ -204,7 +204,7 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 
 	if game.Mode() == models.ModeBot {
 		isWhiteTurn := game.Turn() == models.White
-		isBotTurn := (isWhiteTurn && game.LightPlayer() == models.PlayerComputer) || (!isWhiteTurn && game.DarkPlayer() == models.PlayerComputer)
+		isBotTurn := (isWhiteTurn && game.LightPlayer() != nil && game.LightPlayer().IsBot) || (!isWhiteTurn && game.DarkPlayer() != nil && game.DarkPlayer().IsBot)
 
 		if isBotTurn {
 			// 2. Asynchronously request AI prediction and publish it
@@ -241,7 +241,7 @@ func (h *MoveHandler) HandleConnect(gameID string, send func([]byte), broadcast 
 
 	if game.Mode() == models.ModeBot {
 		isWhiteTurn := game.Turn() == models.White
-		isBotTurn := (isWhiteTurn && game.LightPlayer() == models.PlayerComputer) || (!isWhiteTurn && game.DarkPlayer() == models.PlayerComputer)
+		isBotTurn := (isWhiteTurn && game.LightPlayer() != nil && game.LightPlayer().IsBot) || (!isWhiteTurn && game.DarkPlayer() != nil && game.DarkPlayer().IsBot)
 
 		if isBotTurn {
 			log.Printf("[Game: %s] Triggering initial AI prediction on connect", gameID)

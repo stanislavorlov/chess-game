@@ -7,12 +7,6 @@ const (
 	ModeOnline GameMode = "online"
 )
 
-type PlayerType string
-
-const (
-	PlayerComputer PlayerType = "computer"
-	PlayerGuest    PlayerType = "guest"
-)
 
 type SideName string
 

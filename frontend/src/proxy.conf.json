@@ -1,14 +1,18 @@
 {
   "/api/auth": {
-    "target": "http://auth-app:3000",
+    "target": "http://localhost:3000",
+    "secure": false
+  },
+  "/api/stats": {
+    "target": "http://localhost:8081",
     "secure": false
   },
   "/api": {
-    "target": "http://engine-app:8082",
+    "target": "http://localhost:8082",
     "secure": false
   },
   "/ws": {
-    "target": "http://engine-app:8082",
+    "target": "http://localhost:8082",
     "secure": false,
     "ws": true
   }

@@ -147,13 +147,15 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 		}
 	}
 
+	reason := ""
 	if game.IsCheckmate() {
 		game.FinishGame()
-		winner := string(models.SideNameBlack)
-		if game.Turn() == models.Black {
-			winner = string(models.SideNameWhite)
+		winner := game.LightPlayer().ID
+		if game.Turn() == models.White {
+			winner = game.DarkPlayer().ID
 		}
-		game.SetResult(winner + " wins by checkmate")
+		game.SetResult(winner)
+		reason = "checkmate"
 
 		pos := game.CheckPosition()
 		if pos != nil {
@@ -169,11 +171,14 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 		}
 	} else if game.IsStalemate() {
 		game.FinishGame()
-		game.SetResult("Draw by stalemate")
+		game.SetResult("")
+		reason = "stalemate"
+	} else if game.Status() == models.Aborted {
+		reason = "aborted"
 	}
 
-	if game.Status() == models.Finished {
-		if err := h.Repo.UpdateGameStatus(context.Background(), gameID, game.Status(), game.Result()); err != nil {
+	if game.Status() == models.Finished || game.Status() == models.Aborted {
+		if err := h.Repo.UpdateGameStatus(context.Background(), gameID, game.Status(), game.Result(), reason); err != nil {
 			log.Printf("[Game: %s] Failed to update game status in repo: %v", gameID, err)
 		}
 
@@ -189,12 +194,13 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 
 		if h.Producer != nil {
 			kafkaEvent := map[string]interface{}{
-				"event_type": "game_finished",
-				"game_id":    gameID,
-				"result":     game.Result(),
+				"event_type":   "game_finished",
+				"game_id":      gameID,
+				"result":       game.Result(),
 				"light_player": game.LightPlayer().ID,
 				"dark_player":  game.DarkPlayer().ID,
-				"format":     game.FormatName(),
+				"format":       game.FormatName(),
+				"reason":       reason,
 			}
 			if kb, err := json.Marshal(kafkaEvent); err == nil {
 				h.Producer.Produce("chess_events", nil, kb)

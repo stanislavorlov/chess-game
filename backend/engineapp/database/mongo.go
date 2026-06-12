@@ -124,12 +124,13 @@ func (r *MongoRepository) CreateGameState(ctx context.Context, game *GameState) 
 	return nil
 }
 
-func (r *MongoRepository) UpdateGameStatus(ctx context.Context, gameID string, status models.GameStatus, result string) error {
+func (r *MongoRepository) UpdateGameStatus(ctx context.Context, gameID string, status models.GameStatus, result string, reason string) error {
 	coll := r.database.Collection(GameStateCollection)
 	update := bson.M{
 		"$set": bson.M{
 			"status":        string(status),
 			"result.winner": result,
+			"result.reason": reason,
 			"finished_at":   time.Now(),
 		},
 	}

@@ -14,7 +14,7 @@ func TestGame_MovePiece_Basic(t *testing.T) {
 		BlackPawns: 0x00FF000000000000,
 		BlackKings: 0x1000000000000000,
 	}
-	game := LoadGame("test-game", Started, Bullet_1_0, "standard", "p1", "p2", bitboards, White, []string{}, "", "KQkq", "-", 0, 1)
+	game := LoadGame("test-game", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bitboards, White, []string{}, "", "KQkq", "-", 0, 1)
 
 	// Move e2 to e4
 	move := ws.GameRequest{
@@ -44,7 +44,7 @@ func TestGame_MovePiece_Castling(t *testing.T) {
 		WhiteKings: 0x0000000000000010,
 		BlackKings: 0x1000000000000000,
 	}
-	game := LoadGame("test-game", Started, Bullet_1_0, "standard", "p1", "p2", bitboards, White, []string{}, "", "KQkq", "-", 0, 1)
+	game := LoadGame("test-game", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bitboards, White, []string{}, "", "KQkq", "-", 0, 1)
 
 	// Castle kingside (e1 to g1)
 	move := ws.GameRequest{
@@ -78,7 +78,7 @@ func TestGame_IsCheck(t *testing.T) {
 		BlackKings: 0x0800000000000000, // King at d8
 	}
 	// It's black's turn
-	game := LoadGame("test-game", Started, Bullet_1_0, "standard", "p1", "p2", bitboards, Black, []string{}, "", "-", "-", 0, 1)
+	game := LoadGame("test-game", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bitboards, Black, []string{}, "", "-", "-", 0, 1)
 
 	if !game.IsCheck() {
 		t.Errorf("Expected black king to be in check")
@@ -93,7 +93,7 @@ func TestGame_IsCheckmate(t *testing.T) {
 		WhiteKings: (uint64(1) << 0),  // a1
 	}
 	
-	game := LoadGame("mate-game", Started, Bullet_1_0, "standard", "p1", "p2", bitboards, Black, []string{}, "", "-", "-", 0, 1)
+	game := LoadGame("mate-game", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bitboards, Black, []string{}, "", "-", "-", 0, 1)
 
 	if !game.IsCheck() {
 		t.Errorf("Expected check")
@@ -111,7 +111,7 @@ func TestGame_IsStalemate(t *testing.T) {
 		WhiteQueens: (uint64(1) << 50), // c7
 		BlackKings:  (uint64(1) << 56), // a8
 	}
-	game := LoadGame("stalemate-game", Started, Bullet_1_0, "standard", "p1", "p2", bitboards, Black, []string{}, "", "-", "-", 0, 1)
+	game := LoadGame("stalemate-game", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bitboards, Black, []string{}, "", "-", "-", 0, 1)
 
 	if game.IsCheck() {
 		t.Errorf("Expected NOT in check")
@@ -126,7 +126,7 @@ func TestGame_FEN(t *testing.T) {
 		WhiteKings: (uint64(1) << 4),  // e1
 		BlackKings: (uint64(1) << 60), // e8
 	}
-	game := LoadGame("fen-game", Started, Bullet_1_0, "standard", "p1", "p2", bitboards, White, []string{}, "", "KQkq", "-", 0, 1)
+	game := LoadGame("fen-game", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bitboards, White, []string{}, "", "KQkq", "-", 0, 1)
 
 	expectedStart := "4k3/8/8/8/8/8/8/4K3 w KQkq - 0 1"
 	if game.FEN() != expectedStart {
@@ -141,7 +141,7 @@ func TestGame_MovePiece_Capture(t *testing.T) {
 		BlackPawns: (uint64(1) << 56), // a8
 		BlackKings: (uint64(1) << 60), // e8
 	}
-	game := LoadGame("capture-game", Started, Bullet_1_0, "standard", "p1", "p2", bitboards, White, []string{}, "", "-", "-", 0, 1)
+	game := LoadGame("capture-game", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bitboards, White, []string{}, "", "-", "-", 0, 1)
 
 	// White Rook captures Black Pawn on a8
 	move := ws.GameRequest{
@@ -171,7 +171,7 @@ func TestGame_MovePiece_EnPassant(t *testing.T) {
 		BlackKings: (uint64(1) << 60), // e8
 	}
 	// En passant target is d6
-	game := LoadGame("ep-game", Started, Bullet_1_0, "standard", "p1", "p2", bitboards, White, []string{"d7d5"}, "", "-", "d6", 0, 1)
+	game := LoadGame("ep-game", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bitboards, White, []string{"d7d5"}, "", "-", "d6", 0, 1)
 
 	move := ws.GameRequest{
 		From: "e5",
@@ -196,7 +196,7 @@ func TestGame_MovePiece_BlackCastling(t *testing.T) {
 		BlackRooks: (uint64(1) << 56), // a8
 		BlackKings: (uint64(1) << 60), // e8
 	}
-	game := LoadGame("black-castle", Started, Bullet_1_0, "standard", "p1", "p2", bitboards, Black, []string{}, "", "KQkq", "-", 0, 1)
+	game := LoadGame("black-castle", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bitboards, Black, []string{}, "", "KQkq", "-", 0, 1)
 
 	// Black Queen-side castling (e8 to c8)
 	move := ws.GameRequest{
@@ -219,7 +219,7 @@ func TestGame_MovePiece_BlackCastling(t *testing.T) {
 
 func TestGame_IsDraw(t *testing.T) {
 	bitboards := Bitboards{}
-	game := LoadGame("draw-game", Started, Bullet_1_0, "standard", "p1", "p2", bitboards, White, []string{}, "draw", "-", "-", 0, 1)
+	game := LoadGame("draw-game", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bitboards, White, []string{}, "draw", "-", "-", 0, 1)
 
 	if !game.IsDraw() {
 		t.Errorf("Expected IsDraw to be true for explicit draw result")
@@ -233,7 +233,7 @@ func TestGame_PawnDoublePush(t *testing.T) {
 		WhiteKings: (uint64(1) << 4),
 		BlackKings: (uint64(1) << 60),
 	}
-	gameW := LoadGame("pawn-push-w", Started, Bullet_1_0, "standard", "p1", "p2", bitboardsW, White, []string{}, "", "KQkq", "-", 0, 1)
+	gameW := LoadGame("pawn-push-w", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bitboardsW, White, []string{}, "", "KQkq", "-", 0, 1)
 
 	moveW := ws.GameRequest{
 		From: "e2", To: "e4",
@@ -251,7 +251,7 @@ func TestGame_PawnDoublePush(t *testing.T) {
 		BlackKings: (uint64(1) << 60),
 		WhiteKings: (uint64(1) << 4),
 	}
-	gameB := LoadGame("pawn-push-b", Started, Bullet_1_0, "standard", "p1", "p2", bitboardsB, Black, []string{}, "", "KQkq", "-", 0, 1)
+	gameB := LoadGame("pawn-push-b", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bitboardsB, Black, []string{}, "", "KQkq", "-", 0, 1)
 
 	moveB := ws.GameRequest{
 		From: "d7", To: "d5",
@@ -269,7 +269,7 @@ func TestGame_PawnDoublePush(t *testing.T) {
 func TestGame_AllCastling(t *testing.T) {
 	// White Queenside
 	bbW := Bitboards{WhiteKings: (uint64(1) << 4), WhiteRooks: (uint64(1) << 0), BlackKings: (uint64(1) << 60)}
-	gW := LoadGame("w-q", Started, Bullet_1_0, "standard", "p1", "p2", bbW, White, []string{}, "", "Q", "-", 0, 1)
+	gW := LoadGame("w-q", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bbW, White, []string{}, "", "Q", "-", 0, 1)
 	resW := gW.MovePiece(ws.GameRequest{From: "e1", To: "c1", Piece: ws.Piece{PieceType: "wK", Side: ws.Side{Value: "w"}}})
 	if !resW.IsCastling || resW.CastlingRookFrom != "a1" {
 		t.Errorf("White queenside failed")
@@ -277,7 +277,7 @@ func TestGame_AllCastling(t *testing.T) {
 
 	// Black Kingside
 	bbB := Bitboards{BlackKings: (uint64(1) << 60), BlackRooks: (uint64(1) << 63), WhiteKings: (uint64(1) << 4)}
-	gB := LoadGame("b-k", Started, Bullet_1_0, "standard", "p1", "p2", bbB, Black, []string{}, "", "k", "-", 0, 1)
+	gB := LoadGame("b-k", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bbB, Black, []string{}, "", "k", "-", 0, 1)
 	resB := gB.MovePiece(ws.GameRequest{From: "e8", To: "g8", Piece: ws.Piece{PieceType: "bK", Side: ws.Side{Value: "b"}}})
 	if !resB.IsCastling || resB.CastlingRookFrom != "h8" {
 		t.Errorf("Black kingside failed")

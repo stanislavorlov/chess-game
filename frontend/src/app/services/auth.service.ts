@@ -28,6 +28,7 @@ export class AuthService {
   }
 
   public get currentUserValue(): User | null {
+    console.log(this.currentUserSubject.value);
     return this.currentUserSubject.value;
   }
 
@@ -60,6 +61,19 @@ export class AuthService {
           this.clearGuestMode();
           localStorage.setItem('currentUser', JSON.stringify(user));
           this.currentUserSubject.next(user);
+        }
+      })
+    );
+  }
+
+  updateProfile(userData: any): Observable<User> {
+    return this.http.post<User>('/api/auth/updatePlayer', userData).pipe(
+      tap(updatedUser => {
+        if (updatedUser) {
+          const current = this.currentUserValue;
+          const mergedUser = { ...current, ...updatedUser };
+          localStorage.setItem('currentUser', JSON.stringify(mergedUser));
+          this.currentUserSubject.next(mergedUser);
         }
       })
     );

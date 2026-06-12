@@ -1,8 +1,35 @@
 <mat-card class="cardWithShadow theme-card">
     <mat-card-header>
-        <mat-card-title class="m-b-0">Profile</mat-card-title>
+        <mat-card-title class="m-b-0">Profile Settings</mat-card-title>
     </mat-card-header>
-    <mat-card-content class="b-t-1">
-        Content
+    <mat-card-content class="b-t-1 p-24">
+        <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="m-t-24">
+            
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>First Name</mat-label>
+                <input matInput formControlName="firstName" placeholder="Enter your first name">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="lastName" placeholder="Enter your last name">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Country</mat-label>
+                <input matInput formControlName="country" placeholder="Enter your country">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>New Password (leave empty to keep current)</mat-label>
+                <input matInput type="password" formControlName="password" placeholder="Enter new password">
+            </mat-form-field>
+
+            <div class="m-t-24">
+                <button mat-flat-button color="primary" type="submit" [disabled]="isLoading">
+                    {{ isLoading ? 'Saving...' : 'Save Changes' }}
+                </button>
+            </div>
+        </form>
     </mat-card-content>
 </mat-card>

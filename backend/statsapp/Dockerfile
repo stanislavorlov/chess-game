@@ -15,12 +15,17 @@ RUN CGO_ENABLED=1 GOOS=linux go build -o statsapp main.go
 # Generate a small image
 FROM debian:bookworm-slim
 
+# Create restricted non-root user
+RUN groupadd -r -g 1001 appgroup && useradd -r -u 1001 -g appgroup appuser
+
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY --from=builder /app/statsapp /app/statsapp
+COPY --from=builder --chown=appuser:appgroup /app/statsapp /app/statsapp
 
 EXPOSE 8081
+
+USER appuser
 
 CMD ["/app/statsapp"]

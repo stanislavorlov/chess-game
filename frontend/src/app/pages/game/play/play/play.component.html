@@ -1,123 +1,145 @@
-<mat-card class="cardWithShadow theme-card">
-    <mat-card-header *ngIf="game">
-        <mat-form-field appearance="outline" class="w-100 game-name">
-            <input matInput type="text" [(ngModel)]="game.name">
-        </mat-form-field>
-    </mat-card-header>
-    <mat-card-content class="b-t-1">
-        <div class="row">
-            <div class="col-lg-7">
-                <div class="row player-indicator" [ngClass]="{'active': currentTurn === getTopPlayer().side.value}"
-                    [attr.data-testid]="'player-top'" *ngIf="game">
-                    <div class="player-info-top">
-                        <div style="font-weight: bold;">{{getTopPlayer().label}}</div>
-                        <div style="margin-left: 10px;">
-                            <span>{{ formatSeconds(getTopPlayer().side.value === 'W' ? game.whiteTimer :
-                                game.blackTimer)
-                                }}</span>
-                        </div>
-                        <div *ngIf="currentTurn === getTopPlayer().side.value" class="turn-badge">YOUR TURN</div>
-                    </div>
-                    <div class="captured-pieces" *ngIf="game">
-                        <img *ngFor="let abbr of game.getCapturedPieces(getTopPlayer().side)"
-                            src="assets/images/pieces/{{abbr}}.png" class="captured-piece-img">
-                    </div>
-                </div>
-                <div class="row" *ngIf="game">
-                    <div class="board-grid">
-                        <!-- Empty corner -->
-                        <div class="header-cell corner"></div>
+<div class="game-container">
+  <div class="game-layout">
+    <!-- Left Column: The Chessboard and Players -->
+    <div class="chessboard-column">
 
-                        <!-- Top File Headers (a-h) -->
-                        <div *ngFor="let file of game.board.files" class="header-cell file-header"
-                            [style.grid-column]="getGridColumn(file)" [style.grid-row]="1">
-                            {{ file }}
-                        </div>
-
-                        <!-- Left Rank Headers (1-8) -->
-                        <div *ngFor="let rank of game.board.ranks" class="header-cell rank-header"
-                            [style.grid-row]="getGridRow(rank)" [style.grid-column]="1">
-                            {{ rank }}
-                        </div>
-
-                        <!-- Squares and Pieces -->
-                        <ng-container *ngFor="let item of game.board.cells">
-                            <div (click)="clickBoard(item)" class="square" [class.dark]="item.color === 'B'"
-                                [class.light]="item.color === 'W'" [class.selected]="item.selected"
-                                [attr.data-testid]="item.id" [class.checked]="item.checked"
-                                [style.grid-row]="getGridRow(item.rank)" [style.grid-column]="getGridColumn(item.file)">
-                                <img *ngIf="getPiece(item)"
-                                    src="./assets/images/pieces/{{getPiece(item)?.abbreviation}}.png">
-                            </div>
-                        </ng-container>
-                    </div>
-                </div>
-                <div class="row player-indicator" [ngClass]="{'active': currentTurn === getBottomPlayer().side.value}"
-                    [attr.data-testid]="'player-bottom'" *ngIf="game">
-                    <div class="player-info-top">
-                        <div style="font-weight: bold;">{{getBottomPlayer().label}}</div>
-                        <div style="margin-left: 10px;">
-                            <span>{{ formatSeconds(getBottomPlayer().side.value === 'W' ? game.whiteTimer :
-                                game.blackTimer)
-                                }}</span>
-                        </div>
-                        <div *ngIf="currentTurn === getBottomPlayer().side.value" class="turn-badge">YOUR TURN</div>
-                    </div>
-                    <div class="captured-pieces" *ngIf="game">
-                        <img *ngFor="let abbr of game.getCapturedPieces(getBottomPlayer().side)"
-                            src="assets/images/pieces/{{abbr}}.png" class="captured-piece-img">
-                    </div>
-                </div>
+      <!-- Top Player (Opponent) -->
+      <div class="player-indicator-row opponent" [class.active]="currentTurn === getTopPlayer().side.value"
+        *ngIf="game">
+        <div class="player-meta">
+          <div class="player-avatar">🤖</div>
+          <div class="player-details">
+            <span class="player-name">{{ getTopPlayer().label }}</span>
+            <div class="captured-pieces">
+              <img *ngFor="let abbr of game.getCapturedPieces(getTopPlayer().side)"
+                src="assets/images/pieces/{{abbr}}.png" class="captured-piece-img">
             </div>
-            <div class="col-lg-4">
-                <div *ngIf="!gameInitialized()">
-                    <mat-label class="f-w-600 m-b-8 d-block">Game Mode</mat-label>
-                    <mat-radio-group [(ngModel)]="selectedMode" class="d-block m-b-16">
-                        <mat-radio-button value="bot" class="m-r-8">Play Bots</mat-radio-button>
-                        <mat-radio-button value="online">Play Online</mat-radio-button>
-                    </mat-radio-group>
-
-                    <div *ngIf="selectedMode === 'bot'" class="m-b-16">
-                        <mat-label class="f-w-600 m-b-8 d-block">Side</mat-label>
-                        <mat-radio-group [(ngModel)]="selectedSide">
-                            <mat-radio-button value="white" class="m-r-8">White</mat-radio-button>
-                            <mat-radio-button value="black" class="m-r-8">Black</mat-radio-button>
-                            <mat-radio-button value="random">Random</mat-radio-button>
-                        </mat-radio-group>
-                    </div>
-
-                    <mat-label class="f-w-600 m-b-8 d-block">Time selector</mat-label>
-                    <mat-form-field appearance="outline" class="w-100">
-                        <mat-select [(value)]="selectedFormat">
-                            @for(option of formats; track option) {
-                            <mat-option [value]="option">
-                                {{ option | titlecase }}
-                            </mat-option>
-                            }
-                        </mat-select>
-                    </mat-form-field>
-                    <div class="time-options">
-                        @for(option of currentTimeOptions; track option.label) {
-                        <button mat-flat-button (click)="selectTime(option)"
-                            [class.selected]="selectedTimeOption === option">
-                            {{ option.label }}
-                        </button>
-                        <span *ngIf="!$last" class="separator"> | </span>
-                        }
-                    </div>
-                    <div class="m-t-12">
-                        <button mat-flat-button color="primary" (click)="startGame()" class="m-r-8">Play</button>
-                    </div>
-                </div>
-                <div *ngIf="game">
-                    <h2>Game history</h2>
-                    <ul class="history">
-                        <li class="history-item" *ngFor="let entry of game.history">
-                            <span>{{entry.displayValue}}</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+          </div>
         </div>
-    </mat-card-content>
-</mat-card>
+        <div class="player-timer-capsule" [class.active-turn]="currentTurn === getTopPlayer().side.value"
+          [class.low-time]="(getTopPlayer().side.value === 'W' ? game.whiteTimer : game.blackTimer) < 30">
+          {{ formatSeconds(getTopPlayer().side.value === 'W' ? game.whiteTimer : game.blackTimer) }}
+        </div>
+      </div>
+
+      <!-- Chessboard Grid -->
+      <div class="board-wrapper" *ngIf="game">
+        <div class="board-grid">
+          <!-- Squares and Pieces -->
+          <ng-container *ngFor="let item of game.board.cells">
+            <div (click)="clickBoard(item)" class="square" [class.dark]="item.color === 'B'"
+              [class.light]="item.color === 'W'" [class.selected]="item.selected" [attr.data-testid]="item.id"
+              [class.checked]="item.checked" [style.grid-row]="getGridRow(item.rank)"
+              [style.grid-column]="getGridColumn(item.file)">
+
+              <img *ngIf="getPiece(item)" src="./assets/images/pieces/{{getPiece(item)?.abbreviation}}.png"
+                class="piece-img">
+
+              <!-- Embedded Coordinates -->
+              <span class="coordinate rank-coord" *ngIf="shouldShowRankCoordinate(item)">
+                {{ item.rank }}
+              </span>
+              <span class="coordinate file-coord" *ngIf="shouldShowFileCoordinate(item)">
+                {{ item.file }}
+              </span>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- Bottom Player (Active User) -->
+      <div class="player-indicator-row player" [class.active]="currentTurn === getBottomPlayer().side.value"
+        *ngIf="game">
+        <div class="player-meta">
+          <div class="player-avatar">👤</div>
+          <div class="player-details">
+            <span class="player-name">{{ getBottomPlayer().label }}</span>
+            <div class="captured-pieces">
+              <img *ngFor="let abbr of game.getCapturedPieces(getBottomPlayer().side)"
+                src="assets/images/pieces/{{abbr}}.png" class="captured-piece-img">
+            </div>
+          </div>
+        </div>
+        <div class="player-timer-capsule" [class.active-turn]="currentTurn === getBottomPlayer().side.value"
+          [class.low-time]="(getBottomPlayer().side.value === 'W' ? game.whiteTimer : game.blackTimer) < 30">
+          {{ formatSeconds(getBottomPlayer().side.value === 'W' ? game.whiteTimer : game.blackTimer) }}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Panel with Controls & Game History -->
+    <div class="control-panel-column">
+      <div class="panel-card">
+
+        <!-- Game Configuration (Not Initialized) -->
+        <div class="setup-panel" *ngIf="!gameInitialized()">
+          <h2 class="panel-title">New Game</h2>
+
+          <div class="control-group">
+            <span class="group-label">Game Mode</span>
+            <mat-radio-group [(ngModel)]="selectedMode" class="radio-row">
+              <mat-radio-button value="bot">Play Computer</mat-radio-button>
+              <mat-radio-button value="online">Play Online</mat-radio-button>
+            </mat-radio-group>
+          </div>
+
+          <div *ngIf="selectedMode === 'bot'" class="control-group">
+            <span class="group-label">Choose Side</span>
+            <mat-radio-group [(ngModel)]="selectedSide" class="radio-row">
+              <mat-radio-button value="white">White</mat-radio-button>
+              <mat-radio-button value="black">Black</mat-radio-button>
+              <mat-radio-button value="random">Random</mat-radio-button>
+            </mat-radio-group>
+          </div>
+
+          <div class="control-group">
+            <span class="group-label">Time Control</span>
+            <mat-form-field appearance="outline" class="w-100 density-compact">
+              <mat-select [(value)]="selectedFormat">
+                <mat-option *ngFor="let option of formats" [value]="option">
+                  {{ option | titlecase }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="time-options-grid">
+            <button mat-flat-button *ngFor="let option of currentTimeOptions" (click)="selectTime(option)"
+              [class.selected]="selectedTimeOption === option" class="time-pill">
+              {{ option.label }}
+            </button>
+          </div>
+
+          <button mat-flat-button color="primary" class="play-btn w-100" (click)="startGame()">
+            Play
+          </button>
+        </div>
+
+        <!-- Game History Log (Initialized) -->
+        <div class="active-game-panel" *ngIf="game">
+          <div class="game-meta-header" style="display: none;">
+            <span class="game-title-text">{{ game.name || 'Chess Match' }}</span>
+          </div>
+
+          <h3 class="panel-subtitle">Moves History</h3>
+          <div class="history-scroll-container">
+            <div class="history-grid">
+              <ng-container *ngFor="let entry of game.history; let i = index">
+                <!-- If white move (even index) -->
+                <div class="history-row-pair" *ngIf="i % 2 === 0">
+                  <span class="move-index">{{ (i / 2) + 1 }}.</span>
+                  <span class="move-value white-move">{{ entry.displayValue }}</span>
+                  <span class="move-value black-move" *ngIf="game.history[i + 1]">
+                    {{ game.history[i + 1].displayValue }}
+                  </span>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

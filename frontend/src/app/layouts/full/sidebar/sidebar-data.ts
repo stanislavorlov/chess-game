@@ -2,6 +2,46 @@ import { NavItem } from './nav-item/nav-item';
 
 export const navItems: NavItem[] = [
   {
+    navCap: 'Play',
+  },
+  {
+    displayName: 'Play Game',
+    iconName: 'device-gamepad-2',
+    route: '/play'
+  },
+  {
+    displayName: 'Statistics',
+    iconName: 'chart-bar',
+    route: '/stats',
+    authRequired: true
+  },
+  {
+    displayName: 'Profile',
+    iconName: 'user-circle',
+    route: '/profile',
+    authRequired: true
+  },
+  {
+    navCap: 'Account',
+    onlyAnonymous: true
+  },
+  {
+    displayName: 'Login',
+    iconName: 'login',
+    route: '/authentication/login',
+    onlyAnonymous: true
+  },
+  {
+    displayName: 'Register',
+    iconName: 'user-plus',
+    route: '/authentication/register',
+    onlyAnonymous: true
+  }
+];
+
+/* 
+export const navItems: NavItem[] = [
+  {
     navCap: 'Home',
   },
   {
@@ -954,3 +994,4 @@ export const navItems: NavItem[] = [
     chipContent: 'PRO',
   },
 ];
+*/

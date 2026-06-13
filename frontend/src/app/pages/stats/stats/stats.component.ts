@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../services/auth.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface Match {
   id: string;
@@ -22,15 +24,18 @@ interface Match {
   imports: [
     CommonModule,
     MatCardModule,
-    MatTableModule
+    MatTableModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './stats.component.html',
-  styleUrl: './stats.component.scss'
+  styleUrl: './stats.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class StatsComponent implements OnInit {
   matches: Match[] = [];
   userId: string | null = null;
   isGuest = false;
+  isLoading = false;
 
   // Stats summary
   totalPlayed = 0;
@@ -44,7 +49,13 @@ export class StatsComponent implements OnInit {
 
   displayedColumns: string[] = ['index', 'opponent', 'outcome', 'date'];
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  private readonly destroyRef = inject(DestroyRef);
+
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.isGuest = this.authService.isGuest;
@@ -56,15 +67,24 @@ export class StatsComponent implements OnInit {
   }
 
   loadStats(playerId: string): void {
-    this.http.get<Match[]>(`/api/stats/player/${playerId}`).subscribe({
-      next: (data) => {
-        this.matches = data || [];
-        this.calculateStats();
-      },
-      error: (err) => {
-        console.error('Failed to load stats', err);
-      }
-    });
+    this.isLoading = true;
+    this.cdr.markForCheck();
+    
+    this.http.get<Match[]>(`/api/stats/player/${playerId}`)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.matches = data || [];
+          this.calculateStats();
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Failed to load stats', err);
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   calculateStats(): void {

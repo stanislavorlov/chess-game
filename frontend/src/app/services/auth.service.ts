@@ -9,7 +9,29 @@ export interface User {
   email: string;
   level: number;
   country: string;
+  firstName?: string;
+  lastName?: string;
   token?: string;
+}
+
+export interface LoginCredentials {
+  email?: string | null;
+  password?: string | null;
+}
+
+export interface RegisterData {
+  username?: string | null;
+  email?: string | null;
+  password?: string | null;
+  level?: number;
+  country?: string;
+}
+
+export interface UpdateProfileData {
+  firstName?: string;
+  lastName?: string;
+  country?: string;
+  password?: string;
 }
 
 @Injectable({
@@ -36,7 +58,7 @@ export class AuthService {
     return localStorage.getItem('isGuest') === 'true';
   }
 
-  login(credentials: any): Observable<User> {
+  login(credentials: LoginCredentials): Observable<User> {
     return this.http.post<User>('/api/auth/login', credentials).pipe(
       tap(user => {
         if (user && user.token) {
@@ -48,7 +70,7 @@ export class AuthService {
     );
   }
 
-  register(userData: any): Observable<User> {
+  register(userData: RegisterData): Observable<User> {
     // Add default values for required fields in the backend
     const data = {
       level: 1,
@@ -66,7 +88,7 @@ export class AuthService {
     );
   }
 
-  updateProfile(userData: any): Observable<User> {
+  updateProfile(userData: UpdateProfileData): Observable<User> {
     return this.http.post<User>('/api/auth/updatePlayer', userData).pipe(
       tap(updatedUser => {
         if (updatedUser) {

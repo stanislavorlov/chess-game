@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class PlayService {
 
-  private socket$: WebSocketSubject<any>;
+  private socket$!: WebSocketSubject<unknown>;
 
   constructor() { }
 
@@ -18,12 +18,12 @@ export class PlayService {
   }
 
   // Send a message to the server
-  sendMessage(message: any) {
+  sendMessage(message: unknown) {
     this.socket$.next(message);
   }
 
   // Receive messages from the server
-  getMessages(): Observable<any> {
+  getMessages(): Observable<unknown> {
     return this.socket$.asObservable();
   }
 

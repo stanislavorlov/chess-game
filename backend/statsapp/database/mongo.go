@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -33,6 +34,20 @@ func ConnectMongoDB(host string, dbName string) error {
 
 	Client = client
 	StatCollection = client.Database(dbName).Collection("stats")
+
+	// Ensure indexes on light_player and dark_player to prevent COLLSCAN
+	_, err = StatCollection.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "light_player", Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: "dark_player", Value: 1}},
+		},
+	})
+	if err != nil {
+		log.Printf("Warning: failed to create indexes on StatCollection: %v", err)
+	}
+
 	return nil
 }
 

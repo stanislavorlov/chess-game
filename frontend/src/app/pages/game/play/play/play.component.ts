@@ -1,4 +1,4 @@
-import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, NgZone, OnDestroy, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef } from '@angular/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -24,6 +24,7 @@ import { SanMovement } from 'src/app/services/models/movement';
 import { Side } from './models/side';
 import { TimeControlOption, TIME_OPTIONS_MAP } from './models/game-time-option';
 import * as DomainEvents from './models/events/game-event';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-play',
@@ -39,16 +40,20 @@ import * as DomainEvents from './models/events/game-event';
     MatCheckboxModule,
     MatSnackBarModule,
     MatDialogModule,
-    NgClass, NgFor, NgIf, TitleCasePipe
+    NgFor, NgIf, TitleCasePipe
   ],
   templateUrl: './play.component.html',
-  styleUrl: './play.component.scss'
+  styleUrl: './play.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PlayComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
+  
   private selectedSquare: Cell | null = null;
-  private gameTimer: NodeJS.Timeout;
+  private gameTimer: any;
   private readonly playService = inject(PlayService);
 
   public formats: string[];
@@ -56,7 +61,7 @@ export class PlayComponent implements OnInit, OnDestroy {
   public selectedTimeOption: TimeControlOption | null = null;
   public selectedMode = 'bot';
   public selectedSide = 'random';
-  public game: ChessGame;
+  public game!: ChessGame;
   public isFlipped = false;
 
   get currentTurn(): string {
@@ -91,9 +96,10 @@ export class PlayComponent implements OnInit, OnDestroy {
   private zone = inject(NgZone);
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       const gameId = params.get('id');
       this.initializeGame(gameId);
+      this.cdr.markForCheck();
     });
   }
 
@@ -104,7 +110,7 @@ export class PlayComponent implements OnInit, OnDestroy {
 
     if (!!gameId) {
       this.playService.setGameId(gameId);
-      this.chessService.getGame(gameId).subscribe((data: ChessGameDto) => {
+      this.chessService.getGame(gameId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data: ChessGameDto) => {
         this.game = new ChessGame(
           data.game_id,
           data.name,
@@ -143,11 +149,13 @@ export class PlayComponent implements OnInit, OnDestroy {
         this.gameTimer = setInterval(function () {
           if (that.game) {
             that.game.timerTick();
+            that.cdr.markForCheck();
           }
         }, 1000);
+        this.cdr.markForCheck();
       });
 
-      this.playService.getMessages().subscribe((data: any) => {
+      this.playService.getMessages().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data: unknown) => {
         this.zone.run(() => {
           try {
             console.log('received message:', data);
@@ -208,6 +216,7 @@ export class PlayComponent implements OnInit, OnDestroy {
                 width: '350px'
               });
             }
+            this.cdr.markForCheck();
           } catch (e) {
             console.error('Error parsing WebSocket message', e);
           }
@@ -215,6 +224,7 @@ export class PlayComponent implements OnInit, OnDestroy {
       });
     } else {
       this.game = this.chessService.newGame();
+      this.cdr.markForCheck();
     }
   }
 
@@ -234,12 +244,12 @@ export class PlayComponent implements OnInit, OnDestroy {
       new_game.color = this.selectedSide;
       new_game.difficulty = "1";
 
-      this.chessService.startGame(new_game).subscribe((data: ChessGameDto) => {
+      this.chessService.startGame(new_game).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data: ChessGameDto) => {
         let gameId = data.game_id;
-        this.router.navigate(['/play', gameId])
+        this.router.navigate(['/play', gameId]);
       });
     } else {
-      this.chessService.startOnlineGame(new_game).subscribe((data: any) => {
+      this.chessService.startOnlineGame(new_game).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data: unknown) => {
         this.snackBar.open("Searching for opponent...", "Close", { duration: 3000 });
       });
     }
@@ -247,6 +257,7 @@ export class PlayComponent implements OnInit, OnDestroy {
 
   selectTime(option: TimeControlOption): void {
     this.selectedTimeOption = option;
+    this.cdr.markForCheck();
   }
 
   getPiece(cell: Cell) {
@@ -254,17 +265,25 @@ export class PlayComponent implements OnInit, OnDestroy {
   }
 
   getGridRow(rank: number): number {
-    // 1-8 rank -> 2-9 row (grid is 1-indexed, row 1 is for file headers)
-    return 10 - rank;
+    return this.isFlipped ? rank : 9 - rank;
   }
 
   getGridColumn(file: string): number {
-    // a-h -> 2-9 column
-    return file.charCodeAt(0) - 'a'.charCodeAt(0) + 2;
+    const fileIndex = file.charCodeAt(0) - 'a'.charCodeAt(0) + 1;
+    return this.isFlipped ? 9 - fileIndex : fileIndex;
+  }
+
+  shouldShowRankCoordinate(cell: Cell): boolean {
+    if (cell.isHeader) return false;
+    return this.isFlipped ? cell.file === 'h' : cell.file === 'a';
+  }
+
+  shouldShowFileCoordinate(cell: Cell): boolean {
+    if (cell.isHeader) return false;
+    return this.isFlipped ? cell.rank === 8 : cell.rank === 1;
   }
 
   clickBoard(square: Cell): void {
-    debugger;
     if (!this.gameInitialized()) return;
 
     if (!!this.selectedSquare) {
@@ -289,6 +308,7 @@ export class PlayComponent implements OnInit, OnDestroy {
       square.selected = true;
       this.selectedSquare = square;
     }
+    this.cdr.markForCheck();
   }
 
   updateBoardCheckState(): void {
@@ -297,6 +317,7 @@ export class PlayComponent implements OnInit, OnDestroy {
     this.game.board.cells.forEach(cell => {
       cell.checked = !cell.isHeader && !!this.game.checkPosition && cell.id === this.game.checkPosition.toLowerCase();
     });
+    this.cdr.markForCheck();
   }
 
   getTopPlayer() {

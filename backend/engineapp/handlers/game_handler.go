@@ -2,90 +2,19 @@ package handlers
 
 import (
 	"encoding/json"
-	"engineapp/database"
+	"engineapp/middleware"
 	"engineapp/models"
+	"engineapp/services"
 	"log"
 	"net/http"
-	"strings"
-	"time"
-
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 )
 
 type GameHandler struct {
-	Repo *database.MongoRepository
+	Service services.GameService
 }
 
-func NewGameHandler(repo *database.MongoRepository) *GameHandler {
-	return &GameHandler{Repo: repo}
-}
-
-func GetIpAddress(r *http.Request) string {
-	ip := r.Header.Get("X-Forwarded-For")
-	if ip == "" {
-		ip = r.RemoteAddr
-	}
-	return ip
-}
-
-// extractUserId tries to parse JWT from Authorization header, fallback to X-User-ID
-func extractUserId(r *http.Request) string {
-	authHeader := r.Header.Get("Authorization")
-	if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		token, _, err := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
-		if err == nil {
-			if claims, ok := token.Claims.(jwt.MapClaims); ok {
-				if sub, ok := claims["sub"].(string); ok {
-					return sub
-				}
-			}
-		}
-	}
-	// Fallback to custom header if provided
-	return r.Header.Get("X-User-ID")
-}
-
-func mapGameToDto(game *models.Game) models.ChessGameDto {
-	if game == nil {
-		return models.ChessGameDto{}
-	}
-
-	var checkSide *string
-	var checkPos *string
-	if game.IsCheck() {
-		side := string(game.Turn())
-		checkSide = &side
-		checkPos = game.CheckPosition()
-	}
-
-	return models.ChessGameDto{
-		GameID:     game.ID(),
-		MovesCount: game.FullmoveNumber,
-		Date:       time.Now(),
-		Name:       string(game.FormatName()),
-		State: models.GameStateDto{
-			Turn:          string(game.Turn()),
-			Started:       game.Status() == models.Started,
-			Finished:      game.Status() == models.Finished,
-			CheckSide:     checkSide,
-			CheckPosition: checkPos,
-			LegalMoves:    strings.Join(game.LegalMoves(), ","),
-		},
-		GameFormat: models.GameFormatDto{
-			Value:              string(game.FormatName()),
-			WhiteRemainingTime: game.FormatMinutes() * 60,
-			BlackRemainingTime: game.FormatMinutes() * 60,
-			MoveIncrement:      game.FormatIncrement(),
-		},
-		Players: models.PlayersDto{
-			WhiteID: game.LightPlayer().ID,
-			BlackID: game.DarkPlayer().ID,
-		},
-		Board:   game.FEN(),
-		History: game.History(),
-	}
+func NewGameHandler(service services.GameService) *GameHandler {
+	return &GameHandler{Service: service}
 }
 
 // GetGame retrieves a game state by its ID.
@@ -103,21 +32,19 @@ func (h *GameHandler) GetGame(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "gameId is required", http.StatusBadRequest)
 		return
 	}
-	game, err := h.Repo.GetGame(r.Context(), gameID)
-	log.Printf("Game: %v", game)
+
+	dto, err := h.Service.GetGame(r.Context(), gameID)
 	if err != nil {
-		log.Printf("Failed to fetch game by Id: %s", gameID)
+		log.Printf("Failed to fetch game by Id: %s, error: %v", gameID, err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Failed to fetch game"))
 		return
 	}
 
-	if game == nil {
+	if dto == nil {
 		http.Error(w, "Game not found", http.StatusNotFound)
 		return
 	}
-
-	dto := mapGameToDto(game)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -145,74 +72,15 @@ func (h *GameHandler) RequestComputerGame(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	gameId := uuid.New().String()
+	userId := middleware.GetUserID(r.Context())
 
-	userId := extractUserId(r)
-	var lightPlayerId, darkPlayerId string
-	if userId != "" {
-		lightPlayerId = userId
-	} else {
-		lightPlayerId = uuid.New().String()
-	}
-	darkPlayerId = "bot"
-
-	color := strings.ToLower(gameRequest.Color)
-	if color == "random" {
-		if time.Now().UnixNano()%2 == 0 {
-			color = "black"
-		} else {
-			color = "white"
-		}
-	}
-
-	if color == "black" {
-		lightPlayerId, darkPlayerId = darkPlayerId, lightPlayerId
-	}
-
-	game := database.GameState{
-		ID:         gameId,
-		Status:     "started",
-		CreatedAt:  time.Now(),
-		StartedAt:  time.Now(),
-		Mode:       string(models.ModeBot),
-		Format: database.GameFormat{
-			Name:            gameRequest.Format,
-			Minutes:         gameRequest.BaseTime,
-			MoveIncrementMs: gameRequest.Increment,
-		},
-		Players: database.GamePlayers{
-			LightPlayerId: lightPlayerId,
-			DarkPlayerId:  darkPlayerId,
-		},
-	}
-
-	if err := h.Repo.CreateGameState(r.Context(), &game); err != nil {
+	dto, err := h.Service.RequestComputerGame(r.Context(), userId, gameRequest)
+	if err != nil {
 		log.Printf("Failed to create game state: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Failed to create game"))
 		return
 	}
-
-	startFen := gameRequest.StartingFEN
-	if startFen == "" {
-		startFen = models.FEN_START_POSITION
-	}
-
-	history := database.GameHistory{
-		ID:         uuid.New().String(),
-		GameID:     gameId,
-		OccurredAt: time.Now(),
-		Sequence:   0,
-		BoardFen:   startFen,
-	}
-
-	// create history so it can be loaded
-	if err := h.Repo.CreateGameHistory(r.Context(), &history); err != nil {
-		log.Printf("Failed to create game history: %v", err)
-	}
-
-	loadedGame, _ := h.Repo.GetGame(r.Context(), gameId)
-	dto := mapGameToDto(loadedGame)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -240,32 +108,10 @@ func (h *GameHandler) RequestOnlineGame(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userId := extractUserId(r)
-	if userId == "" {
-		userId = uuid.New().String()
-	}
+	userId := middleware.GetUserID(r.Context())
 
-	queueItem := database.MatchingQueue{
-		ID:              uuid.New().String(),
-		PlayerID:        userId,
-		ProfileID:       "guest",
-		GameFormat:      gameRequest.Format,
-		BaseTime:        gameRequest.BaseTime,
-		Increment:       gameRequest.Increment,
-		ColorPreference: gameRequest.ColorPreference,
-		Rated:           gameRequest.Rated,
-		Culture:         gameRequest.Culture,
-		OpponentID:      gameRequest.OpponentID,
-		Region:          "unknown", // ToDo: resolve from request
-		RD:              0,
-		Ping:            0,
-		Ranking:         1200,
-		CreatedAt:       time.Now(),
-		ExpiresAt:       time.Now().Add(5 * time.Minute),
-		Status:          "open",
-	}
-
-	if err := h.Repo.CreateMatchingQueue(r.Context(), &queueItem); err != nil {
+	queueItem, err := h.Service.RequestOnlineGame(r.Context(), userId, gameRequest)
+	if err != nil {
 		log.Printf("Failed to create matching queue: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Failed to create matching queue"))
@@ -274,5 +120,7 @@ func (h *GameHandler) RequestOnlineGame(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(queueItem)
+	if err := json.NewEncoder(w).Encode(queueItem); err != nil {
+		log.Printf("Failed to encode game JSON: %v", err)
+	}
 }

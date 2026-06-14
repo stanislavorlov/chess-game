@@ -12,6 +12,8 @@ import (
 	"engineapp/handlers/health"
 	"engineapp/handlers/ws"
 	"engineapp/kafka"
+	"engineapp/middleware"
+	"engineapp/services"
 
 	httpSwagger "github.com/swaggo/http-swagger"
 
@@ -78,7 +80,8 @@ func main() {
 	}
 
 	moveHandler := handlers.NewMoveHandler(mongoRepo, kafkaProducer)
-	gameHandler := handlers.NewGameHandler(mongoRepo)
+	gameService := services.NewGameService(mongoRepo)
+	gameHandler := handlers.NewGameHandler(gameService)
 
 	// health check
 	http.HandleFunc("GET /health/live", health.Check)
@@ -92,8 +95,8 @@ func main() {
 
 	// api
 	http.HandleFunc("GET /api/game/board/{gameId}", gameHandler.GetGame)
-	http.HandleFunc("POST /api/game/computer", gameHandler.RequestComputerGame)
-	http.HandleFunc("POST /api/game/online", gameHandler.RequestOnlineGame)
+	http.HandleFunc("POST /api/game/computer", middleware.RequestInfoMiddleware(gameHandler.RequestComputerGame))
+	http.HandleFunc("POST /api/game/online", middleware.RequestInfoMiddleware(gameHandler.RequestOnlineGame))
 
 	log.Printf("Engine HTTP Service running on port %s", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {

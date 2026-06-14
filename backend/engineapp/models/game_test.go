@@ -18,8 +18,8 @@ func TestGame_MovePiece_Basic(t *testing.T) {
 
 	// Move e2 to e4
 	move := ws.GameRequest{
-		From: "e2",
-		To:   "e4",
+		From:  "e2",
+		To:    "e4",
 		Piece: ws.Piece{PieceType: "wP", Side: ws.Side{Value: "w"}},
 	}
 	result := game.MovePiece(move)
@@ -48,8 +48,8 @@ func TestGame_MovePiece_Castling(t *testing.T) {
 
 	// Castle kingside (e1 to g1)
 	move := ws.GameRequest{
-		From: "e1",
-		To:   "g1",
+		From:  "e1",
+		To:    "g1",
 		Piece: ws.Piece{PieceType: "wK", Side: ws.Side{Value: "w"}},
 	}
 	result := game.MovePiece(move)
@@ -89,10 +89,10 @@ func TestGame_IsCheckmate(t *testing.T) {
 	// Setup a simple back-rank mate
 	bitboards := Bitboards{
 		WhiteRooks: (uint64(1) << 56) | (uint64(1) << 48), // a8 and a7
-		BlackKings: (uint64(1) << 63), // h8
-		WhiteKings: (uint64(1) << 0),  // a1
+		BlackKings: (uint64(1) << 63),                     // h8
+		WhiteKings: (uint64(1) << 0),                      // a1
 	}
-	
+
 	game := LoadGame("mate-game", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bitboards, Black, []string{}, "", "-", "-", 0, 1)
 
 	if !game.IsCheck() {
@@ -145,8 +145,8 @@ func TestGame_MovePiece_Capture(t *testing.T) {
 
 	// White Rook captures Black Pawn on a8
 	move := ws.GameRequest{
-		From: "a1",
-		To:   "a8",
+		From:  "a1",
+		To:    "a8",
 		Piece: ws.Piece{PieceType: "wR", Side: ws.Side{Value: "w"}},
 	}
 	result := game.MovePiece(move)
@@ -174,8 +174,8 @@ func TestGame_MovePiece_EnPassant(t *testing.T) {
 	game := LoadGame("ep-game", Started, Bullet_1_0, "standard", NewAuthenticatedPlayer("p1"), NewAuthenticatedPlayer("p2"), bitboards, White, []string{"d7d5"}, "", "-", "d6", 0, 1)
 
 	move := ws.GameRequest{
-		From: "e5",
-		To:   "d6",
+		From:  "e5",
+		To:    "d6",
 		Piece: ws.Piece{PieceType: "wP", Side: ws.Side{Value: "w"}},
 	}
 	result := game.MovePiece(move)
@@ -200,8 +200,8 @@ func TestGame_MovePiece_BlackCastling(t *testing.T) {
 
 	// Black Queen-side castling (e8 to c8)
 	move := ws.GameRequest{
-		From: "e8",
-		To:   "c8",
+		From:  "e8",
+		To:    "c8",
 		Piece: ws.Piece{PieceType: "bK", Side: ws.Side{Value: "b"}},
 	}
 	result := game.MovePiece(move)
@@ -281,5 +281,27 @@ func TestGame_AllCastling(t *testing.T) {
 	resB := gB.MovePiece(ws.GameRequest{From: "e8", To: "g8", Piece: ws.Piece{PieceType: "bK", Side: ws.Side{Value: "b"}}})
 	if !resB.IsCastling || resB.CastlingRookFrom != "h8" {
 		t.Errorf("Black kingside failed")
+	}
+}
+
+func TestNewComputerGame(t *testing.T) {
+	format := NewGameFormat("bullet", 1, 0)
+
+	// Test human as White
+	g := NewComputerGame("user-456", "white", format)
+	if g.LightPlayer().ID != "user-456" {
+		t.Errorf("Expected LightPlayer ID user-456, got %s", g.LightPlayer().ID)
+	}
+	if g.DarkPlayer().ID != "bot" {
+		t.Errorf("Expected DarkPlayer ID bot, got %s", g.DarkPlayer().ID)
+	}
+
+	// Test human as Black
+	g2 := NewComputerGame("user-456", "black", format)
+	if g2.LightPlayer().ID != "bot" {
+		t.Errorf("Expected LightPlayer ID bot, got %s", g2.LightPlayer().ID)
+	}
+	if g2.DarkPlayer().ID != "user-456" {
+		t.Errorf("Expected DarkPlayer ID user-456, got %s", g2.DarkPlayer().ID)
 	}
 }

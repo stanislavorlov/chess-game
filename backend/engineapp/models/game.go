@@ -4,6 +4,9 @@ import (
 	"engineapp/handlers/ws"
 	"fmt"
 	"strings"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type Game struct {
@@ -95,6 +98,46 @@ func LoadGame(game_id string, status GameStatus, format GameFormat, mode GameMod
 		EnPassantTarget: enPassantTarget,
 		HalfmoveClock:   halfmoveClock,
 		FullmoveNumber:  fullmoveNumber,
+	}
+}
+
+func NewComputerGame(userId string, colorOption string, format GameFormat) *Game {
+	var gameId = uuid.New().String()
+	var humanPlayer *Player
+	if userId != "" {
+		humanPlayer = NewAuthenticatedPlayer(userId)
+	} else {
+		humanPlayer = NewGuestPlayer()
+	}
+	botPlayer := NewBotPlayer()
+
+	color := strings.ToLower(colorOption)
+	if color == "random" {
+		if time.Now().UnixNano()%2 == 0 {
+			color = "black"
+		} else {
+			color = "white"
+		}
+	}
+
+	var light, dark *Player
+	if color == "black" {
+		light, dark = botPlayer, humanPlayer
+	} else {
+		light, dark = humanPlayer, botPlayer
+	}
+
+	return &Game{
+		game_id:         gameId,
+		status:          Started,
+		format:          format,
+		mode:            ModeBot,
+		lightPlayer:     light,
+		darkPlayer:      dark,
+		turn:            White,
+		CastlingRights:  "KQkq",
+		EnPassantTarget: "-",
+		FullmoveNumber:  1,
 	}
 }
 

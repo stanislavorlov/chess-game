@@ -25,6 +25,14 @@
                 <input matInput type="password" formControlName="password" placeholder="Enter new password">
             </mat-form-field>
 
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Confirm Password</mat-label>
+                <input matInput type="password" formControlName="confirmPassword" placeholder="Confirm new password">
+                <mat-error *ngIf="profileForm.get('confirmPassword')?.hasError('passwordMismatch')">
+                    Passwords do not match
+                </mat-error>
+            </mat-form-field>
+
             <div class="m-t-24">
                 <button mat-flat-button color="primary" type="submit" [disabled]="isLoading">
                     {{ isLoading ? 'Saving...' : 'Save Changes' }}

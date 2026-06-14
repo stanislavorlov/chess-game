@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -41,20 +41,61 @@ export class ProfileComponent implements OnInit {
       firstName: [''],
       lastName: [''],
       country: [''],
-      password: ['']
-    });
+      password: [''],
+      confirmPassword: ['']
+    }, { validators: this.passwordMatchValidator });
+  }
+
+  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const password = control.get('password')?.value;
+    const confirmPassword = control.get('confirmPassword')?.value;
+
+    if (password || confirmPassword) {
+      if (password !== confirmPassword) {
+        control.get('confirmPassword')?.setErrors({ passwordMismatch: true });
+        return { passwordMismatch: true };
+      } else {
+        const confirmErrors = control.get('confirmPassword')?.errors;
+        if (confirmErrors) {
+          delete confirmErrors['passwordMismatch'];
+          if (Object.keys(confirmErrors).length === 0) {
+            control.get('confirmPassword')?.setErrors(null);
+          } else {
+            control.get('confirmPassword')?.setErrors(confirmErrors);
+          }
+        }
+      }
+    }
+    return null;
   }
 
   ngOnInit(): void {
-    const user = this.authService.currentUserValue;
-    if (user) {
+    // Optionally load from local storage first for quick display
+    const cachedUser = this.authService.currentUserValue;
+    if (cachedUser) {
       this.profileForm.patchValue({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        country: user.country || ''
+        firstName: cachedUser.firstName || '',
+        lastName: cachedUser.lastName || '',
+        country: cachedUser.country || ''
       });
-      this.cdr.markForCheck();
     }
+
+    // Fetch the latest profile data from the backend
+    this.authService.getCurrentPlayer()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (user) => {
+          if (user) {
+            this.profileForm.patchValue({
+              firstName: user.firstName || '',
+              lastName: user.lastName || '',
+              country: user.country || ''
+            });
+            this.cdr.markForCheck();
+          }
+        },
+        error: (err) => console.error('Failed to fetch player profile', err)
+      });
   }
 
   onSubmit(): void {
@@ -78,7 +119,7 @@ export class ProfileComponent implements OnInit {
         .subscribe({
           next: (updatedUser) => {
             this.isLoading = false;
-            this.profileForm.patchValue({ password: '' }); // Clear password field
+            this.profileForm.patchValue({ password: '', confirmPassword: '' }); // Clear password fields
             this.snackBar.open('Profile updated successfully!', 'Close', { duration: 3000 });
             this.cdr.markForCheck();
           },

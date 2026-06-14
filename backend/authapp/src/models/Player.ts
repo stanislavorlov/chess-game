@@ -9,5 +9,7 @@ export interface IPlayer extends Document {
     lastName: string | null;
     country: string;
     createdAt: Date;
+    resetPasswordToken?: string;
+    resetPasswordExpire?: Date;
     matchPassword(enteredPassword: string): Promise<boolean>;
 }

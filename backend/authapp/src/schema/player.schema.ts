@@ -41,7 +41,9 @@ const PlayerSchema: Schema<IPlayer> = new Schema({
     lastName: {
         type: String,
         required: false,
-    }
+    },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
 });
 
 // Method to verify passwords

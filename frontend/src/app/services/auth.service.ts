@@ -101,6 +101,27 @@ export class AuthService {
     );
   }
 
+  getCurrentPlayer(): Observable<User> {
+    return this.http.get<User>('/api/auth/currentPlayer').pipe(
+      tap(user => {
+        if (user) {
+          const current = this.currentUserValue;
+          const mergedUser = { ...current, ...user };
+          localStorage.setItem('currentUser', JSON.stringify(mergedUser));
+          this.currentUserSubject.next(mergedUser);
+        }
+      })
+    );
+  }
+
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post('/api/auth/forgotPassword', { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<any> {
+    return this.http.post(`/api/auth/resetPassword/${token}`, { password });
+  }
+
   setGuestMode() {
     this.logout(false);
     localStorage.setItem('isGuest', 'true');

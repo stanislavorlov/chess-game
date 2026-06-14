@@ -22,4 +22,11 @@ export class PlayerRepository {
     async update(id: string, playerData: Partial<IPlayer>): Promise<IPlayer | null> {
         return Player.findByIdAndUpdate(id, playerData, { new: true }).select('-passwordHash');
     }
+
+    async findByResetToken(token: string): Promise<IPlayer | null> {
+        return Player.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpire: { $gt: Date.now() }
+        });
+    }
 }

@@ -168,4 +168,82 @@ router.post('/updatePlayer', authMiddleware, async (req: AuthRequest, res: Respo
     }
 });
 
+/**
+ * @swagger
+ * /api/auth/forgotPassword:
+ *   post:
+ *     summary: Forgot Password
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Email sent
+ *       404:
+ *         description: There is no user with that email
+ *       500:
+ *         description: Email could not be sent
+ */
+// @desc    Forgot Password
+// @route   POST /api/auth/forgotPassword
+// @access  Public
+router.post('/forgotPassword', async (req: Request, res: Response): Promise<void> => {
+    try {
+        await authController.forgotPassword(req, res);
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+/**
+ * @swagger
+ * /api/auth/resetPassword/{token}:
+ *   post:
+ *     summary: Reset Password
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       400:
+ *         description: Invalid token
+ *       500:
+ *         description: Server error
+ */
+// @desc    Reset Password
+// @route   POST /api/auth/resetPassword/:token
+// @access  Public
+router.post('/resetPassword/:token', async (req: Request, res: Response): Promise<void> => {
+    try {
+        await authController.resetPassword(req, res);
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 export default router;

@@ -28,8 +28,10 @@ func HandleChessEvent(message []byte) {
 			resultStr, _ := event["result"].(string)
 			lightPlayer, _ := event["light_player"].(string)
 			darkPlayer, _ := event["dark_player"].(string)
+			gameID, _ := event["game_id"].(string)
 
 			stat := models.Stat{
+				GameID:      gameID,
 				Type:        "game_result",
 				Value:       1.0,
 				Timestamp:   primitive.NewDateTimeFromTime(time.Now()),

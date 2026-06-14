@@ -6,9 +6,11 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 
 interface Match {
   id: string;
+  game_id?: string;
   type: string;
   value: number;
   light_player: string;
@@ -47,15 +49,16 @@ export class StatsComponent implements OnInit {
   lossRate = 0;
   drawRate = 0;
 
-  displayedColumns: string[] = ['index', 'opponent', 'outcome', 'date'];
+  displayedColumns: string[] = ['index', 'opponent', 'outcome', 'date', 'actions'];
 
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
 
   constructor(
     private http: HttpClient,
     private authService: AuthService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.isGuest = this.authService.isGuest;
@@ -69,7 +72,7 @@ export class StatsComponent implements OnInit {
   loadStats(playerId: string): void {
     this.isLoading = true;
     this.cdr.markForCheck();
-    
+
     this.http.get<Match[]>(`/api/stats/player/${playerId}`)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -85,6 +88,10 @@ export class StatsComponent implements OnInit {
           this.cdr.markForCheck();
         }
       });
+  }
+
+  viewGame(gameId: string) {
+    this.router.navigate(['/play/replay', gameId]);
   }
 
   calculateStats(): void {

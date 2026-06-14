@@ -77,6 +77,7 @@ func GetStats(c *gin.Context) {
 
 type PlayerMatchDto struct {
 	ID          primitive.ObjectID `json:"id"`
+	GameID      string             `json:"game_id"`
 	Type        string             `json:"type"`
 	Value       float64            `json:"value"`
 	LightPlayer string             `json:"light_player"`
@@ -137,6 +138,7 @@ func GetPlayerStats(c *gin.Context) {
 
 		matches = append(matches, PlayerMatchDto{
 			ID:          s.ID,
+			GameID:      s.GameID,
 			Type:        s.Type,
 			Value:       s.Value,
 			LightPlayer: s.LightPlayer,
@@ -153,4 +155,3 @@ func GetPlayerStats(c *gin.Context) {
 
 	c.JSON(http.StatusOK, matches)
 }
-

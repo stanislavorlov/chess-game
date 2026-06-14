@@ -178,7 +178,22 @@ export class ChessGame {
     public rollbackMove() {
         const lastMove = this.history.pop();
         if (lastMove instanceof SquareMovement) {
+            // Revert the main piece
             this._board.revertMove(lastMove.from, lastMove.to, lastMove.capturedPiece);
+
+            // Revert rook if this was a castling move (King moving 2 squares horizontally)
+            if (lastMove.piece.type === PieceType.King && Math.abs(lastMove.to.charCodeAt(0) - lastMove.from.charCodeAt(0)) === 2) {
+                const isKingside = (lastMove.to.charCodeAt(0) - lastMove.from.charCodeAt(0)) > 0;
+                const rank = lastMove.from.charAt(1);
+                
+                // The rook was moved to `rookToStr` from `rookFromStr`
+                const rookFromStr = (isKingside ? 'h' : 'a') + rank;
+                const rookToStr = (isKingside ? 'f' : 'd') + rank;
+                
+                // We use revertMove to move it back
+                this._board.revertMove(rookFromStr, rookToStr, null);
+            }
+
             this.switchTurn();
         }
     }

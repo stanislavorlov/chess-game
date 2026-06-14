@@ -1,0 +1,104 @@
+<div class="game-container">
+  <div *ngIf="isLoading" style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+
+  <div class="game-layout" *ngIf="!isLoading && game">
+    <!-- Left Column: The Chessboard and Players -->
+    <div class="chessboard-column" style="pointer-events: none;">
+      <!-- Top Player -->
+      <div class="player-indicator-row opponent">
+        <div class="player-meta">
+          <div class="player-avatar">👤</div>
+          <div class="player-details">
+            <span class="player-name">{{ getTopPlayer().label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chessboard Grid -->
+      <div class="board-wrapper" [class.flipped]="isFlipped">
+        <div class="board-grid">
+          <!-- Squares and Pieces -->
+          <ng-container *ngFor="let item of game.board.cells">
+            <div class="square" [class.dark]="item.color === 'B'"
+              [class.light]="item.color === 'W'" [style.grid-row]="getGridRow(item.rank)"
+              [style.grid-column]="getGridColumn(item.file)">
+
+              <img *ngIf="getPiece(item) as piece" src="./assets/images/pieces/{{piece.abbreviation}}.png"
+                class="piece-img">
+
+              <!-- Embedded Coordinates -->
+              <span class="coordinate rank-coord" *ngIf="shouldShowRankCoordinate(item)">
+                {{ item.rank }}
+              </span>
+              <span class="coordinate file-coord" *ngIf="shouldShowFileCoordinate(item)">
+                {{ item.file }}
+              </span>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- Bottom Player -->
+      <div class="player-indicator-row player">
+        <div class="player-meta">
+          <div class="player-avatar">👤</div>
+          <div class="player-details">
+            <span class="player-name">{{ getBottomPlayer().label }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Panel with Controls & Game History -->
+    <div class="control-panel-column">
+      <div class="panel-card" style="height: 100%; display: flex; flex-direction: column;">
+        <div class="active-game-panel" style="display: flex; flex-direction: column; flex: 1;">
+          <div class="game-meta-header" style="margin-bottom: 16px;">
+            <span class="game-title-text" style="font-size: 20px;">Replay: {{ gameName }}</span>
+          </div>
+
+          <h3 class="panel-subtitle">Moves History</h3>
+          <div class="history-scroll-container" style="flex: 1; max-height: 400px; overflow-y: auto; background: #f9f9f9; padding: 12px; border-radius: 8px;">
+            <div class="history-grid" style="display: flex; flex-direction: column; gap: 4px;">
+              <div *ngIf="allMoves.length === 0" style="text-align: center; color: #888; font-style: italic; margin-top: 20px;">
+                No moves recorded.
+              </div>
+              <ng-container *ngFor="let move of allMoves; let i = index">
+                <div *ngIf="i % 2 === 0" class="history-row-pair" style="display: flex; gap: 12px; padding: 4px 8px; border-radius: 4px;">
+                  <span class="move-index" style="color: #888; width: 30px;">{{ (i / 2) + 1 }}.</span>
+                  
+                  <span class="move-value white-move" 
+                        style="flex: 1; padding: 2px 8px; border-radius: 4px; font-family: monospace;"
+                        [style.background]="i === currentMoveIndex ? 'rgba(25,118,210,0.1)' : 'transparent'"
+                        [style.fontWeight]="i === currentMoveIndex ? '700' : 'normal'">
+                    {{ move }}
+                  </span>
+                  
+                  <span class="move-value black-move" *ngIf="allMoves[i + 1]"
+                        style="flex: 1; padding: 2px 8px; border-radius: 4px; font-family: monospace;"
+                        [style.background]="(i + 1) === currentMoveIndex ? 'rgba(25,118,210,0.1)' : 'transparent'"
+                        [style.fontWeight]="(i + 1) === currentMoveIndex ? '700' : 'normal'">
+                    {{ allMoves[i + 1] }}
+                  </span>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 24px;">
+            <button mat-stroked-button color="primary" style="flex: 1; border-radius: 8px; padding: 24px 0;"
+              (click)="prevMove()" [disabled]="currentMoveIndex < 0">
+              <span style="font-size: 20px;">⏪</span>
+            </button>
+            <button mat-flat-button color="primary" style="flex: 1; border-radius: 8px; padding: 24px 0;"
+              (click)="nextMove()" [disabled]="currentMoveIndex >= allMoves.length - 1">
+              <span style="font-size: 20px;">⏩</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

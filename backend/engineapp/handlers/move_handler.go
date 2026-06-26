@@ -11,20 +11,36 @@ import (
 
 	"engineapp/database"
 	"engineapp/handlers/ws"
-	"engineapp/kafka"
 	"engineapp/models"
-	"engineapp/services"
 )
+
+// GameRepository defines the database operations required by the MoveHandler.
+type GameRepository interface {
+	GetGame(ctx context.Context, gameID string) (*models.Game, error)
+	CreateGameHistory(ctx context.Context, history *database.GameHistory) error
+	UpdateGameStatus(ctx context.Context, gameID string, status models.GameStatus, result string, reason string) error
+}
+
+// EventProducer defines the message broker operations required by the MoveHandler.
+type EventProducer interface {
+	Produce(topic string, key []byte, value []byte) error
+}
+
+// AIPredictor defines the AI move prediction operations required by the MoveHandler.
+type AIPredictor interface {
+	PredictMove(ctx context.Context, gameID string, bitboards models.Bitboards, isWhiteTurn bool) (string, error)
+}
 
 // MoveHandler manages move-related requests and their dependencies.
 type MoveHandler struct {
-	Repo     *database.MongoRepository
-	Producer *kafka.Producer
+	Repo      GameRepository
+	Producer  EventProducer
+	Predictor AIPredictor
 }
 
 // NewMoveHandler creates a new MoveHandler instance.
-func NewMoveHandler(repo *database.MongoRepository, producer *kafka.Producer) *MoveHandler {
-	return &MoveHandler{Repo: repo, Producer: producer}
+func NewMoveHandler(repo GameRepository, producer EventProducer, predictor AIPredictor) *MoveHandler {
+	return &MoveHandler{Repo: repo, Producer: producer, Predictor: predictor}
 }
 
 // HandleMove processes an incoming move message for a given game
@@ -215,7 +231,7 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 		if isBotTurn {
 			// 2. Asynchronously request AI prediction and publish it
 			go func() {
-				predictedMoveUci, err := services.PredictMove(context.Background(), gameID, game.Bitboards, isWhiteTurn)
+				predictedMoveUci, err := h.Predictor.PredictMove(context.Background(), gameID, game.Bitboards, isWhiteTurn)
 				if err != nil {
 					log.Printf("Failed to get predicted move: %v", err)
 					return
@@ -252,7 +268,7 @@ func (h *MoveHandler) HandleConnect(gameID string, send func([]byte), broadcast 
 		if isBotTurn {
 			log.Printf("[Game: %s] Triggering initial AI prediction on connect", gameID)
 			go func() {
-				predictedMoveUci, err := services.PredictMove(context.Background(), gameID, game.Bitboards, isWhiteTurn)
+				predictedMoveUci, err := h.Predictor.PredictMove(context.Background(), gameID, game.Bitboards, isWhiteTurn)
 				if err != nil {
 					log.Printf("Failed to get initial predicted move: %v", err)
 					return

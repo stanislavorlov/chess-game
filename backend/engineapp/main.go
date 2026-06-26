@@ -13,6 +13,7 @@ import (
 	"engineapp/handlers/ws"
 	"engineapp/kafka"
 	"engineapp/middleware"
+	"engineapp/models"
 	"engineapp/services"
 
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -25,6 +26,14 @@ import (
 // @description     This is the Chess Engine App service responsible for game logic and AI moves.
 // @host      localhost:8082
 // @BasePath  /
+
+// defaultPredictor wraps the services.PredictMove package-level function
+// to implement the handlers.AIPredictor interface.
+type defaultPredictor struct{}
+
+func (p *defaultPredictor) PredictMove(ctx context.Context, gameID string, bitboards models.Bitboards, isWhiteTurn bool) (string, error) {
+	return services.PredictMove(ctx, gameID, bitboards, isWhiteTurn)
+}
 
 func main() {
 	port := os.Getenv("ENGINEAPP_HTTP_PORT")
@@ -79,7 +88,7 @@ func main() {
 		defer kafkaProducer.Close()
 	}
 
-	moveHandler := handlers.NewMoveHandler(mongoRepo, kafkaProducer)
+	moveHandler := handlers.NewMoveHandler(mongoRepo, kafkaProducer, &defaultPredictor{})
 	gameService := services.NewGameService(mongoRepo)
 	gameHandler := handlers.NewGameHandler(gameService)
 

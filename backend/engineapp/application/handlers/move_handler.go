@@ -11,28 +11,19 @@ import (
 
 	"engineapp/infrastructure/database"
 	"engineapp/application/handlers/ws"
+	"engineapp/application/ports"
 	"engineapp/domain/models"
 )
-
-// EventProducer defines the message broker operations required by the MoveHandler.
-type EventProducer interface {
-	Produce(topic string, key []byte, value []byte) error
-}
-
-// AIPredictor defines the AI move prediction operations required by the MoveHandler.
-type AIPredictor interface {
-	PredictMove(ctx context.Context, gameID string, bitboards models.Bitboards, isWhiteTurn bool) (string, error)
-}
 
 // MoveHandler manages move-related requests and their dependencies.
 type MoveHandler struct {
 	Repo      database.GameRepository
-	Producer  EventProducer
-	Predictor AIPredictor
+	Producer  ports.EventProducer
+	Predictor ports.AIPredictor
 }
 
 // NewMoveHandler creates a new MoveHandler instance.
-func NewMoveHandler(repo database.GameRepository, producer EventProducer, predictor AIPredictor) *MoveHandler {
+func NewMoveHandler(repo database.GameRepository, producer ports.EventProducer, predictor ports.AIPredictor) *MoveHandler {
 	return &MoveHandler{Repo: repo, Producer: producer, Predictor: predictor}
 }
 

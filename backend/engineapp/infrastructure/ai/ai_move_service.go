@@ -1,4 +1,4 @@
-package services
+package ai
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 
-	"engineapp/models"
-	pb "engineapp/proto"
+	"engineapp/domain/models"
+	pb "engineapp/infrastructure/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

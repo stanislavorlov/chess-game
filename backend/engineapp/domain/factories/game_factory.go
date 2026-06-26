@@ -1,7 +1,7 @@
 package factories
 
 import (
-	"engineapp/models"
+	"engineapp/domain/models"
 	"errors"
 	"fmt"
 	"log"

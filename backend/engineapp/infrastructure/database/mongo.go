@@ -2,8 +2,8 @@ package database
 
 import (
 	"context"
-	"engineapp/factories"
-	"engineapp/models"
+	"engineapp/domain/factories"
+	"engineapp/domain/models"
 	"fmt"
 	"log"
 	"os"

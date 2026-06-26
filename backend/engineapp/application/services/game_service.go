@@ -2,8 +2,8 @@ package services
 
 import (
 	"context"
-	"engineapp/database"
-	"engineapp/models"
+	"engineapp/infrastructure/database"
+	"engineapp/domain/models"
 	"fmt"
 	"time"
 

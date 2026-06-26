@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"engineapp/database"
-	"engineapp/factories"
-	"engineapp/handlers/ws"
-	"engineapp/models"
+	"engineapp/infrastructure/database"
+	"engineapp/domain/factories"
+	"engineapp/application/handlers/ws"
+	"engineapp/domain/models"
 )
 
 // MockGameRepo implements GameRepository for testing

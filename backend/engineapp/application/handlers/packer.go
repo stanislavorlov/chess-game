@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"engineapp/models"
+	"engineapp/domain/models"
 )
 
 func PackGameState(game *models.Game) uint8 {

@@ -1,8 +1,8 @@
 package services
 
 import (
-	"engineapp/database"
-	"engineapp/models"
+	"engineapp/infrastructure/database"
+	"engineapp/domain/models"
 	"strings"
 	"time"
 )

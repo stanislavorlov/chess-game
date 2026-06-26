@@ -9,9 +9,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"engineapp/database"
-	"engineapp/handlers/ws"
-	"engineapp/models"
+	"engineapp/infrastructure/database"
+	"engineapp/application/handlers/ws"
+	"engineapp/domain/models"
 )
 
 // EventProducer defines the message broker operations required by the MoveHandler.

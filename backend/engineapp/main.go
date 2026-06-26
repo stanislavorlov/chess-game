@@ -6,15 +6,16 @@ import (
 	"net/http"
 	"os"
 
-	"engineapp/database"
+	"engineapp/infrastructure/database"
 	_ "engineapp/docs"
-	"engineapp/handlers"
-	"engineapp/handlers/health"
-	"engineapp/handlers/ws"
-	"engineapp/kafka"
-	"engineapp/middleware"
-	"engineapp/models"
-	"engineapp/services"
+	"engineapp/application/handlers"
+	"engineapp/application/handlers/health"
+	"engineapp/application/handlers/ws"
+	"engineapp/application/services"
+	"engineapp/domain/models"
+	"engineapp/infrastructure/ai"
+	"engineapp/infrastructure/kafka"
+	"engineapp/infrastructure/middleware"
 
 	httpSwagger "github.com/swaggo/http-swagger"
 
@@ -32,7 +33,7 @@ import (
 type defaultPredictor struct{}
 
 func (p *defaultPredictor) PredictMove(ctx context.Context, gameID string, bitboards models.Bitboards, isWhiteTurn bool) (string, error) {
-	return services.PredictMove(ctx, gameID, bitboards, isWhiteTurn)
+	return ai.PredictMove(ctx, gameID, bitboards, isWhiteTurn)
 }
 
 func main() {

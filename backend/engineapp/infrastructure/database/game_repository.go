@@ -2,7 +2,7 @@ package database
 
 import (
 	"context"
-	"engineapp/models"
+	"engineapp/domain/models"
 )
 
 // GameRepository defines the database operations required by the MoveHandler.

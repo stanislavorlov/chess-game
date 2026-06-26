@@ -1,7 +1,7 @@
 package models
 
 import (
-	"engineapp/handlers/ws"
+	"engineapp/application/handlers/ws"
 	"fmt"
 	"strings"
 	"time"

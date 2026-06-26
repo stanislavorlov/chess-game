@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
-	"engineapp/middleware"
-	"engineapp/models"
-	"engineapp/services"
+	"engineapp/infrastructure/middleware"
+	"engineapp/domain/models"
+	"engineapp/application/services"
 	"log"
 	"net/http"
 )

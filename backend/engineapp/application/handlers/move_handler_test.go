@@ -92,10 +92,10 @@ func TestHandleMove_ValidMove(t *testing.T) {
 	foundMoved := false
 	foundSynced := false
 	for _, b := range broadcasted {
-		if strings.Contains(b, ws.EventPieceMoved) {
+		if strings.Contains(b, models.EventPieceMoved) {
 			foundMoved = true
 		}
-		if strings.Contains(b, ws.EventSyncedState) {
+		if strings.Contains(b, models.EventSyncedState) {
 			foundSynced = true
 		}
 	}
@@ -128,7 +128,7 @@ func TestHandleMove_InvalidMove(t *testing.T) {
 
 	foundFailed := false
 	for _, s := range sent {
-		if strings.Contains(s, ws.EventPieceMoveFailed) {
+		if strings.Contains(s, models.EventPieceMoveFailed) {
 			foundFailed = true
 		}
 	}
@@ -154,7 +154,7 @@ func TestHandleMove_CaptureMove(t *testing.T) {
 
 	foundCapture := false
 	for _, b := range broadcasted {
-		if strings.Contains(b, ws.EventPieceCaptured) {
+		if strings.Contains(b, models.EventPieceCaptured) {
 			foundCapture = true
 		}
 	}
@@ -180,7 +180,7 @@ func TestHandleMove_Castling(t *testing.T) {
 
 	foundCastle := false
 	for _, b := range broadcasted {
-		if strings.Contains(b, ws.EventKingCastled) {
+		if strings.Contains(b, models.EventKingCastled) {
 			foundCastle = true
 		}
 	}
@@ -208,10 +208,10 @@ func TestHandleMove_Checkmate(t *testing.T) {
 	foundCheckmate := false
 	foundFinished := false
 	for _, b := range broadcasted {
-		if strings.Contains(b, ws.EventKingCheckmated) {
+		if strings.Contains(b, models.EventKingCheckmated) {
 			foundCheckmate = true
 		}
-		if strings.Contains(b, ws.EventGameFinished) {
+		if strings.Contains(b, models.EventGameFinished) {
 			foundFinished = true
 		}
 	}
@@ -227,8 +227,8 @@ func TestHandleMove_Checkmate(t *testing.T) {
 	}
 
 	// Should also produce Kafka event
-	if len(producer.produced) == 0 || !strings.Contains(producer.produced[0], "game_finished") {
-		t.Errorf("Expected game_finished kafka event")
+	if len(producer.produced) == 0 || !strings.Contains(producer.produced[0], "game-finished") {
+		t.Errorf("Expected game-finished kafka event")
 	}
 }
 

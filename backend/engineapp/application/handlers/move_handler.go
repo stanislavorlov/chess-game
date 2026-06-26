@@ -4,10 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"strings"
-	"time"
-
-	"github.com/google/uuid"
 
 	"engineapp/infrastructure/database"
 	"engineapp/application/handlers/ws"
@@ -43,168 +39,32 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 		return
 	}
 
-	movePieceResult := game.MovePiece(msg)
-	log.Printf("[Game: %s] Local move validation result for %s -> %s: %v (Castling: %v)", gameID, msg.From, msg.To, movePieceResult.Valid, movePieceResult.IsCastling)
+	pieceStr := msg.Piece.Side.Value + msg.Piece.PieceType
+	game.MovePiece(msg.From, msg.To, pieceStr)
 
-	if !movePieceResult.Valid {
-		log.Printf("[Game: %s] Warning: Move rejected by local validation logic.", gameID)
+	events, success := game.PopEvents()
 
-		failedEvent := ws.PieceMoveFailedEvent{
-			EventType: ws.EventPieceMoveFailed,
-			GameID:    gameID,
-			Reason:    movePieceResult.Error,
-			From:      msg.From,
-			To:        msg.To,
+	if success {
+		err = h.Repo.CreateGameHistory(context.Background(), &database.GameHistory{
+			GameID:  gameID,
+			SanMove: msg.From + msg.To,
+		})
+		if err != nil {
+			log.Printf("Failed to create game history: %v", err)
 		}
+	}
 
-		if responseBytes, err := json.Marshal(failedEvent); err == nil {
-			send(responseBytes)
+	for _, event := range events {
+		eventBytes, _ := json.Marshal(event)
+		if event.ShouldBroadcast() {
+			broadcast(eventBytes)
 		} else {
-			log.Printf("Error marshaling move response: %v", err)
-		}
-		return
-	}
-
-	// Save the move to history
-	historyEntry := database.GameHistory{
-		ID:         uuid.New().String(),
-		GameID:     gameID,
-		OccurredAt: time.Now(),
-		Sequence:   game.HistoryCount(),
-		BoardFen:   game.FEN(),
-		SanMove:    msg.From + msg.To,
-	}
-	if err := h.Repo.CreateGameHistory(context.Background(), &historyEntry); err != nil {
-		log.Printf("[Game: %s] Failed to save move to history: %v", gameID, err)
-	}
-
-	if movePieceResult.IsCastling {
-		castledEvent := ws.KingCastledEvent{
-			EventType:  ws.EventKingCastled,
-			GameID:     gameID,
-			Side:       string(game.Turn()), // This is the side that just moved (wait, no, game.Turn() was toggled)
-			KingFrom:   msg.From,
-			KingTo:     msg.To,
-			RookFrom:   string(movePieceResult.CastlingRookFrom),
-			RookTo:     string(movePieceResult.CastlingRookTo),
-			IsKingside: movePieceResult.IsKingside,
-		}
-		// The side in the event should be the side that DID the castling.
-		// Since MovePiece toggled the turn, we need the OPPOSITE side.
-		if game.Turn() == models.White {
-			castledEvent.Side = string(models.Black)
-		} else {
-			castledEvent.Side = string(models.White)
+			send(eventBytes)
 		}
 
-		if respBytes, err := json.Marshal(castledEvent); err == nil {
-			broadcast(respBytes)
-		}
-	} else if movePieceResult.IsCapture {
-		capturedEvent := ws.PieceCapturedEvent{
-			EventType: ws.EventPieceCaptured,
-			GameID:    gameID,
-			From:      msg.From,
-			To:        msg.To,
-			Captured:  movePieceResult.CapturedPiece,
-		}
-		if respBytes, err := json.Marshal(capturedEvent); err == nil {
-			broadcast(respBytes)
-		}
-	} else {
-		movedEvent := ws.PieceMovedEvent{
-			EventType: ws.EventPieceMoved,
-			GameID:    gameID,
-			From:      msg.From,
-			To:        msg.To,
-		}
-		if respBytes, err := json.Marshal(movedEvent); err == nil {
-			broadcast(respBytes)
-		}
-	}
-
-	syncedEvent := ws.SyncedStateEvent{
-		EventType:  ws.EventSyncedState,
-		GameID:     gameID,
-		Turn:       string(game.Turn()),
-		LegalMoves: strings.Join(game.LegalMoves(), ","),
-	}
-	resp1Bytes, _ := json.Marshal(syncedEvent)
-	broadcast(resp1Bytes)
-
-	if game.IsCheck() {
-		pos := game.CheckPosition()
-		if pos != nil {
-			checkEvent := ws.KingCheckedEvent{
-				EventType: ws.EventKingChecked,
-				GameID:    gameID,
-				Side:      string(game.Turn()),
-				Position:  *pos,
-			}
-			if respBytes, err := json.Marshal(checkEvent); err == nil {
-				broadcast(respBytes)
-			}
-		}
-	}
-
-	reason := ""
-	if game.IsCheckmate() {
-		game.FinishGame()
-		winner := game.LightPlayer().ID
-		if game.Turn() == models.White {
-			winner = game.DarkPlayer().ID
-		}
-		game.SetResult(winner)
-		reason = "checkmate"
-
-		pos := game.CheckPosition()
-		if pos != nil {
-			checkmatedEvent := ws.KingCheckmatedEvent{
-				EventType: ws.EventKingCheckmated,
-				GameID:    gameID,
-				Side:      string(game.Turn()),
-				Position:  *pos,
-			}
-			if respBytes, err := json.Marshal(checkmatedEvent); err == nil {
-				broadcast(respBytes)
-			}
-		}
-	} else if game.IsStalemate() {
-		game.FinishGame()
-		game.SetResult("")
-		reason = "stalemate"
-	} else if game.Status() == models.Aborted {
-		reason = "aborted"
-	}
-
-	if game.Status() == models.Finished || game.Status() == models.Aborted {
-		if err := h.Repo.UpdateGameStatus(context.Background(), gameID, game.Status(), game.Result(), reason); err != nil {
-			log.Printf("[Game: %s] Failed to update game status in repo: %v", gameID, err)
-		}
-
-		finishedEvent := ws.GameFinishedEvent{
-			EventType:    ws.EventGameFinished,
-			GameID:       gameID,
-			Result:       game.Result(),
-			FinishedDate: time.Now().Format(time.RFC3339),
-		}
-		if respBytes, err := json.Marshal(finishedEvent); err == nil {
-			broadcast(respBytes)
-		}
-
-		if h.Producer != nil {
-			kafkaEvent := map[string]interface{}{
-				"event_type":   "game_finished",
-				"game_id":      gameID,
-				"result":       game.Result(),
-				"light_player": game.LightPlayer().ID,
-				"dark_player":  game.DarkPlayer().ID,
-				"format":       game.FormatName(),
-				"reason":       reason,
-			}
-			if kb, err := json.Marshal(kafkaEvent); err == nil {
-				h.Producer.Produce("chess_events", nil, kb)
-			}
+		if event.EventName() == models.EventGameFinished {
+			h.Producer.Produce("games", []byte(gameID), eventBytes)
+			h.Repo.UpdateGameStatus(context.Background(), gameID, game.Status(), game.Result(), "Domain Event")
 		}
 	}
 
@@ -222,10 +82,10 @@ func (h *MoveHandler) HandleMove(gameID string, message []byte, send func([]byte
 				}
 
 				// Publish AI move prediction
-				resp2Bytes, _ := json.Marshal(ws.AIPredictedMove{
+				resp2Bytes, _ := json.Marshal(models.AIPredictedMove{
 					GameID:          gameID,
 					PredictedAiMove: predictedMoveUci,
-					EventType:       ws.EventAIPredictedMove,
+					EventType:       models.EventAIPredictedMove,
 				})
 				broadcast(resp2Bytes)
 			}()
@@ -258,10 +118,10 @@ func (h *MoveHandler) HandleConnect(gameID string, send func([]byte), broadcast 
 					return
 				}
 
-				respBytes, _ := json.Marshal(ws.AIPredictedMove{
+				respBytes, _ := json.Marshal(models.AIPredictedMove{
 					GameID:          gameID,
 					PredictedAiMove: predictedMoveUci,
-					EventType:       ws.EventAIPredictedMove,
+					EventType:       models.EventAIPredictedMove,
 				})
 				broadcast(respBytes)
 			}()

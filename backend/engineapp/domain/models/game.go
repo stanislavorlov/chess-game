@@ -1,7 +1,6 @@
 package models
 
 import (
-	"engineapp/application/handlers/ws"
 	"fmt"
 	"strings"
 	"time"
@@ -24,6 +23,8 @@ type Game struct {
 	EnPassantTarget string
 	HalfmoveClock   int
 	FullmoveNumber  int
+	uncommittedEvents []DomainEvent
+	successfulTurn    bool
 }
 
 type GameFormat struct {
@@ -71,16 +72,6 @@ const (
 	FEN_START_POSITION string     = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 )
 
-type MoveValidationResult struct {
-	Valid            bool
-	Error            string
-	IsCastling       bool
-	IsKingside       bool
-	CastlingRookFrom Square
-	CastlingRookTo   Square
-	IsCapture        bool
-	CapturedPiece    string
-}
 
 func LoadGame(game_id string, status GameStatus, format GameFormat, mode GameMode, lightPlayer *Player, darkPlayer *Player, bitboards Bitboards, turn Side, history []string, result string, castlingRights string, enPassantTarget string, halfmoveClock int, fullmoveNumber int) Game {
 	return Game{
@@ -139,6 +130,19 @@ func NewComputerGame(userId string, colorOption string, format GameFormat) *Game
 		EnPassantTarget: "-",
 		FullmoveNumber:  1,
 	}
+}
+
+
+func (g *Game) PopEvents() ([]DomainEvent, bool) {
+	events := g.uncommittedEvents
+	success := g.successfulTurn
+	g.uncommittedEvents = nil
+	g.successfulTurn = false
+	return events, success
+}
+
+func (g *Game) recordEvent(e DomainEvent) {
+	g.uncommittedEvents = append(g.uncommittedEvents, e)
 }
 
 func (g *Game) StartGame() {
@@ -245,58 +249,59 @@ func (g *Game) identifyPieceAt(idx int, bbMap map[PieceKey]uint64, occupancies m
 	return "", "", false
 }
 
-func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
+func (g *Game) MovePiece(from, to, pieceStr string) {
+	g.successfulTurn = false
+
 	if !g.IsActive() {
-		return MoveValidationResult{Valid: false, Error: "Game has not started"}
+		g.recordEvent(PieceMoveFailedEvent{EventType: EventPieceMoveFailed, GameID: g.game_id, Reason: "Game has not started", From: from, To: to})
+		return
 	}
 
 	bbMap, occupancies, _ := g.Bitboards.GenerateMaps()
-
 	utils := NewBitboardUtils()
 	sideToMove := g.turn
 
-	fromIdx, ok1 := ParseSquare(move.From)
-	toIdx, ok2 := ParseSquare(move.To)
+	fromIdx, ok1 := ParseSquare(from)
+	toIdx, ok2 := ParseSquare(to)
 	if !ok1 || !ok2 {
-		return MoveValidationResult{Valid: false, Error: "Invalid square"}
+		g.recordEvent(PieceMoveFailedEvent{EventType: EventPieceMoveFailed, GameID: g.game_id, Reason: "Invalid square", From: from, To: to})
+		return
 	}
 
 	fromSide, fromPieceType, pieceFound := g.identifyPieceAt(fromIdx, bbMap, occupancies)
 
-	// check move.From's piece exists
 	if !pieceFound {
-		return MoveValidationResult{Valid: false, Error: "No piece at the source square"}
+		g.recordEvent(PieceMoveFailedEvent{EventType: EventPieceMoveFailed, GameID: g.game_id, Reason: "No piece at the source square", From: from, To: to})
+		return
 	}
 
-	// check if turn is followed
 	if fromSide != sideToMove {
-		return MoveValidationResult{Valid: false, Error: "Not your turn"}
+		g.recordEvent(PieceMoveFailedEvent{EventType: EventPieceMoveFailed, GameID: g.game_id, Reason: "Not your turn", From: from, To: to})
+		return
 	}
 
-	// check move.Piece correspond to the board's piece
-	if pieceStr := move.Piece.PieceType; len(pieceStr) == 2 {
+	if len(pieceStr) == 2 {
 		expectedPiece := string(fromSide) + string(fromPieceType)
 		if pieceStr != expectedPiece {
-			return MoveValidationResult{Valid: false, Error: "Piece on board does not match the move's piece"}
+			g.recordEvent(PieceMoveFailedEvent{EventType: EventPieceMoveFailed, GameID: g.game_id, Reason: "Piece on board does not match the move's piece", From: from, To: to})
+			return
 		}
 	}
 
-	// check move.To's piece is empty or opponent's piece
 	if GetBit(occupancies[sideToMove], toIdx) {
-		return MoveValidationResult{Valid: false, Error: "Cannot capture your own piece"}
+		g.recordEvent(PieceMoveFailedEvent{EventType: EventPieceMoveFailed, GameID: g.game_id, Reason: "Cannot capture your own piece", From: from, To: to})
+		return
 	}
 
-	// check move is legal
-	if !ValidateMove(g.Bitboards, utils, sideToMove, move.From, move.To, "q", g.EnPassantTarget, g.CastlingRights) {
-		return MoveValidationResult{Valid: false, Error: "Illegal move"}
+	if !ValidateMove(g.Bitboards, utils, sideToMove, from, to, "q", g.EnPassantTarget, g.CastlingRights) {
+		g.recordEvent(PieceMoveFailedEvent{EventType: EventPieceMoveFailed, GameID: g.game_id, Reason: "Illegal move", From: from, To: to})
+		return
 	}
 
 	isCastling, isKingside, rookFrom, rookTo := g.detectCastling(fromPieceType, sideToMove, fromIdx, toIdx)
 
-	// Apply the move
 	g.Bitboards = CloneAndApplyMove(g.Bitboards, fromIdx, toIdx, "q")
 
-	// Update HalfmoveClock (reset on pawn move or capture)
 	enemySide := g.opponentTurn()
 	toMask := uint64(1) << toIdx
 	isCapture := (occupancies[enemySide] & toMask) != 0
@@ -307,9 +312,8 @@ func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 	}
 
 	g.updateGameMetadata(fromPieceType, sideToMove, fromIdx, toIdx)
-	g.history = append(g.history, move.From+move.To)
+	g.history = append(g.history, from+to)
 
-	// Toggle Turn
 	if g.turn == White {
 		g.turn = Black
 	} else {
@@ -323,14 +327,85 @@ func (g *Game) MovePiece(move ws.GameRequest) MoveValidationResult {
 		capturedPieceStr = string(enemySide) + string(capType)
 	}
 
-	return MoveValidationResult{
-		Valid:            true,
-		IsCastling:       isCastling,
-		IsKingside:       isKingside,
-		CastlingRookFrom: rookFrom,
-		CastlingRookTo:   rookTo,
-		IsCapture:        isCapture,
-		CapturedPiece:    capturedPieceStr,
+	g.successfulTurn = true
+
+	// Record Domain Events
+	if isCastling {
+		g.recordEvent(KingCastledEvent{
+			EventType:  EventKingCastled,
+			GameID:     g.game_id,
+			Side:       string(sideToMove),
+			KingFrom:   from,
+			KingTo:     to,
+			RookFrom:   string(rookFrom),
+			RookTo:     string(rookTo),
+			IsKingside: isKingside,
+		})
+	} else if isCapture {
+		g.recordEvent(PieceCapturedEvent{
+			EventType: EventPieceCaptured,
+			GameID:    g.game_id,
+			From:      from,
+			To:        to,
+			Captured:  capturedPieceStr,
+		})
+	} else {
+		g.recordEvent(PieceMovedEvent{
+			EventType: EventPieceMoved,
+			GameID:    g.game_id,
+			From:      from,
+			To:        to,
+		})
+	}
+
+	g.recordEvent(SyncedStateEvent{
+		EventType:  EventSyncedState,
+		GameID:     g.game_id,
+		Turn:       string(g.turn),
+		LegalMoves: strings.Join(g.LegalMoves(), ","),
+	})
+
+	if g.IsCheckmate() {
+		kingPos := g.CheckPosition()
+		pos := ""
+		if kingPos != nil {
+			pos = *kingPos
+		}
+		g.recordEvent(KingCheckmatedEvent{
+			EventType: EventKingCheckmated,
+			GameID:    g.game_id,
+			Side:      string(g.turn),
+			Position:  pos,
+		})
+		g.FinishGame()
+		g.SetResult(string(sideToMove) + " won by checkmate")
+		g.recordEvent(GameFinishedEvent{
+			EventType:    EventGameFinished,
+			GameID:       g.game_id,
+			Result:       g.result,
+			FinishedDate: time.Now().UTC().Format(time.RFC3339),
+		})
+	} else if g.IsStalemate() {
+		g.FinishGame()
+		g.SetResult("draw by stalemate")
+		g.recordEvent(GameFinishedEvent{
+			EventType:    EventGameFinished,
+			GameID:       g.game_id,
+			Result:       g.result,
+			FinishedDate: time.Now().UTC().Format(time.RFC3339),
+		})
+	} else if g.IsCheck() {
+		kingPos := g.CheckPosition()
+		pos := ""
+		if kingPos != nil {
+			pos = *kingPos
+		}
+		g.recordEvent(KingCheckedEvent{
+			EventType: EventKingChecked,
+			GameID:    g.game_id,
+			Side:      string(g.turn),
+			Position:  pos,
+		})
 	}
 }
 

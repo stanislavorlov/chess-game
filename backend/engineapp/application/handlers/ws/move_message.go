@@ -1,16 +1,6 @@
 package ws
 
-const (
-	EventAIPredictedMove = "ai-predicted-move"
-	EventSyncedState     = "synced-state"
-	EventPieceMoveFailed = "piece-move-failed"
-	EventKingChecked     = "king-checked"
-	EventGameFinished    = "game-finished"
-	EventKingCastled     = "king-castled"
-	EventPieceMoved      = "piece-moved"
-	EventPieceCaptured   = "piece-captured"
-	EventKingCheckmated  = "king-checkmated"
-)
+
 
 type Side struct {
 	Value string `json:"_value"`
@@ -37,11 +27,7 @@ type GameState struct {
 	IsDraw      bool `json:"is_draw"`
 }
 
-type AIPredictedMove struct {
-	GameID          string `json:"game_id"`
-	PredictedAiMove string `json:"predicted_ai_move"`
-	EventType       string `json:"event_type"`
-}
+
 
 type GameUpdate struct {
 	EventType string         `json:"event_type"`
@@ -54,64 +40,4 @@ type GameUpdateData struct {
 	State    uint8  `json:"state"`
 }
 
-type SyncedStateEvent struct {
-	EventType  string `json:"event_type"`
-	GameID     string `json:"game_id"`
-	Turn       string `json:"turn"`
-	LegalMoves string `json:"legal_moves"`
-}
 
-type PieceMoveFailedEvent struct {
-	EventType string `json:"event_type"`
-	GameID    string `json:"game_id"`
-	Reason    string `json:"reason"`
-	From      string `json:"from_"`
-	To        string `json:"to"`
-}
-
-type KingCheckedEvent struct {
-	EventType string `json:"event_type"`
-	GameID    string `json:"game_id"`
-	Side      string `json:"side"`
-	Position  string `json:"position"`
-}
-
-type GameFinishedEvent struct {
-	EventType    string `json:"event_type"`
-	GameID       string `json:"game_id"`
-	Result       string `json:"result"`
-	FinishedDate string `json:"finished_date"`
-}
-
-type KingCastledEvent struct {
-	EventType  string `json:"event_type"`
-	GameID     string `json:"game_id"`
-	Side       string `json:"side"`
-	KingFrom   string `json:"king_from"`
-	KingTo     string `json:"king_to"`
-	RookFrom   string `json:"rook_from"`
-	RookTo     string `json:"rook_to"`
-	IsKingside bool   `json:"is_kingside"`
-}
-
-type PieceMovedEvent struct {
-	EventType string `json:"event_type"`
-	GameID    string `json:"game_id"`
-	From      string `json:"from"`
-	To        string `json:"to"`
-}
-
-type PieceCapturedEvent struct {
-	EventType string `json:"event_type"`
-	GameID    string `json:"game_id"`
-	From      string `json:"from"`
-	To        string `json:"to"`
-	Captured  string `json:"captured"`
-}
-
-type KingCheckmatedEvent struct {
-	EventType string `json:"event_type"`
-	GameID    string `json:"game_id"`
-	Side      string `json:"side"`
-	Position  string `json:"position"`
-}

@@ -14,13 +14,6 @@ import (
 	"engineapp/models"
 )
 
-// GameRepository defines the database operations required by the MoveHandler.
-type GameRepository interface {
-	GetGame(ctx context.Context, gameID string) (*models.Game, error)
-	CreateGameHistory(ctx context.Context, history *database.GameHistory) error
-	UpdateGameStatus(ctx context.Context, gameID string, status models.GameStatus, result string, reason string) error
-}
-
 // EventProducer defines the message broker operations required by the MoveHandler.
 type EventProducer interface {
 	Produce(topic string, key []byte, value []byte) error
@@ -33,13 +26,13 @@ type AIPredictor interface {
 
 // MoveHandler manages move-related requests and their dependencies.
 type MoveHandler struct {
-	Repo      GameRepository
+	Repo      database.GameRepository
 	Producer  EventProducer
 	Predictor AIPredictor
 }
 
 // NewMoveHandler creates a new MoveHandler instance.
-func NewMoveHandler(repo GameRepository, producer EventProducer, predictor AIPredictor) *MoveHandler {
+func NewMoveHandler(repo database.GameRepository, producer EventProducer, predictor AIPredictor) *MoveHandler {
 	return &MoveHandler{Repo: repo, Producer: producer, Predictor: predictor}
 }
 
